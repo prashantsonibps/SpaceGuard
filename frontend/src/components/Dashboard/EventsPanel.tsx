@@ -139,7 +139,7 @@ export function EventsPanel() {
   const highCount = conjunctionEvents.filter((e) => e.riskLevel === 'HIGH').length
 
   return (
-    <GlassCard className="absolute right-4 top-16 bottom-16 w-72 flex flex-col z-40">
+    <GlassCard className="absolute right-4 top-16 bottom-4 w-72 flex flex-col z-40">
       {/* Header */}
       <div className="px-3 py-2.5 border-b border-white/8 flex items-center justify-between shrink-0">
         <div>

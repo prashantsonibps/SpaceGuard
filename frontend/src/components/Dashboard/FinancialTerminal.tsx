@@ -147,7 +147,7 @@ function CollapsedBar({ onExpand, lines }: { onExpand: () => void; lines: string
             text-white/40 border border-white/10 hover:border-white/25 hover:text-white/60
             transition-colors"
         >
-          EXPAND ↑
+          EXPAND ↗
         </button>
       </div>
     </GlassCard>
@@ -164,7 +164,7 @@ function ExpandedOverlay({ onClose, lines }: { onClose: () => void; lines: strin
 
   return (
     <motion.div
-      className="fixed inset-0 z-50 bg-[#020817]/95 backdrop-blur-sm flex flex-col"
+      className="fixed inset-8 z-50 bg-[#020817]/95 backdrop-blur-sm flex flex-col rounded-lg"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 20 }}
@@ -183,7 +183,7 @@ function ExpandedOverlay({ onClose, lines }: { onClose: () => void; lines: strin
           className="text-[10px] font-mono text-white/35 border border-white/10 px-2.5 py-1 rounded
             hover:text-white/60 hover:border-white/25 transition-colors tracking-widest"
         >
-          COLLAPSE ↓
+          COLLAPSE ↙
         </button>
       </div>
 
