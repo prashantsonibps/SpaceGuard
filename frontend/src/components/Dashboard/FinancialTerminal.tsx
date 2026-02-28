@@ -108,7 +108,7 @@ function ExposureBar({ label, value, max, risk }: { label: string; value: number
 // ── Collapsed strip (always visible) ─────────────────────────────────────────
 function CollapsedBar({ onExpand, lines }: { onExpand: () => void; lines: string[] }) {
   return (
-    <GlassCard className="absolute bottom-4 left-4 right-[19rem] z-40">
+    <GlassCard className="absolute bottom-4 left-4 right-[20rem] z-40">
       <div className="px-3 py-2 flex items-center justify-between gap-4">
         {/* Key metrics */}
         <div className="flex items-center gap-5 font-mono text-[10px] min-w-0">
