@@ -13,7 +13,7 @@ const GlobeScene = dynamic(
 
 export default function HomePage() {
   return (
-    <div className="relative w-screen h-screen overflow-hidden bg-[#020817]">
+    <div className="relative w-screen h-screen overflow-hidden bg-black">
       {/* Full-screen globe */}
       <div className="absolute inset-0">
         <GlobeScene />
