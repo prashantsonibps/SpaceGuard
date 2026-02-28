@@ -104,27 +104,41 @@ users/
 
 ---
 
+## FRONTEND SPRINT — Demo-Data Mode
+
+> **Active sprint (2026-02-28):** Ship a stunning, judge-ready frontend using static demo data.
+> No Firebase, no Cloud Functions, no LLM calls. The globe, panels, and financial terminal all
+> use data in `frontend/src/data/`. Run with `cd frontend && npm install && npm run dev`.
+>
+> **Stack:** Next.js 14 (App Router) · React Three Fiber · Tailwind CSS · Framer Motion
+> **Entry point:** `frontend/src/app/page.tsx` → full-screen 3D globe + glassmorphism overlay panels
+
 ## Task Board
 
-### BACKLOG
+### ACTIVE (frontend sprint)
 
 | ID | Task | Agent | Status | Notes |
 |----|------|-------|--------|-------|
-| T-01 | Scaffold Next.js app with Tailwind | Builder | `pending` | |
+| T-01 | Scaffold Next.js app + configs + data + ui components | Builder | `done` | `frontend/` created with all foundation files |
+| T-08 | Build 3D Earth visualizer (R3F + Drei + Bloom) | Builder | `done` | `Globe/` components: Earth, SatelliteMarkers, ConjunctionAlerts |
+| T-09 | Build financial terminal + events panel (Next.js) | Builder | `done` | `Dashboard/` components: TopBar, EventsPanel, FinancialTerminal |
+
+### BACKLOG (backend — deferred, not for demo sprint)
+
+<!--
 | T-02 | Set up Firebase project + Firestore + Auth | Builder | `pending` | Use Firebase Admin SDK |
 | T-03 | Write `tle_fetcher.py` — pull CelesTrak TLEs | Builder | `pending` | Store in Firestore `satellites/` |
 | T-04 | Write `conjunction_calculator.py` — Skyfield math | Builder | `pending` | Output: distance_km, probability, TCA |
 | T-05 | Write Firebase Cloud Function to run T-04 on schedule | Builder | `pending` | Trigger: Pub/Sub every 15 min |
 | T-06 | Set up LLM agent with Mistral + tool-calling | Builder | `pending` | Tools: read_conjunction, execute_hedge |
 | T-07 | Integrate W&B Weave for agent audit logging | Builder | `pending` | Log prompt → reasoning → action |
-| T-08 | Build 3D Earth visualizer (Three.js / CesiumJS) | Builder | `pending` | Driven by Firestore `onSnapshot` |
-| T-09 | Build financial terminal panel (Next.js) | Builder | `pending` | Live updates from `conjunction_events` |
 | T-10 | Firebase Auth — login page + role-based guards | Builder | `pending` | |
 | T-11 | Write unit tests for orbital math | Validator | `pending` | Depends on T-04 |
 | T-12 | Firestore security rules | Validator | `pending` | Depends on T-02 |
 | T-13 | End-to-end test: TLE fetch → risk flag → hedge | Validator | `pending` | Depends on T-03 – T-07 |
 | T-14 | API documentation | Scribe | `pending` | Depends on T-05, T-06 |
 | T-15 | Hackathon demo script | Scribe | `pending` | CFO persona walkthrough |
+-->
 
 ---
 
