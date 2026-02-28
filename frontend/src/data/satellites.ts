@@ -12,7 +12,7 @@ export interface Satellite {
 }
 
 export const satellites: Satellite[] = [
-  // ISS
+  // ISS — brightest dot, slightly larger
   {
     id: 'ISS',
     name: 'ISS (ZARYA)',
@@ -20,11 +20,11 @@ export const satellites: Satellite[] = [
     altitudeKm: 408,
     inclinationDeg: 51.6,
     raanDeg: 0,
-    color: '#38bdf8',
+    color: '#f1f5f9',
     size: 1.8,
   },
 
-  // Starlink cluster
+  // Starlink cluster — dim white
   {
     id: 'SL-1492',
     name: 'Starlink-1492',
@@ -32,7 +32,7 @@ export const satellites: Satellite[] = [
     altitudeKm: 550,
     inclinationDeg: 53,
     raanDeg: 45,
-    color: '#818cf8',
+    color: '#94a3b8',
   },
   {
     id: 'SL-1834',
@@ -41,7 +41,7 @@ export const satellites: Satellite[] = [
     altitudeKm: 550,
     inclinationDeg: 53,
     raanDeg: 90,
-    color: '#818cf8',
+    color: '#94a3b8',
   },
   {
     id: 'SL-2102',
@@ -50,7 +50,7 @@ export const satellites: Satellite[] = [
     altitudeKm: 550,
     inclinationDeg: 53,
     raanDeg: 135,
-    color: '#818cf8',
+    color: '#94a3b8',
   },
   {
     id: 'SL-2891',
@@ -59,7 +59,7 @@ export const satellites: Satellite[] = [
     altitudeKm: 550,
     inclinationDeg: 53,
     raanDeg: 180,
-    color: '#818cf8',
+    color: '#94a3b8',
   },
   {
     id: 'SL-3001',
@@ -68,7 +68,7 @@ export const satellites: Satellite[] = [
     altitudeKm: 550,
     inclinationDeg: 53,
     raanDeg: 225,
-    color: '#818cf8',
+    color: '#94a3b8',
   },
   {
     id: 'SL-3247',
@@ -77,7 +77,7 @@ export const satellites: Satellite[] = [
     altitudeKm: 550,
     inclinationDeg: 53,
     raanDeg: 270,
-    color: '#818cf8',
+    color: '#94a3b8',
   },
   {
     id: 'SL-3412',
@@ -86,7 +86,7 @@ export const satellites: Satellite[] = [
     altitudeKm: 550,
     inclinationDeg: 53,
     raanDeg: 315,
-    color: '#818cf8',
+    color: '#94a3b8',
   },
   {
     id: 'SL-0341',
@@ -95,10 +95,10 @@ export const satellites: Satellite[] = [
     altitudeKm: 550,
     inclinationDeg: 70,
     raanDeg: 60,
-    color: '#818cf8',
+    color: '#94a3b8',
   },
 
-  // GPS satellites
+  // GPS — light grey, higher orbit
   {
     id: 'GPS-IIF-3',
     name: 'GPS IIF-3',
@@ -106,7 +106,7 @@ export const satellites: Satellite[] = [
     altitudeKm: 20200,
     inclinationDeg: 55,
     raanDeg: 30,
-    color: '#34d399',
+    color: '#cbd5e1',
   },
   {
     id: 'GPS-IIF-7',
@@ -115,7 +115,7 @@ export const satellites: Satellite[] = [
     altitudeKm: 20200,
     inclinationDeg: 55,
     raanDeg: 150,
-    color: '#34d399',
+    color: '#cbd5e1',
   },
   {
     id: 'GPS-IIR-14',
@@ -124,10 +124,10 @@ export const satellites: Satellite[] = [
     altitudeKm: 20200,
     inclinationDeg: 55,
     raanDeg: 270,
-    color: '#34d399',
+    color: '#cbd5e1',
   },
 
-  // Debris
+  // Debris — muted grey (no color, they're junk)
   {
     id: 'DEB-2847',
     name: 'Debris-2847',
@@ -135,7 +135,7 @@ export const satellites: Satellite[] = [
     altitudeKm: 410,
     inclinationDeg: 49.2,
     raanDeg: 5,
-    color: '#f43f5e',
+    color: '#64748b',
     size: 0.7,
   },
   {
@@ -145,7 +145,7 @@ export const satellites: Satellite[] = [
     altitudeKm: 19800,
     inclinationDeg: 56.1,
     raanDeg: 33,
-    color: '#f43f5e',
+    color: '#64748b',
     size: 0.7,
   },
   {
@@ -155,7 +155,7 @@ export const satellites: Satellite[] = [
     altitudeKm: 520,
     inclinationDeg: 74,
     raanDeg: 210,
-    color: '#fb923c',
+    color: '#64748b',
     size: 0.7,
   },
   {
@@ -165,11 +165,11 @@ export const satellites: Satellite[] = [
     altitudeKm: 540,
     inclinationDeg: 69.5,
     raanDeg: 65,
-    color: '#fb923c',
+    color: '#64748b',
     size: 0.7,
   },
 
-  // Weather satellites
+  // Weather — near-white
   {
     id: 'NOAA-19',
     name: 'NOAA-19',
@@ -177,7 +177,7 @@ export const satellites: Satellite[] = [
     altitudeKm: 870,
     inclinationDeg: 98.7,
     raanDeg: 120,
-    color: '#a78bfa',
+    color: '#e2e8f0',
   },
   {
     id: 'METOP-B',
@@ -186,6 +186,6 @@ export const satellites: Satellite[] = [
     altitudeKm: 817,
     inclinationDeg: 98.7,
     raanDeg: 300,
-    color: '#a78bfa',
+    color: '#e2e8f0',
   },
 ]

@@ -1,10 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { GlassCard } from '@/components/ui/GlassCard'
-import { RiskBadge } from '@/components/ui/RiskBadge'
-import { conjunctionEvents, type ConjunctionEvent } from '@/data/conjunctions'
+import { conjunctionEvents, type ConjunctionEvent, type RiskLevel } from '@/data/conjunctions'
 
 function formatCountdown(hours: number): string {
   const h = Math.floor(hours)
@@ -12,70 +11,118 @@ function formatCountdown(hours: number): string {
   return `${h}h ${m.toString().padStart(2, '0')}m`
 }
 
+const riskBorder: Record<RiskLevel, string> = {
+  CRITICAL: 'border-l-red-500',
+  HIGH: 'border-l-orange-500',
+  MEDIUM: 'border-l-yellow-500',
+  LOW: 'border-l-green-600',
+}
+
+const riskText: Record<RiskLevel, string> = {
+  CRITICAL: 'text-red-400',
+  HIGH: 'text-orange-400',
+  MEDIUM: 'text-yellow-400',
+  LOW: 'text-green-500',
+}
+
+const riskDot: Record<RiskLevel, string> = {
+  CRITICAL: 'bg-red-400',
+  HIGH: 'bg-orange-400',
+  MEDIUM: 'bg-yellow-400',
+  LOW: 'bg-green-500',
+}
+
 function EventRow({ event, index }: { event: ConjunctionEvent; index: number }) {
   const [expanded, setExpanded] = useState(false)
 
   return (
     <motion.div
-      className="border-b border-white/5 last:border-0"
-      initial={{ opacity: 0, x: 20 }}
+      className={`border-l-2 ${riskBorder[event.riskLevel]} border-b border-white/5 last:border-b-0`}
+      initial={{ opacity: 0, x: 12 }}
       animate={{ opacity: 1, x: 0 }}
-      transition={{ delay: index * 0.1 + 0.3 }}
+      transition={{ delay: index * 0.08 + 0.2 }}
     >
       <button
-        className="w-full text-left p-3 hover:bg-white/5 transition-colors"
+        className="w-full text-left px-3 py-2.5 hover:bg-white/[0.03] transition-colors"
         onClick={() => setExpanded(!expanded)}
       >
-        <div className="flex items-start justify-between gap-2 mb-1">
-          <RiskBadge level={event.riskLevel} />
-          <span className="text-xs font-mono text-white/40">
-            TCA {formatCountdown(event.tcaHours)}
+        {/* Row 1: risk label + event id + countdown */}
+        <div className="flex items-center justify-between mb-1.5">
+          <div className="flex items-center gap-1.5">
+            <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${riskDot[event.riskLevel]} ${event.riskLevel === 'CRITICAL' ? 'animate-pulse' : ''}`} />
+            <span className={`text-[10px] font-mono font-bold tracking-widest ${riskText[event.riskLevel]}`}>
+              {event.riskLevel}
+            </span>
+            <span className="text-[10px] font-mono text-white/25 ml-1">{event.id}</span>
+          </div>
+          <span className="text-[10px] font-mono text-white/35 tabular-nums">
+            T−{formatCountdown(event.tcaHours)}
           </span>
         </div>
-        <div className="text-xs font-mono mt-1">
-          <div className="text-white/80 truncate">{event.satAName}</div>
-          <div className="text-white/40 text-[10px]">× {event.satBName}</div>
+
+        {/* Row 2: satellite names */}
+        <div className="font-mono text-[11px] text-white/75 leading-snug mb-2">
+          {event.satAName}
+          <span className="text-white/30 mx-1.5">×</span>
+          <span className="text-white/45">{event.satBName}</span>
         </div>
-        <div className="flex items-center gap-3 mt-2 text-[10px] font-mono text-white/50">
-          <span>{event.distanceKm} km</span>
-          <span>·</span>
-          <span>{event.probabilityPct}% prob</span>
-          <span>·</span>
-          <span>${event.portfolioExposureM}M</span>
+
+        {/* Row 3: key stats */}
+        <div className="grid grid-cols-3 gap-1 text-[10px] font-mono">
+          <div>
+            <div className="text-white/25 uppercase tracking-wider text-[9px]">Dist</div>
+            <div className="text-white/60 tabular-nums">{event.distanceKm} km</div>
+          </div>
+          <div>
+            <div className="text-white/25 uppercase tracking-wider text-[9px]">Prob</div>
+            <div className={`tabular-nums ${riskText[event.riskLevel]}`}>{event.probabilityPct}%</div>
+          </div>
+          <div>
+            <div className="text-white/25 uppercase tracking-wider text-[9px]">Exposure</div>
+            <div className="text-white/60 tabular-nums">${event.portfolioExposureM}M</div>
+          </div>
         </div>
       </button>
 
-      {expanded && (
-        <motion.div
-          className="px-3 pb-3"
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: 'auto' }}
-          transition={{ duration: 0.2 }}
-        >
-          <div className="text-[10px] font-mono text-white/40 mb-2">
-            Relative velocity: {event.relativeVelocityKms} km/s
-          </div>
-          <div className="text-[10px] font-mono text-sky-400/80 bg-sky-400/5 rounded px-2 py-1.5 mb-2">
-            {event.hedgeStrategy}
-          </div>
-          <div className="flex gap-2">
-            <button
-              className="flex-1 py-1 rounded text-[10px] font-mono
-              bg-sky-500/20 text-sky-400 border border-sky-500/30
-              hover:bg-sky-500/30 transition-colors"
-            >
-              EXECUTE HEDGE
-            </button>
-            <button
-              className="flex-1 py-1 rounded text-[10px] font-mono
-              bg-white/5 text-white/50 border border-white/10
-              hover:bg-white/10 transition-colors"
-            >
-              DETAILS
-            </button>
-          </div>
-        </motion.div>
-      )}
+      <AnimatePresence>
+        {expanded && (
+          <motion.div
+            className="px-3 pb-3 ml-0"
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.18 }}
+          >
+            {/* Velocity */}
+            <div className="text-[10px] font-mono text-white/30 mb-2">
+              rel. velocity <span className="text-white/50">{event.relativeVelocityKms} km/s</span>
+            </div>
+
+            {/* Hedge strategy */}
+            <div className="text-[10px] font-mono text-white/50 bg-white/[0.04] border border-white/10 rounded px-2 py-1.5 mb-2 leading-relaxed">
+              {event.hedgeStrategy}
+            </div>
+
+            {/* Actions */}
+            <div className="flex gap-2">
+              <button
+                className={`flex-1 py-1 rounded text-[10px] font-mono border transition-colors
+                  ${riskText[event.riskLevel]} border-current/30 bg-current/5 hover:bg-current/10`}
+                style={{ borderColor: 'currentColor' }}
+              >
+                EXECUTE HEDGE
+              </button>
+              <button
+                className="px-3 py-1 rounded text-[10px] font-mono
+                bg-white/5 text-white/35 border border-white/10
+                hover:bg-white/10 transition-colors"
+              >
+                DETAILS
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   )
 }
@@ -88,25 +135,34 @@ export function EventsPanel() {
     return () => clearInterval(timer)
   }, [])
 
-  const alertCount = conjunctionEvents.filter(
-    (e) => e.riskLevel === 'CRITICAL' || e.riskLevel === 'HIGH',
-  ).length
+  const criticalCount = conjunctionEvents.filter((e) => e.riskLevel === 'CRITICAL').length
+  const highCount = conjunctionEvents.filter((e) => e.riskLevel === 'HIGH').length
 
   return (
-    <GlassCard className="absolute right-4 top-16 bottom-36 w-72 flex flex-col z-40">
+    <GlassCard className="absolute right-4 top-16 bottom-16 w-72 flex flex-col z-40">
       {/* Header */}
-      <div className="p-3 border-b border-white/10 flex items-center justify-between">
+      <div className="px-3 py-2.5 border-b border-white/8 flex items-center justify-between shrink-0">
         <div>
-          <h2 className="font-orbitron text-xs font-bold text-white tracking-widest">
+          <h2 className="font-orbitron text-[11px] font-bold text-white/80 tracking-[0.2em]">
             CONJUNCTION EVENTS
           </h2>
-          <p className="text-[10px] font-mono text-white/40 mt-0.5">
+          <p className="text-[9px] font-mono text-white/30 mt-0.5 tabular-nums">
             {time.toISOString().slice(11, 19)} UTC
           </p>
         </div>
-        <div className="flex items-center gap-1">
-          <div className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse" />
-          <span className="text-[10px] font-mono text-red-400">{alertCount} ALERTS</span>
+        <div className="text-right">
+          {criticalCount > 0 && (
+            <div className="flex items-center gap-1 justify-end">
+              <div className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse" />
+              <span className="text-[9px] font-mono text-red-400">{criticalCount} CRITICAL</span>
+            </div>
+          )}
+          {highCount > 0 && (
+            <div className="flex items-center gap-1 justify-end mt-0.5">
+              <div className="w-1.5 h-1.5 rounded-full bg-orange-400" />
+              <span className="text-[9px] font-mono text-orange-400">{highCount} HIGH</span>
+            </div>
+          )}
         </div>
       </div>
 
@@ -118,9 +174,9 @@ export function EventsPanel() {
       </div>
 
       {/* Footer */}
-      <div className="p-2 border-t border-white/10">
-        <div className="text-[10px] font-mono text-white/30 text-center">
-          Next update in 47s · Powered by SpaceGuard AI
+      <div className="px-3 py-1.5 border-t border-white/8 shrink-0">
+        <div className="text-[9px] font-mono text-white/20 text-center tracking-wider">
+          NEXT SCAN IN 47s · SPACEGUARD AI
         </div>
       </div>
     </GlassCard>

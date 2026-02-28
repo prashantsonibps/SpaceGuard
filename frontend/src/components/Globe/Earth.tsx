@@ -19,7 +19,7 @@ class EarthErrorBoundary extends Component<
   }
 }
 
-// ── Fallback: procedural blue sphere (no texture needed) ───────────────────
+// ── Fallback: procedural dark grey sphere (no texture needed) ──────────────
 function EarthFallback() {
   const ref = useRef<THREE.Mesh>(null)
   useFrame((_, delta) => {
@@ -27,7 +27,7 @@ function EarthFallback() {
   })
   return (
     <Sphere ref={ref} args={[1, 64, 64]}>
-      <meshStandardMaterial color="#1a5276" roughness={0.7} metalness={0.1} />
+      <meshStandardMaterial color="#1e2535" roughness={0.9} metalness={0} />
     </Sphere>
   )
 }
@@ -45,13 +45,19 @@ function EarthSphere() {
   })
 
   return (
+    // color="#555566" multiplied against the texture desaturates it toward grey
     <Sphere ref={ref} args={[1, 64, 64]}>
-      <meshStandardMaterial map={texture} roughness={0.8} metalness={0.1} />
+      <meshStandardMaterial
+        map={texture}
+        color="#4a4a5a"
+        roughness={0.95}
+        metalness={0}
+      />
     </Sphere>
   )
 }
 
-// ── Public export: texture + atmosphere glow ───────────────────────────────
+// ── Public export: texture + wireframe grid + subtle atmosphere ────────────
 export function Earth() {
   return (
     <group>
@@ -61,24 +67,23 @@ export function Earth() {
         </Suspense>
       </EarthErrorBoundary>
 
-      {/* Atmosphere glow — inner */}
-      <Sphere args={[1.02, 32, 32]}>
+      {/* Wireframe grid overlay — gives the ASCII/terminal aesthetic */}
+      <Sphere args={[1.001, 24, 12]}>
         <meshBasicMaterial
-          color="#38bdf8"
+          wireframe
+          color="#ffffff"
           transparent
           opacity={0.06}
-          side={THREE.BackSide}
-          blending={THREE.AdditiveBlending}
           depthWrite={false}
         />
       </Sphere>
 
-      {/* Atmosphere glow — outer ring */}
-      <Sphere args={[1.08, 32, 32]}>
+      {/* Atmosphere glow — subtle white rim */}
+      <Sphere args={[1.03, 32, 32]}>
         <meshBasicMaterial
-          color="#1e40af"
+          color="#ffffff"
           transparent
-          opacity={0.03}
+          opacity={0.035}
           side={THREE.BackSide}
           blending={THREE.AdditiveBlending}
           depthWrite={false}
