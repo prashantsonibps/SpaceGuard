@@ -5,6 +5,8 @@ from tle_fetcher import get_all_satellite_data
 from launch_fetcher import fetch_upcoming_launches
 from conjunction_calculator import calculate_conjunctions
 from db import initialize_db, save_satellites, save_launches, save_conjunctions
+from agent import analyze_risk_and_hedge
+import firebase_admin
 
 def run_pipeline():
     print("========================================")
@@ -62,9 +64,34 @@ def run_pipeline():
         
     save_conjunctions(db, conjunctions)
     
+    print("\n--- 4. LLM Risk Assessment Agent ---")
+    # Evaluate critical conjunctions with Mistral
+    critical_events = [c for c in conjunctions if c['risk_level'] in ['HIGH', 'CRITICAL']]
+    for event in critical_events:
+        print(f"\nAnalyzing Event for: {event['asset_name']}")
+        try:
+            decision = analyze_risk_and_hedge(event)
+            print(f"  Decision: {decision.get('action')}")
+            print(f"  Reasoning: {decision.get('reasoning')}")
+            print(f"  Amount: ${decision.get('hedge_amount_usd', 0)}")
+            
+            # Save the agent's decision back to Firestore
+            event_id = f"{event['asset_id']}_{event['secondary_id']}_{event['time_of_closest_approach'][:10]}"
+            db.collection('conjunction_events').document(event_id).update({
+                'agent_assessment': decision.get('reasoning'),
+                'hedge_status': decision.get('action'),
+                'hedge_amount_usd': decision.get('hedge_amount_usd', 0),
+                'hedge_type': decision.get('hedge_type', 'none')
+            })
+            print("  ✅ Saved decision to database")
+            
+        except Exception as e:
+            print(f"  ❌ Agent analysis failed: {e}")
+            print("  (Make sure your MISTRAL_API_KEY is set in .env)")
+    
     print("\n--- Pipeline Summary ---")
-    print(f"High-Risk Conjunctions: {len([c for c in conjunctions if c['risk_level'] in ['HIGH', 'CRITICAL']])}")
-    print(f"Delayed Launches: {len(high_risk_launches)}")
+    print(f"High-Risk Conjunctions Evaluated: {len(critical_events)}")
+    print(f"Delayed Launches Updated: {len(high_risk_launches)}")
     print("✅ Pipeline run completed successfully!")
 
 if __name__ == "__main__":
