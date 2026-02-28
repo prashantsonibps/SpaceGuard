@@ -59,8 +59,6 @@ export function ConjunctionAlerts() {
       // Place alert marker at midpoint
       if (ref.mesh) {
         ref.mesh.position.set(mx, my, mz)
-        const pulse = 1 + Math.sin(elapsed * 4 + i) * 0.5
-        ref.mesh.scale.setScalar(pulse)
       }
 
       // Update line positions

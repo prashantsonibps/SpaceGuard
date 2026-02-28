@@ -8,9 +8,7 @@ import { satellites } from '@/data/satellites'
 import { positionOnSphere } from '@/lib/orbital'
 
 const VIZ_SCALE = 0.98
-
-// Satellites involved in conjunction events — rendered slightly brighter
-const FLAGGED_IDS = new Set(['ISS', 'SL-1492', 'DEB-2847', 'COSMOS-2251', 'GPS-IIF-3', 'SL-2891', 'NOAA-19', 'DEB-901', 'SL-0341-DEB'])
+const DOT_SIZE = 0.004
 
 interface SatRef {
   mesh: THREE.Mesh | null
@@ -27,12 +25,13 @@ export function SatelliteMarkers() {
       const ref = satRefs.current[i]
       if (!ref.mesh) return
 
+      const phase0 = ((sat.phase0Deg ?? 0) * Math.PI) / 180
       const [x, y, z] = positionOnSphere(
         sat.altitudeKm,
         sat.inclinationDeg,
         sat.raanDeg,
         elapsed,
-        0,
+        phase0,
         VIZ_SCALE,
       )
       ref.mesh.position.set(x, y, z)
@@ -41,26 +40,17 @@ export function SatelliteMarkers() {
 
   return (
     <group>
-      {satellites.map((sat, i) => {
-        const size = 0.006 * (sat.size ?? 1)
-        // All satellites render as neutral white/grey dots — color lives on conjunction markers only
-        const dotColor = sat.type === 'debris' ? '#475569' : '#c8d3e0'
-        return (
-          <Sphere
-            key={`sat-${sat.id}`}
-            ref={(mesh) => {
-              satRefs.current[i].mesh = mesh
-            }}
-            args={[size, 6, 6]}
-          >
-            <meshStandardMaterial
-              color={dotColor}
-              emissive={dotColor}
-              emissiveIntensity={FLAGGED_IDS.has(sat.id) ? 1.2 : 0.6}
-            />
-          </Sphere>
-        )
-      })}
+      {satellites.map((sat, i) => (
+        <Sphere
+          key={`sat-${sat.id}`}
+          ref={(mesh) => {
+            satRefs.current[i].mesh = mesh
+          }}
+          args={[DOT_SIZE, 5, 5]}
+        >
+          <meshBasicMaterial color="#d0d8e4" />
+        </Sphere>
+      ))}
     </group>
   )
 }

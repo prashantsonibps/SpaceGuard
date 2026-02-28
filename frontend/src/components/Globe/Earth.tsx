@@ -27,7 +27,7 @@ function EarthFallback() {
   })
   return (
     <Sphere ref={ref} args={[1, 64, 64]}>
-      <meshStandardMaterial color="#1e2535" roughness={0.9} metalness={0} />
+      <meshStandardMaterial color="#888888" roughness={0.9} metalness={0} />
     </Sphere>
   )
 }
@@ -45,11 +45,10 @@ function EarthSphere() {
   })
 
   return (
-    // color="#555566" multiplied against the texture desaturates it toward grey
     <Sphere ref={ref} args={[1, 64, 64]}>
       <meshStandardMaterial
         map={texture}
-        color="#4a4a5a"
+        color="#aaaaaa"
         roughness={0.95}
         metalness={0}
       />
