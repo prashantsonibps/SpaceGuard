@@ -1,6 +1,6 @@
 'use client'
 
-import { Suspense, useRef, useMemo } from 'react'
+import { Suspense, useRef, useMemo, useState } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
 import { Bloom, EffectComposer } from '@react-three/postprocessing'
@@ -79,13 +79,25 @@ function SceneContent() {
 }
 
 export function GlobeScene() {
+  const [visible, setVisible] = useState(false)
+
   return (
-    <Canvas
-      camera={{ position: [3.2, 2.0, 0.4], fov: 50 }}
-      style={{ background: '#000000' }}
-      gl={{ antialias: true, alpha: false }}
+    <div
+      style={{
+        width: '100%',
+        height: '100%',
+        opacity: visible ? 1 : 0,
+        transition: 'opacity 0.8s ease-in',
+      }}
     >
-      <SceneContent />
-    </Canvas>
+      <Canvas
+        camera={{ position: [3.2, 2.0, 0.4], fov: 50 }}
+        style={{ background: '#000000' }}
+        gl={{ antialias: true, alpha: false }}
+        onCreated={() => setVisible(true)}
+      >
+        <SceneContent />
+      </Canvas>
+    </div>
   )
 }
