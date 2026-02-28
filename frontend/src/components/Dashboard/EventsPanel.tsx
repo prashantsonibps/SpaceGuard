@@ -12,10 +12,10 @@ function formatCountdown(hours: number): string {
 }
 
 const riskBorder: Record<RiskLevel, string> = {
-  CRITICAL: 'border-l-red-500',
-  HIGH: 'border-l-orange-500',
-  MEDIUM: 'border-l-yellow-500',
-  LOW: 'border-l-green-600',
+  CRITICAL: 'border-l-red-500/40',
+  HIGH: 'border-l-orange-500/40',
+  MEDIUM: 'border-l-yellow-500/40',
+  LOW: 'border-l-green-600/40',
 }
 
 const riskText: Record<RiskLevel, string> = {
@@ -128,9 +128,10 @@ function EventRow({ event, index }: { event: ConjunctionEvent; index: number }) 
 }
 
 export function EventsPanel() {
-  const [time, setTime] = useState(new Date())
+  const [time, setTime] = useState<Date | null>(null)
 
   useEffect(() => {
+    setTime(new Date())
     const timer = setInterval(() => setTime(new Date()), 1000)
     return () => clearInterval(timer)
   }, [])
@@ -141,13 +142,13 @@ export function EventsPanel() {
   return (
     <GlassCard className="absolute right-4 top-16 bottom-4 w-72 flex flex-col z-40">
       {/* Header */}
-      <div className="px-3 py-2.5 border-b border-white/8 flex items-center justify-between shrink-0">
+      <div className="px-3 py-2.5 border-b border-white/10 flex items-center justify-between shrink-0">
         <div>
           <h2 className="font-orbitron text-[11px] font-bold text-white/80 tracking-[0.2em]">
             CONJUNCTION EVENTS
           </h2>
           <p className="text-[9px] font-mono text-white/30 mt-0.5 tabular-nums">
-            {time.toISOString().slice(11, 19)} UTC
+            {time ? time.toISOString().slice(11, 19) : '––:––:––'} UTC
           </p>
         </div>
         <div className="text-right">
@@ -174,7 +175,7 @@ export function EventsPanel() {
       </div>
 
       {/* Footer */}
-      <div className="px-3 py-1.5 border-t border-white/8 shrink-0">
+      <div className="px-3 py-1.5 border-t border-white/10 shrink-0">
         <div className="text-[9px] font-mono text-white/20 text-center tracking-wider">
           NEXT SCAN IN 47s · SPACEGUARD AI
         </div>

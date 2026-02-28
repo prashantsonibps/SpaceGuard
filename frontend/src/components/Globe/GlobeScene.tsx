@@ -1,28 +1,42 @@
 'use client'
 
-import { Suspense, useRef } from 'react'
+import { Suspense, useRef, useMemo } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
-import { OrbitControls, Stars } from '@react-three/drei'
+import { OrbitControls } from '@react-three/drei'
 import { Bloom, EffectComposer } from '@react-three/postprocessing'
 import * as THREE from 'three'
 import { Earth } from './Earth'
 import { SatelliteMarkers } from './SatelliteMarkers'
 
-// Stars anchored to camera position so they behave like a proper skybox.
-// depth=0 puts all stars on a single shell — no parallax between layers.
+// Custom star field — anchored to camera (skybox behaviour), full control over size/color.
 function SkyStars() {
   const groupRef = useRef<THREE.Group>(null)
   const { camera } = useThree()
 
-  useFrame(() => {
-    if (groupRef.current) {
-      groupRef.current.position.copy(camera.position)
+  const positions = useMemo(() => {
+    const arr = new Float32Array(2000 * 3)
+    for (let i = 0; i < 2000; i++) {
+      const theta = Math.random() * Math.PI * 2
+      const phi   = Math.acos(2 * Math.random() - 1)
+      arr[i * 3]     = 100 * Math.sin(phi) * Math.cos(theta)
+      arr[i * 3 + 1] = 100 * Math.sin(phi) * Math.sin(theta)
+      arr[i * 3 + 2] = 100 * Math.cos(phi)
     }
+    return arr
+  }, [])
+
+  useFrame(() => {
+    if (groupRef.current) groupRef.current.position.copy(camera.position)
   })
 
   return (
     <group ref={groupRef}>
-      <Stars radius={100} depth={0} count={2000} factor={3} saturation={0} />
+      <points>
+        <bufferGeometry>
+          <bufferAttribute attach="attributes-position" args={[positions, 3]} />
+        </bufferGeometry>
+        <pointsMaterial size={0.18} color="#555555" sizeAttenuation />
+      </points>
     </group>
   )
 }
@@ -67,7 +81,7 @@ function SceneContent() {
 export function GlobeScene() {
   return (
     <Canvas
-      camera={{ position: [0, 0, 2.5], fov: 50 }}
+      camera={{ position: [3.2, 2.0, 0.4], fov: 50 }}
       style={{ background: '#000000' }}
       gl={{ antialias: true, alpha: false }}
     >

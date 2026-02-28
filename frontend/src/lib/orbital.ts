@@ -34,7 +34,9 @@ export function positionOnSphere(
   vizScale = 1.0,
 ): [number, number, number] {
   const earthRadiusKm = 6371
-  const orbitalRadiusNorm = (1 + altitudeKm / earthRadiusKm) * vizScale
+  // Log-compress altitude so far satellites (GPS at 20200 km) stay visually close to Earth.
+  // Maps real altitudes [0, 40000 km] → visual offsets [0, 0.5] above the unit sphere.
+  const orbitalRadiusNorm = (1 + 0.5 * Math.log1p(altitudeKm) / Math.log1p(40000)) * vizScale
 
   const omega = orbitalAngularVelocity(altitudeKm)
   const trueAnomaly = phase0 + omega * timeSeconds

@@ -126,8 +126,8 @@ export function Earth({ autoRotate = true }: EarthProps) {
         uniforms: {
           tex:        { value: texture },
           dotSize:    { value: 0.012 },
-          landColor:  { value: new THREE.Color('#9ca3af') },  // lighter gray — land
-          oceanColor: { value: new THREE.Color('#1c1c1c') },  // very dark gray — ocean
+          landColor:  { value: new THREE.Color('#4b5563') },  // darker gray — land
+          oceanColor: { value: new THREE.Color('#1a1a1a') },  // dark gray — ocean
         },
         vertexShader,
         fragmentShader,
