@@ -57,7 +57,7 @@ function OptionRow({
 
   return (
     <div className="flex items-center gap-2 min-h-[28px]">
-      <span className={`${fontSize.medium} font-mono font-bold shrink-0 w-10 ${textCls}`}>
+      <span className={`${fontSize.base} font-mono font-bold shrink-0 w-10 ${textCls}`}>
         {label}
       </span>
       <div className={`flex-1 min-w-0 h-1.5 rounded-full ${barBg} overflow-hidden`}>
@@ -74,7 +74,7 @@ function OptionRow({
         onClick={onClick}
         disabled={disabled}
         className={`
-          shrink-0 px-3 py-1 rounded-full ${fontSize.large} font-mono font-bold tabular-nums
+          shrink-0 px-3 py-1 rounded-full ${fontSize.base} font-mono font-bold tabular-nums
           border ${borderCls} ${textCls}
           transition-opacity hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed
         `}
@@ -117,11 +117,11 @@ export function PredictionCard({ market }: { market: Market }) {
     >
       {/* Header: icon + question */}
       <div className="p-3.5 pb-2.5">
-        <div className="flex items-start gap-2.5">
-          <div className={`w-7 h-7 rounded-lg ${catBg} flex items-center justify-center shrink-0 mt-0.5`}>
+        <div className="flex items-center gap-2.5">
+          <div className={`w-7 h-7 rounded-lg ${catBg} flex items-center justify-center shrink-0`}>
             <Icon className={`w-3.5 h-3.5 ${iconColor}`} />
           </div>
-          <p className={`${fontSize.medium} font-mono leading-snug ${tp.secondary} flex-1`}>
+          <p className={`${fontSize.base} font-mono leading-snug ${tp.secondary} flex-1`}>
             {market.question}
           </p>
         </div>

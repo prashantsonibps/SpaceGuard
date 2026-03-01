@@ -99,7 +99,7 @@ export function MarketRow({ market, index, isSelected, onSelect, userId }: Marke
             <span className={`${fontSize.small} font-mono px-1.5 py-0.5 rounded border ${tagBorder} ${tp.muted} shrink-0 leading-none`}>
               {CATEGORY_LABEL[market.category]}
             </span>
-            <p className={`${fontSize.medium} font-mono ${tp.primary} leading-snug truncate`}>
+            <p className={`${fontSize.base} font-mono ${tp.primary} leading-snug truncate`}>
               {market.question}
             </p>
           </div>

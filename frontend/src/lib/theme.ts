@@ -156,13 +156,13 @@ export const textOpacity = {
 } as const;
 
 // ── Font size hierarchy ──────────────────────────────────────────────────────
-// Minimum readable size is 10px; 8px/9px removed as illegible
+// Minimum readable size is 11px; bumped up for better legibility
 export const fontSize = {
-  small: 'text-[10px]',   // 10px - minimum readable (labels, secondary info)
-  base: 'text-[11px]',    // 11px - base content
-  medium: 'text-xs',      // 12px - important text, body
-  large: 'text-sm',       // 14px - headings, emphasis
-  xlarge: 'text-base',    // 16px - major headings
+  small: 'text-[11px]',   // 11px - labels, secondary info
+  base: 'text-xs',        // 12px - base content
+  medium: 'text-sm',      // 14px - important text, body
+  large: 'text-base',     // 16px - headings, emphasis
+  xlarge: 'text-lg',      // 18px - major headings
 } as const
 
 // ── Panel / canvas backgrounds ────────────────────────────────────────────────
