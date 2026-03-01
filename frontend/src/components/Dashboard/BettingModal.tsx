@@ -50,12 +50,13 @@ export function BettingModal({ isOpen, onClose, eventId, eventName, eventType, u
   const modalContent = (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 dark:bg-black/60 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 dark:bg-black/60 backdrop-blur-sm" onClick={onClose}>
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 8 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 8 }}
             transition={{ duration: 0.15 }}
+            onClick={(e) => e.stopPropagation()}
           >
             <GlassCard className="w-80 p-6">
               <h2 className={`text-lg font-bold ${textOpacity[theme].primary} mb-1`}>Place Wager</h2>
