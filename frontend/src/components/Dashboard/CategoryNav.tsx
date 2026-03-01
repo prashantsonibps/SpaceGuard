@@ -4,7 +4,7 @@ import { motion } from 'framer-motion'
 import { accent, fontSize, textOpacity } from '@/lib/theme'
 import { useTheme } from '@/lib/ThemeContext'
 
-export type TabType = 'TRENDING' | 'SAT' | 'NEO' | 'WEATHER' | 'INDEX' | 'FIREBALL'
+export type TabType = 'TRENDING' | 'SAT' | 'NEO' | 'WEATHER' | 'INDEX' | 'FIREBALL' | 'LAUNCH'
 
 interface CategoryNavProps {
     activeTab: TabType
@@ -13,6 +13,7 @@ interface CategoryNavProps {
 
 const TABS: { id: TabType; label: string }[] = [
     { id: 'TRENDING', label: 'Trending' },
+    { id: 'LAUNCH', label: 'Launches' },
     { id: 'SAT', label: 'Satellites' },
     { id: 'NEO', label: 'Asteroids' },
     { id: 'WEATHER', label: 'Weather' },

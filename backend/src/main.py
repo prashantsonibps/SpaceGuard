@@ -21,7 +21,6 @@ from tle_fetcher import get_all_satellite_data
 from launch_fetcher import fetch_upcoming_launches
 from conjunction_calculator import calculate_conjunctions
 from neo_fetcher import fetch_neo_events
-from spacetrack_fetcher import fetch_high_interest_tles, fetch_recent_cdms
 from noaa_fetcher import fetch_all_noaa_indices
 from meteor_fetcher import fetch_recent_fireballs
 from n2yo_fetcher import fetch_visual_passes
@@ -87,19 +86,7 @@ def run_pipeline():
         conjunctions = calculate_conjunctions(subset_sats, time_window_hours=6)
 
         if not conjunctions:
-            print("No natural conjunctions found. Injecting mock high-risk event for demo...")
-            conjunctions = [
-                {
-                    "asset_id": "MOCK-1",
-                    "asset_name": "Demo Asset Alpha",
-                    "secondary_id": "DEB-X",
-                    "secondary_name": "Unknown Debris",
-                    "closest_approach_km": 0.5,
-                    "collision_probability": 0.85,
-                    "time_of_closest_approach": "2026-03-01T12:00:00Z",
-                    "risk_level": "CRITICAL",
-                }
-            ]
+            print("No natural conjunctions found. (Waiting for real data...)")
         else:
             print(f"Detected {len(conjunctions)} close approaches!")
 
@@ -128,20 +115,9 @@ def run_pipeline():
     else:
         print("  ⚠  Skipped (space_weather_fetcher module unavailable).")
 
-    # ── Step 3.7: Authoritative Data (Space-Track & NOAA) ────────────────────
-    print("\n--- 3.7 Authoritative Data (Space-Track & NOAA) ---")
+    # ── Step 3.7: Authoritative Data (NOAA) ────────────────────
+    print("\n--- 3.7 Authoritative Data (NOAA) ---")
     try:
-        # TLEs for ISS and NOAA 19
-        st_tles = fetch_high_interest_tles([25544, 33591])
-        if st_tles:
-            print(f"Fetched {len(st_tles)} authoritative TLEs from Space-Track.")
-            save_satellites(db, st_tles)
-        
-        cdms = fetch_recent_cdms(days=3)
-        if cdms:
-            print(f"Fetched {len(cdms)} Conjunction Data Messages from Space-Track.")
-            save_conjunctions(db, cdms)
-            
         noaa_indices = fetch_all_noaa_indices()
         if noaa_indices:
             print(f"Fetched {len(noaa_indices)} NOAA Space Weather indices.")
@@ -149,7 +125,7 @@ def run_pipeline():
             for idx in noaa_indices:
                 db.collection("noaa_indices").document(idx["name"].replace(" ", "_")).set(idx)
     except Exception as e:
-        print(f"❌ Space-Track / NOAA step failed (non-fatal): {e}\n")
+        print(f"❌ NOAA step failed (non-fatal): {e}\n")
 
     # ── Step 3.8: Meteor Fireball Data ──────────────────────────────────────
     print("\n--- 3.8 Fetching Meteor Fireball Data ---")

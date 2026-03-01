@@ -59,8 +59,23 @@ export function BettingModal({ isOpen, onClose, eventId, eventName, eventType, u
                     onChange={(e) => setOutcome(e.target.value)}
                     className={`w-full bg-black/5 dark:bg-white/5 border border-black/20 dark:border-white/10 rounded px-3 py-2 ${textOpacity[theme].primary} text-sm`}
                   >
-                    <option value="YES">YES (Collision / Success)</option>
-                    <option value="NO">NO (Miss / Failure)</option>
+                    {eventType === 'launch' ? (
+                      <>
+                        <option value="YES">SUCCESS (Nominal Insertion)</option>
+                        <option value="NO">FAILURE (Anomaly)</option>
+                        <option value="DELAY">DELAY (Scrubbed / Pushed)</option>
+                      </>
+                    ) : eventType === 'conjunction' ? (
+                      <>
+                        <option value="YES">COLLISION (Impact Confirmed)</option>
+                        <option value="NO">MISS (Safe Passage)</option>
+                      </>
+                    ) : (
+                      <>
+                        <option value="YES">CRITICAL (Major Disruption)</option>
+                        <option value="NO">SAFE (No Impact)</option>
+                      </>
+                    )}
                   </select>
                 </div>
 

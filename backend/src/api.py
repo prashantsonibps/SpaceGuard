@@ -1,4 +1,6 @@
 import os
+import threading
+import time
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -8,8 +10,28 @@ import uuid
 from datetime import datetime
 from .db import initialize_db
 from google.cloud import firestore
+from contextlib import asynccontextmanager
+from .main import run_pipeline
 
-app = FastAPI(title="SpaceGuard Betting API")
+def pipeline_loop():
+    """Runs the ingestion pipeline repeatedly in the background."""
+    while True:
+        try:
+            run_pipeline()
+        except Exception as e:
+            print(f"Background pipeline encountered an error: {e}")
+        # Wait 5 minutes between runs
+        time.sleep(300)
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    print("Starting background data ingestion pipeline...")
+    thread = threading.Thread(target=pipeline_loop, daemon=True)
+    thread.start()
+    yield
+    print("Shutting down API...")
+
+app = FastAPI(title="SpaceGuard Betting API", lifespan=lifespan)
 
 # CORS: Use CORS_ORIGINS env (comma-separated) or allow all for local dev
 _cors_origins = os.getenv("CORS_ORIGINS", "*")
@@ -125,15 +147,8 @@ def _place_bet_transaction(transaction, user_ref, bet_req):
     if current_balance < bet_req.amount:
         raise ValueError("Insufficient funds")
         
-    # 2. Check Event Exists (Optional strictly but good for validity)
-    event_collection = 'launches' if bet_req.event_type == 'launch' else 'conjunction_events'
-    event_ref = db.collection(event_collection).document(bet_req.event_id)
-    event_doc = event_ref.get() # Read outside transaction for simplicity or inside if strict
-    
     if not event_doc.exists:
-        # Check if it's a mock event or just allow it for now if data is eventual
-        pass 
-        # raise ValueError(f"Event {bet_req.event_id} not found")
+        raise ValueError(f"Event {bet_req.event_id} not found")
 
     # 3. Create Bet
     bet_id = str(uuid.uuid4())
