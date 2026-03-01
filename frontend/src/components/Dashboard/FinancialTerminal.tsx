@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { MARKETS } from "@/data/markets";
-import { riskClasses, financialColors, textOpacity, fontSize, border } from "@/lib/theme";
+import { riskClasses, financialColors, textOpacity, fontSize, border, green } from "@/lib/theme";
 import { useTheme } from "@/lib/ThemeContext";
 import {
   PredictionCard,
@@ -71,7 +71,7 @@ export function FinancialTerminal({ userId: _userId }: { userId?: string }) {
                 </span>
                 <div className="flex items-center gap-1.5">
                   <span
-                    className={`w-1.5 h-1.5 rounded-full ${riskClasses[theme].LOW.dot} animate-pulse shrink-0`}
+                    className={`w-1.5 h-1.5 rounded-full ${green[theme].bg} animate-pulse shrink-0`}
                   />
                   <span
                     className={`${fontSize.small} font-mono ${textOpacity[theme].caption}`}
