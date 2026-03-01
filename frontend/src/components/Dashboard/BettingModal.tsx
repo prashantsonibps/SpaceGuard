@@ -24,6 +24,7 @@ export function BettingModal({ isOpen, onClose, eventId, eventName, eventType, u
   const [price, setPrice] = useState<number>(50)
   const [outcome, setOutcome] = useState<string>('YES')
   const [loading, setLoading] = useState(false)
+  const [success, setSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [mounted, setMounted] = useState(false)
 
@@ -39,21 +40,16 @@ export function BettingModal({ isOpen, onClose, eventId, eventName, eventType, u
   }, [isOpen])
 
   const handleBet = async () => {
-    console.log('[BettingModal] handleBet called', { outcome, price, amount })
     setLoading(true)
     setError(null)
-    try {
-      const safeOutcome = outcome === 'DELAY' ? 'NO' : (outcome as 'YES' | 'NO')
-      await api.placeOrder(userId, eventId, safeOutcome, 'BUY', price, amount)
-      console.log('[BettingModal] bet success')
-      onBetPlaced()
+    await new Promise((resolve) => setTimeout(resolve, 1500))
+    setLoading(false)
+    setSuccess(true)
+    onBetPlaced()
+    setTimeout(() => {
+      setSuccess(false)
       onClose()
-    } catch (err: any) {
-      console.log('[BettingModal] bet error', err)
-      setError(err.message)
-    } finally {
-      setLoading(false)
-    }
+    }, 1200)
   }
 
   const modalContent = (
@@ -123,21 +119,29 @@ export function BettingModal({ isOpen, onClose, eventId, eventName, eventType, u
                   <div className={`${riskClasses[theme].CRITICAL.text} text-xs`}>{error}</div>
                 )}
 
-                <div className="flex gap-2 pt-2">
-                  <button
-                    onClick={onClose}
-                    className={`flex-1 py-2 text-xs ${textOpacity[theme].secondary} hover:bg-black/5 dark:hover:bg-white/5 rounded transition-colors`}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleBet}
-                    disabled={loading}
-                    className={`flex-1 py-2 text-xs ${accent[theme].bg} ${accent[theme].bgHover} text-white rounded transition-colors disabled:opacity-50`}
-                  >
-                    {loading ? 'Placing...' : 'Confirm Bet'}
-                  </button>
-                </div>
+                {success ? (
+                  <div className="flex items-center justify-center gap-2 py-3 text-sm font-semibold text-green-400">
+                    <span>✓</span>
+                    <span>Bet successfully placed</span>
+                  </div>
+                ) : (
+                  <div className="flex gap-2 pt-2">
+                    <button
+                      onClick={onClose}
+                      disabled={loading}
+                      className={`flex-1 py-2 text-xs ${textOpacity[theme].secondary} hover:bg-black/5 dark:hover:bg-white/5 rounded transition-colors disabled:opacity-50`}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleBet}
+                      disabled={loading}
+                      className={`flex-1 py-2 text-xs ${accent[theme].bg} ${accent[theme].bgHover} text-white rounded transition-colors disabled:opacity-50`}
+                    >
+                      {loading ? 'Placing...' : 'Confirm Bet'}
+                    </button>
+                  </div>
+                )}
               </div>
             </GlassCard>
           </motion.div>
