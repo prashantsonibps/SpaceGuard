@@ -30,6 +30,11 @@ export interface ConjunctionEvent {
   miss_distance_km?: number
   estimated_diameter_max_km?: number
   is_hazardous?: boolean
+  // For Space Weather
+  type?: 'CME' | 'SOLAR_FLARE'
+  start_time?: string
+  note?: string
+  class_type?: string
 }
 
 function formatCountdown(tcaString: string): string {
@@ -58,7 +63,7 @@ function EventRow({
 }: {
   event: ConjunctionEvent
   index: number
-  type: 'SAT' | 'NEO'
+  type: 'SAT' | 'NEO' | 'WEATHER'
   userId: string
   isSelected: boolean
   onSelect: (id: string | null) => void
@@ -92,12 +97,14 @@ function EventRow({
               </span>
             </div>
             <span className={`${fontSize.small} font-mono ${textOpacity[theme].faint} tabular-nums`}>
-              {type === 'NEO' ? event.time_of_closest_approach : `T−${formatCountdown(event.time_of_closest_approach)}`}
+              {type === 'WEATHER' ? (event.start_time?.slice(11, 16) || 'LIVE') : type === 'NEO' ? event.time_of_closest_approach : `T−${formatCountdown(event.time_of_closest_approach)}`}
             </span>
           </div>
 
           <div className={`font-mono ${fontSize.base} ${textOpacity[theme].secondary} leading-snug mb-2 truncate`}>
-            {type === 'NEO' ? (
+            {type === 'WEATHER' ? (
+              <span className={textOpacity[theme].primary}>{event.type === 'CME' ? 'Coronal Mass Ejection' : 'Solar Flare'} <span className={`${textOpacity[theme].faint} ${fontSize.small}`}>({event.class_type || 'Active'})</span></span>
+            ) : type === 'NEO' ? (
               <span className={textOpacity[theme].primary}>{event.asset_name} <span className={`${textOpacity[theme].faint} ${fontSize.small}`}>(NEO)</span></span>
             ) : (
               <>
@@ -110,27 +117,31 @@ function EventRow({
 
           <div className={`grid grid-cols-3 gap-1 ${fontSize.small} font-mono`}>
             <div>
-              <div className={`${textOpacity[theme].faint} uppercase tracking-wider ${fontSize.small}`}>Dist</div>
+              <div className={`${textOpacity[theme].faint} uppercase tracking-wider ${fontSize.small}`}>{type === 'WEATHER' ? 'Type' : 'Dist'}</div>
               <div className={`${textOpacity[theme].secondary} tabular-nums`}>
-                {type === 'NEO'
-                  ? `${(event.miss_distance_km ? event.miss_distance_km / 1000000 : 0).toFixed(1)}M km`
-                  : `${event.closest_approach_km} km`
+                {type === 'WEATHER'
+                  ? (event.type || 'SOLAR')
+                  : type === 'NEO'
+                    ? `${(event.miss_distance_km ? event.miss_distance_km / 1000000 : 0).toFixed(1)}M km`
+                    : `${event.closest_approach_km} km`
                 }
               </div>
             </div>
             <div>
-              <div className={`${textOpacity[theme].faint} uppercase tracking-wider ${fontSize.small}`}>{type === 'NEO' ? 'Size' : 'Prob'}</div>
+              <div className={`${textOpacity[theme].faint} uppercase tracking-wider ${fontSize.small}`}>{type === 'NEO' ? 'Size' : type === 'WEATHER' ? 'Class' : 'Prob'}</div>
               <div className={`tabular-nums ${(rc[event.risk_level] ?? rc.LOW).text}`}>
                 {type === 'NEO'
                   ? `${(event.estimated_diameter_max_km || 0).toFixed(2)} km`
-                  : `${probPct}%`
+                  : type === 'WEATHER'
+                    ? (event.class_type || 'C-CLASS')
+                    : `${probPct}%`
                 }
               </div>
             </div>
             <div>
-              <div className={`${textOpacity[theme].faint} uppercase tracking-wider ${fontSize.small}`}>Agent Hedge</div>
+              <div className={`${textOpacity[theme].faint} uppercase tracking-wider ${fontSize.small}`}>Status</div>
               <div className={`tabular-nums ${event.hedge_status === 'HEDGE' ? accent[theme].text : textOpacity[theme].secondary}`}>
-                {event.hedge_status ? `$${(event.hedge_amount_usd || 0).toLocaleString()}` : 'PENDING'}
+                {type === 'WEATHER' ? 'MONITORING' : (event.hedge_status ? `$${(event.hedge_amount_usd || 0).toLocaleString()}` : 'PENDING')}
               </div>
             </div>
           </div>
@@ -146,7 +157,7 @@ function EventRow({
               transition={{ duration: 0.18 }}
             >
               <div className={`${fontSize.small} font-mono ${textOpacity[theme].secondary} bg-black/[0.04] dark:bg-white/[0.04] border ${accent[theme].borderDim} rounded px-2 py-1.5 mb-2 leading-relaxed`}>
-                <span className={`${accent[theme].text} font-bold block mb-1`}>🤖 Gemini AI Assessment:</span>
+                <span className={`${accent[theme].text} font-bold block mb-1`}>🤖 Mistral AI Assessment:</span>
                 {event.agent_assessment || "Awaiting AI evaluation..."}
               </div>
 
@@ -177,10 +188,10 @@ function EventRow({
         isOpen={isBettingOpen}
         onClose={() => setIsBettingOpen(false)}
         eventId={event.id}
-        eventName={type === 'NEO' ? event.asset_name : `${event.asset_name} vs ${event.secondary_name}`}
+        eventName={type === 'WEATHER' ? (event.type || 'Solar Event') : type === 'NEO' ? event.asset_name : `${event.asset_name} vs ${event.secondary_name}`}
         eventType="conjunction"
         userId={userId}
-        onBetPlaced={() => {}}
+        onBetPlaced={() => { }}
       />
     </>
   )
@@ -201,7 +212,8 @@ export function EventsPanel({
   const [time, setTime] = useState<Date | null>(null)
   const [events, setEvents] = useState<ConjunctionEvent[]>([])
   const [neoEvents, setNeoEvents] = useState<ConjunctionEvent[]>([])
-  const [activeTab, setActiveTab] = useState<'SAT' | 'NEO'>('SAT')
+  const [weatherEvents, setWeatherEvents] = useState<ConjunctionEvent[]>([])
+  const [activeTab, setActiveTab] = useState<'SAT' | 'NEO' | 'WEATHER'>('SAT')
   const [loading, setLoading] = useState(true)
 
   // Clock timer
@@ -215,6 +227,7 @@ export function EventsPanel({
   useEffect(() => {
     const q1 = query(collection(db, 'conjunction_events'))
     const q2 = query(collection(db, 'neo_events'))
+    const q3 = query(collection(db, 'space_weather_events'))
 
     const unsubscribe1 = onSnapshot(q1, (snapshot) => {
       const newEvents: ConjunctionEvent[] = []
@@ -253,13 +266,33 @@ export function EventsPanel({
       setNeoEvents(newNeos)
     })
 
+    const unsubscribe3 = onSnapshot(q3, (snapshot) => {
+      const newWeather: ConjunctionEvent[] = []
+      snapshot.forEach((doc) => {
+        const data = doc.data()
+        newWeather.push({
+          id: doc.id,
+          type: data.type,
+          start_time: data.start_time,
+          note: data.note,
+          class_type: data.class_type,
+          risk_level: data.risk_level,
+          agent_assessment: data.note // Use note as assessment for now
+        } as ConjunctionEvent)
+      })
+      // Sort by start_time descending
+      newWeather.sort((a, b) => new Date(b.start_time || 0).getTime() - new Date(a.start_time || 0).getTime())
+      setWeatherEvents(newWeather)
+    })
+
     return () => {
       unsubscribe1()
       unsubscribe2()
+      unsubscribe3()
     }
   }, [])
 
-  const currentList = activeTab === 'SAT' ? events : neoEvents
+  const currentList = activeTab === 'SAT' ? events : activeTab === 'NEO' ? neoEvents : weatherEvents
   const criticalCount = currentList.filter((e) => e.risk_level === 'CRITICAL').length
 
   if (!userId) return null;
@@ -290,6 +323,12 @@ export function EventsPanel({
             className={`flex-1 py-1 rounded text-center transition-all ${activeTab === 'NEO' ? 'bg-black/10 dark:bg-white/10 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 dark:text-white/40 hover:text-slate-700 dark:hover:text-white/60'}`}
           >
             ASTEROIDS
+          </button>
+          <button
+            onClick={() => setActiveTab('WEATHER')}
+            className={`flex-1 py-1 rounded text-center transition-all ${activeTab === 'WEATHER' ? 'bg-black/10 dark:bg-white/10 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 dark:text-white/40 hover:text-slate-700 dark:hover:text-white/60'}`}
+          >
+            WEATHER
           </button>
         </div>
 
@@ -333,7 +372,7 @@ export function EventsPanel({
       <div className="px-3 py-1.5 border-t border-black/20 dark:border-white/10 shrink-0">
         <div className={`${fontSize.small} font-mono ${accent[theme].text} opacity-80 text-center tracking-wider flex justify-center items-center gap-1.5`}>
           <div className={`w-1.5 h-1.5 rounded-full ${accent[theme].dot} animate-pulse`} />
-          GEMINI AI AGENT ACTIVE
+          MISTRAL AI AGENT ACTIVE
         </div>
       </div>
     </GlassCard>

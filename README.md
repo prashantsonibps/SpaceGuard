@@ -33,7 +33,7 @@ We don't just show you where satellites are; **we calculate the financial probab
 1.  **🌍 Real-Time Orbital Conjunctions**: Uses SGP4 propagation (Skyfield) on live TLE data to detect satellites on collision courses (<10km miss distance).
 2.  **🚀 Launch Delay Prediction**: analyzing pad location, live OpenWeather data, and historical provider reliability to price the risk of T-0 scrubs.
 3.  **☄️ Deep Space & Weather**: Monitoring NASA NeoWs (Asteroids) and DONKI (Space Weather) for external threats.
-4.  **🧠 Gemini AI Financial Agent**: An autonomous risk manager that analyzes raw telemetry and executes **automated financial hedges** (mock USD portfolio) when risk thresholds are breached.
+4.  **🧠 Mistral AI Financial Agent**: An autonomous risk manager that analyzes raw telemetry and executes **automated financial hedges** (mock USD portfolio) when risk thresholds are breached.
 
 ---
 
@@ -52,7 +52,7 @@ We are not a consumer app. We are the **Bloomberg Terminal for Space Insurers an
 - **Frontend**: Next.js 14, Tailwind CSS, Framer Motion.
 - **Visualization**: Three.js / React Three Fiber (R3F) for the 3D Digital Twin globe.
 - **Backend**: Python (FastAPI/Scripts) for orbital mechanics & data ingestion.
-- **AI Engine**: **Google Gemini 2.5 Flash** for structured financial reasoning and decision making.
+- **AI Engine**: **Mistral Large (mistral-large-latest)** for structured financial reasoning and decision making.
 - **Data**: Firebase Firestore (Real-time sync), CelesTrak (TLEs), NASA NeoWs, OpenWeather, The SpaceDevs.
 
 ---
@@ -75,7 +75,7 @@ source venv/bin/activate
 pip install -r requirements.txt
 
 # Add your .env file with:
-# GEMINI_API_KEY=...
+# MISTRAL_API_KEY=...
 # NASA_API_KEY=...
 # OPENWEATHER_API_KEY=...
 # FIREBASE_CREDENTIALS_PATH=serviceAccountKey.json
