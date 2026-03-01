@@ -78,7 +78,7 @@ export const riskClasses = {
   },
 };
 
-// ── Bet / hedge status ────────────────────────────────────────────────────────
+// ── Bet status ────────────────────────────────────────────────────────────────
 export const statusClasses: {
   dark: Record<string, string>;
   light: Record<string, string>;

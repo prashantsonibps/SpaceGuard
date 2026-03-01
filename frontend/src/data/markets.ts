@@ -1,6 +1,6 @@
 import type { RiskLevel } from '@/components/Dashboard/EventsPanel'
 
-export type MarketCategory = 'COLLISION' | 'MANEUVER' | 'HEDGE' | 'DEBRIS' | 'NEO'
+export type MarketCategory = 'COLLISION' | 'MANEUVER' | 'RISK' | 'DEBRIS' | 'NEO'
 export type MarketStatus = 'LIVE' | 'RESOLVED_YES' | 'RESOLVED_NO' | 'CLOSED'
 
 export interface PricePoint {
@@ -161,8 +161,8 @@ export const MARKETS: Market[] = [
   },
   {
     id: 'MKT-007',
-    question: 'Will the SpaceGuard AI agent trigger a portfolio hedge >$500k within 12h?',
-    category: 'HEDGE',
+    question: 'Will the SpaceGuard AI agent issue a CRITICAL risk alert within 12h?',
+    category: 'RISK',
     riskLevel: 'MEDIUM',
     yesPrice: 35,
     volume24h: 29_400,
@@ -170,7 +170,7 @@ export const MARKETS: Market[] = [
     closeTime: now + 11 * 3600_000,
     status: 'LIVE',
     details:
-      'The SpaceGuard AI risk agent monitors conjunction probability thresholds and auto-executes hedges when risk exceeds configured levels. A hedge of >$500k would require at least one CRITICAL-level conjunction event in the next 12h. Current portfolio exposure: $2.4B. Agent confidence threshold: 85%.',
+      'The SpaceGuard AI risk agent continuously monitors conjunction probability thresholds across all tracked satellites. A CRITICAL alert requires at least one conjunction event exceeding the 1-in-1000 collision probability threshold within the next 12h. Agent confidence threshold: 85%.',
     priceHistory: makeHistory(24, 20, [
       [6, 25], [12, 32], [16, 38], [20, 36], [24, 35],
     ]),
@@ -227,7 +227,7 @@ export const MARKETS: Market[] = [
   {
     id: 'MKT-011',
     question: 'Will LEO satellite insurance premiums increase >5% in Q2 2026 (Lloyd\'s benchmark)?',
-    category: 'HEDGE',
+    category: 'RISK',
     riskLevel: 'MEDIUM',
     yesPrice: 52,
     volume24h: 33_800,
