@@ -11,7 +11,7 @@ import { ConjunctionEvent } from '@/components/Dashboard/EventsPanel'
 import { globeColors } from '@/lib/theme'
 
 const VIZ_SCALE = 0.98
-const DOT_SIZE = 0.004
+const DOT_SIZE = 0.006
 
 export function SatelliteMarkers({
   selectedEventId,

@@ -61,8 +61,12 @@ export function BuyPanel({ market, userId, defaultSide }: BuyPanelProps) {
   }
 
   const toggleBase = `flex-1 py-1.5 text-[10px] font-mono border rounded transition-colors flex flex-col items-center gap-0.5`
-  const activeYes = `${ac.bgDim} border-sky-300/40 ${ac.text}`
-  const activeNo = `bg-red-400/10 border-red-400/40 text-red-400`
+  const activeYes = theme === 'dark'
+    ? 'bg-emerald-500/10 border-emerald-400/40 text-emerald-400'
+    : 'bg-emerald-600/[0.07] border-emerald-600/40 text-emerald-700'
+  const activeNo = theme === 'dark'
+    ? 'bg-red-400/10 border-red-400/40 text-red-400'
+    : 'bg-red-500/[0.07] border-red-500/40 text-red-600'
   const inactive = `bg-transparent ${borderDim} ${tp.muted}`
 
   return (
@@ -157,7 +161,9 @@ export function BuyPanel({ market, userId, defaultSide }: BuyPanelProps) {
             ? 'border-green-400/40 bg-green-400/10 text-green-400'
             : status === 'error'
             ? 'border-red-400/40 bg-red-400/10 text-red-400'
-            : `border-sky-300/40 ${ac.bgDim} ${ac.text} hover:bg-sky-300/20`
+            : side === 'YES'
+            ? (theme === 'dark' ? 'border-emerald-400/40 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20' : 'border-emerald-600/40 bg-emerald-600/[0.07] text-emerald-700 hover:bg-emerald-600/15')
+            : (theme === 'dark' ? 'border-red-400/40 bg-red-400/10 text-red-400 hover:bg-red-400/20' : 'border-red-500/40 bg-red-500/[0.07] text-red-600 hover:bg-red-500/15')
           }
         `}
       >

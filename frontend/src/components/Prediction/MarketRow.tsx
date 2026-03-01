@@ -31,13 +31,13 @@ function ProbBar({ yes, theme }: { yes: number; theme: 'dark' | 'light' }) {
   return (
     <div className="flex items-center gap-2">
       <span className={`text-[9px] font-mono tabular-nums w-8 text-right shrink-0 ${
-        theme === 'dark' ? 'text-sky-400' : 'text-sky-600'
+        theme === 'dark' ? 'text-emerald-400' : 'text-emerald-700'
       }`}>
         {yes}%
       </span>
       <div className="flex-1 flex h-1.5 rounded overflow-hidden">
         <div
-          className={`h-full ${theme === 'dark' ? 'bg-sky-400/70' : 'bg-sky-500/60'} rounded-l`}
+          className={`h-full ${theme === 'dark' ? 'bg-emerald-500/60' : 'bg-emerald-600/50'} rounded-l`}
           style={{ width: `${yes}%` }}
         />
         <div className={`w-px shrink-0 ${theme === 'dark' ? 'bg-white/20' : 'bg-black/15'}`} />
@@ -47,7 +47,7 @@ function ProbBar({ yes, theme }: { yes: number; theme: 'dark' | 'light' }) {
         />
       </div>
       <span className={`text-[9px] font-mono tabular-nums w-8 shrink-0 ${
-        theme === 'dark' ? 'text-red-400/70' : 'text-red-500/70'
+        theme === 'dark' ? 'text-red-400/70' : 'text-red-600/70'
       }`}>
         {no}%
       </span>
@@ -138,8 +138,8 @@ export function MarketRow({ market, index, isSelected, onSelect, userId }: Marke
           onClick={(e) => handleBuyClick(e, 'YES')}
           className={`px-2.5 py-1 text-[9px] font-mono rounded border transition-colors ${
             theme === 'dark'
-              ? 'border-sky-300/30 bg-sky-300/[0.07] text-sky-300 hover:bg-sky-300/20'
-              : 'border-sky-600/30 bg-sky-500/[0.07] text-sky-600 hover:bg-sky-500/20'
+              ? 'border-emerald-400/30 bg-emerald-400/[0.07] text-emerald-400 hover:bg-emerald-400/20'
+              : 'border-emerald-700/30 bg-emerald-600/[0.07] text-emerald-700 hover:bg-emerald-600/15'
           }`}
         >
           BUY YES {market.yesPrice}¢

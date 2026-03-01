@@ -43,8 +43,11 @@ export function CategorySidebar({ markets, selectedCategory, onSelectCategory, u
     return markets.filter(m => m.category === cat).length
   }
 
+  const borderR = theme === 'dark' ? 'border-white/10' : 'border-black/[0.1]'
+  const dividerClass = theme === 'dark' ? 'border-white/10' : 'border-black/[0.08]'
+
   return (
-    <div className="h-full flex flex-col overflow-y-auto border-r border-white/10 py-3 px-2 gap-4">
+    <div className={`h-full flex flex-col overflow-y-auto border-r ${borderR} py-3 px-2 gap-4`}>
       {/* Markets section */}
       <div>
         <p className={`text-[8px] font-mono tracking-widest ${tp.muted} mb-2 px-1`}>MARKETS</p>
@@ -76,7 +79,7 @@ export function CategorySidebar({ markets, selectedCategory, onSelectCategory, u
       </div>
 
       {/* Divider */}
-      <div className="border-t border-white/10" />
+      <div className={`border-t ${dividerClass}`} />
 
       {/* Portfolio section */}
       <div>
@@ -84,7 +87,7 @@ export function CategorySidebar({ markets, selectedCategory, onSelectCategory, u
         <GlassCard animate={false} className="p-2 flex flex-col gap-2">
           <div className="flex justify-between text-[10px] font-mono">
             <span className={tp.muted}>BALANCE</span>
-            <span className="text-orange-300 tabular-nums font-semibold">${DEMO_PORTFOLIO.balance.toLocaleString()}</span>
+            <span className={`tabular-nums font-semibold ${theme === 'dark' ? 'text-orange-300' : 'text-orange-600'}`}>${DEMO_PORTFOLIO.balance.toLocaleString()}</span>
           </div>
           <div className="flex justify-between text-[10px] font-mono">
             <span className={tp.muted}>P&amp;L</span>
@@ -92,7 +95,7 @@ export function CategorySidebar({ markets, selectedCategory, onSelectCategory, u
               {DEMO_PORTFOLIO.pnl >= 0 ? '+' : ''}${DEMO_PORTFOLIO.pnl.toFixed(2)}
             </span>
           </div>
-          <div className="border-t border-white/10 pt-1.5 flex flex-col gap-1.5">
+          <div className={`border-t ${dividerClass} pt-1.5 flex flex-col gap-1.5`}>
             <p className={`text-[8px] font-mono tracking-widest ${tp.faint}`}>OPEN POSITIONS</p>
             {DEMO_PORTFOLIO.positions.map(pos => (
               <div key={pos.id} className="flex justify-between text-[9px] font-mono">

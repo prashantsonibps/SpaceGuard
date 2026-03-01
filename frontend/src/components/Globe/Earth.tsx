@@ -130,7 +130,7 @@ export function Earth({ autoRotate = true, theme }: EarthProps) {
       new THREE.ShaderMaterial({
         uniforms: {
           tex:        { value: texture },
-          dotSize:    { value: 0.012 },
+          dotSize:    { value: theme === 'light' ? 0.016 : 0.012 },
           landColor:  { value: landCur.current.clone() },
           oceanColor: { value: oceanCur.current.clone() },
         },
@@ -148,7 +148,8 @@ export function Earth({ autoRotate = true, theme }: EarthProps) {
     landTgt.current.set(globeColors[theme].earthLand)
     oceanTgt.current.set(globeColors[theme].earthOcean)
     innerTgt.current.set(globeColors[theme].earthInner)
-  }, [theme])
+    material.uniforms.dotSize.value = theme === 'light' ? 0.016 : 0.012
+  }, [theme, material])
 
   useFrame(() => {
     landCur.current.lerp(landTgt.current, LERP)

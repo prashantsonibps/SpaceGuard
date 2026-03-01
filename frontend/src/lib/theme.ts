@@ -93,12 +93,14 @@ export const statusClasses: { dark: Record<string, string>; light: Record<string
     WON: 'text-green-600',
     LOST: 'text-red-600',
     PENDING: 'text-yellow-600',
-    MONITORING: 'text-sky-600',
-    CANCELLED: 'text-slate-400',
+    MONITORING: 'text-zinc-500',
+    CANCELLED: 'text-zinc-400',
   },
 }
 
-// ── Primary interactive accent (sky/cyan) ─────────────────────────────────────
+// ── Primary interactive accent ────────────────────────────────────────────────
+// dark:  sky-300 (cyan glow on dark bg)
+// light: zinc-800 (near-black — keeps B&W, no blue tint)
 export const accent = {
   dark: {
     text: 'text-sky-300',
@@ -109,26 +111,28 @@ export const accent = {
     bgHover: 'hover:bg-sky-300',
     bgDim: 'bg-sky-300/10',
     bgDimHover: 'hover:bg-sky-300/20',
-    hex: '#7dd3fc',                       // sky-300
+    hex: '#7dd3fc',
     hexDim: 'rgba(125, 211, 252, 0.3)',
     hexDimHover: 'rgba(125, 211, 252, 0.5)',
   },
   light: {
-    text: 'text-sky-600',
-    dot: 'bg-sky-600',
-    border: 'border-sky-600',
-    borderDim: 'border-sky-500/55',
-    bg: 'bg-sky-600',
-    bgHover: 'hover:bg-sky-700',
-    bgDim: 'bg-sky-500/10',
-    bgDimHover: 'hover:bg-sky-500/20',
-    hex: '#0284c7',
-    hexDim: 'rgba(2,132,199,0.25)',
-    hexDimHover: 'rgba(2,132,199,0.4)',
+    text: 'text-zinc-800',
+    dot: 'bg-zinc-800',
+    border: 'border-zinc-700',
+    borderDim: 'border-zinc-400',
+    bg: 'bg-zinc-800',
+    bgHover: 'hover:bg-zinc-900',
+    bgDim: 'bg-zinc-900/[0.06]',
+    bgDimHover: 'hover:bg-zinc-900/[0.10]',
+    hex: '#27272a',
+    hexDim: 'rgba(39,39,42,0.06)',
+    hexDimHover: 'rgba(39,39,42,0.10)',
   },
 } as const
 
-// ── White-opacity text hierarchy ──────────────────────────────────────────────
+// ── Text hierarchy ─────────────────────────────────────────────────────────────
+// dark:  white with opacity
+// light: zinc-* (pure neutral gray — slate-* carried a blue tint)
 export const textOpacity = {
   dark: {
     primary: 'text-white/90',
@@ -139,12 +143,12 @@ export const textOpacity = {
     caption: 'text-white/45',
   },
   light: {
-    primary: 'text-slate-900',
-    secondary: 'text-slate-700',
-    tertiary: 'text-slate-500',
-    muted: 'text-slate-500',
-    faint: 'text-slate-500',
-    caption: 'text-slate-500',
+    primary: 'text-zinc-900',
+    secondary: 'text-zinc-700',
+    tertiary: 'text-zinc-500',
+    muted: 'text-zinc-500',
+    faint: 'text-zinc-400',
+    caption: 'text-zinc-500',
   },
 } as const
 
@@ -158,7 +162,7 @@ export const bg = {
   light: {
     panel: 'bg-white/80',
     glass: 'bg-white/70 backdrop-blur-md border border-black/20',
-    canvas: '#f8fafc',
+    canvas: '#fafafa',
   },
 } as const
 
@@ -171,36 +175,32 @@ export const globeColors = {
     earthLand: '#4b5563',
     earthOcean: '#1a1a1a',
     earthInner: '#000000',
-    // Risk level markers (same hex as riskClasses for convenience)
     critical: '#f87171',
     high: '#fb923c',
     medium: '#facc15',
     low: '#4ade80',
-    // Probability threshold coloring
-    prob10: '#f87171',      // red-400   — ≥10%
-    prob1: '#fb923c',       // orange-400 — ≥1%
-    prob01: '#facc15',      // yellow-400 — ≥0.1%
-    probDefault: '#4ade80', // green-400  — <0.1%
+    prob10: '#f87171',
+    prob1: '#fb923c',
+    prob01: '#facc15',
+    probDefault: '#4ade80',
     canvas: '#000000',
   },
   light: {
-    stars: '#000000',
-    bgSatOpacity: 0.9,
-    bgSatColor: '#000000',
-    earthLand: '#64748b',
+    stars: '#94a3b8',
+    bgSatOpacity: 1.0,
+    bgSatColor: '#0f172a',
+    earthLand: '#6b7b92',
     earthOcean: '#cbd5e1',
-    earthInner: '#f8fafc',
-    // Risk level markers
+    earthInner: '#e2e8f0',
     critical: '#dc2626',
     high: '#ea580c',
     medium: '#ca8a04',
     low: '#15803d',
-    // Probability threshold coloring
     prob10: '#dc2626',
     prob1: '#ea580c',
     prob01: '#ca8a04',
     probDefault: '#15803d',
-    canvas: '#f8fafc',
+    canvas: '#fafafa',
   },
 }
 
