@@ -1,6 +1,6 @@
 "use client";
 
-import { accent, textOpacity, fontSize } from "@/lib/theme";
+import { accent, textOpacity, fontSize, green } from "@/lib/theme";
 import { useTheme } from "@/lib/ThemeContext";
 import type { Market } from "@/data/markets";
 
@@ -18,6 +18,7 @@ export function SortControls({ sortBy, onSort, markets }: SortControlsProps) {
   const { theme } = useTheme();
   const ac = accent[theme];
   const tp = textOpacity[theme];
+  const gr = green[theme];
   const liveCount = markets.filter((m) => m.status === "LIVE").length;
   const borderB = theme === "dark" ? "border-white/10" : "border-black/[0.2]";
   const borderFaint =
@@ -63,7 +64,7 @@ export function SortControls({ sortBy, onSort, markets }: SortControlsProps) {
             {markets.length} MARKETS
           </span>
           <span className={`${fontSize.small} font-mono ${tp.faint}`}>·</span>
-          <span className={`${fontSize.small} font-mono text-green-400`}>
+          <span className={`${fontSize.small} font-mono ${gr.text}`}>
             {liveCount} LIVE
           </span>
         </div>

@@ -217,6 +217,24 @@ export const globeColors = {
   },
 };
 
+// ── Green (YES, live, success) — slightly darker in light mode for readability ─
+export const green = {
+  dark: {
+    text: 'text-green-400',
+    textMuted: 'text-green-400/80',
+    bg: 'bg-green-400',
+    border: 'border-green-400',
+    bgMuted: 'bg-green-400/20',
+  },
+  light: {
+    text: 'text-[#49dd7f]',   // barely darker than green-400 (#4ade80)
+    textMuted: 'text-[#49dd7f]/80',
+    bg: 'bg-[#49dd7f]',
+    border: 'border-[#49dd7f]',
+    bgMuted: 'bg-[#49dd7f]/20',
+  },
+} as const
+
 // ── Financial metric colors ───────────────────────────────────────────────────
 export const financialColors = {
   dark: {

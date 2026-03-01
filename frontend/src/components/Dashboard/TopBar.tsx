@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { accent, riskClasses, financialColors, fontSize } from '@/lib/theme'
+import { accent, riskClasses, financialColors, fontSize, green } from '@/lib/theme'
 import { useTheme } from '@/lib/ThemeContext'
 
 function SunIcon() {
@@ -88,8 +88,8 @@ export function TopBar({ variant = 'overlay' }: TopBarProps) {
 
       {/* Live indicator */}
       <div className="flex items-center gap-1.5">
-        <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
-        <span className="text-green-500 dark:text-green-400 text-xs font-mono">LIVE</span>
+        <span className={`w-1.5 h-1.5 rounded-full ${green[theme].bg} animate-pulse`} />
+        <span className={`${green[theme].text} text-xs font-mono`}>LIVE</span>
       </div>
 
       <div className="h-4 w-px bg-black/20 dark:bg-white/20" />

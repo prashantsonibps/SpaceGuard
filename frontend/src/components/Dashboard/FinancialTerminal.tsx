@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { MARKETS } from "@/data/markets";
-import { riskClasses, financialColors, textOpacity, fontSize } from "@/lib/theme";
+import { riskClasses, financialColors, textOpacity, fontSize, green } from "@/lib/theme";
 import { useTheme } from "@/lib/ThemeContext";
 import {
   PredictionCard,
@@ -103,7 +103,7 @@ export function FinancialTerminal({ userId: _userId }: { userId?: string }) {
               <span className="opacity-40">·</span>
               <span>{formatVol(totalVol24h)} 24H VOL</span>
               <span className="opacity-40">·</span>
-              <span className="text-green-400/80">
+              <span className={green[theme].textMuted}>
                 {liveMarkets.length} LIVE
               </span>
               <span className="opacity-40">·</span>

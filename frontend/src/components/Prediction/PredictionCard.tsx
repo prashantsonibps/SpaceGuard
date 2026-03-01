@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion'
 import type { Market, MarketCategory } from '@/data/markets'
 import { useTheme } from '@/lib/ThemeContext'
-import { textOpacity, fontSize } from '@/lib/theme'
+import { textOpacity, fontSize, green } from '@/lib/theme'
 import { Zap, Layers, Navigation, Shield, Globe } from 'lucide-react'
 
 // ── Category meta ──────────────────────────────────────────────────────────────
@@ -50,10 +50,12 @@ function OptionRow({
   onClick?: () => void
   disabled?: boolean
 }) {
-  const barBg = color === 'green' ? 'bg-green-400/20' : 'bg-sky-400/20'
-  const barFill = color === 'green' ? 'bg-green-400' : 'bg-sky-400'
-  const borderCls = color === 'green' ? 'border-green-400' : 'border-sky-400'
-  const textCls = color === 'green' ? 'text-green-400' : 'text-sky-400'
+  const { theme } = useTheme()
+  const gr = green[theme]
+  const barBg = color === 'green' ? gr.bgMuted : 'bg-sky-400/20'
+  const barFill = color === 'green' ? gr.bg : 'bg-sky-400'
+  const borderCls = color === 'green' ? gr.border : 'border-sky-400'
+  const textCls = color === 'green' ? gr.text : 'text-sky-400'
 
   return (
     <div className="flex items-center gap-2 min-h-[28px]">
@@ -89,6 +91,7 @@ function OptionRow({
 export function PredictionCard({ market }: { market: Market }) {
   const { theme } = useTheme()
   const tp = textOpacity[theme]
+  const gr = green[theme]
   const { bg: catBg, iconColor, Icon } = CATEGORY_META[market.category]
 
   const borderClass = theme === 'dark' ? 'border-white/[0.07]' : 'border-black/[0.08]'
@@ -117,7 +120,7 @@ export function PredictionCard({ market }: { market: Market }) {
     >
       {/* Header: icon + question */}
       <div className="p-3.5 pb-2.5">
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-5">
           <div className={`w-7 h-7 rounded-lg ${catBg} flex items-center justify-center shrink-0`}>
             <Icon className={`w-3.5 h-3.5 ${iconColor}`} />
           </div>
@@ -132,7 +135,7 @@ export function PredictionCard({ market }: { market: Market }) {
         <div className="px-3.5 pb-3">
           <span
             className={`${fontSize.base} font-mono font-bold tracking-widest ${
-              market.outcome === 'YES' ? 'text-green-400' : 'text-red-400'
+              market.outcome === 'YES' ? gr.text : 'text-red-400'
             }`}
           >
             RESOLVED {market.outcome}
@@ -167,7 +170,7 @@ export function PredictionCard({ market }: { market: Market }) {
         ) : isResolved ? (
           <span
             className={`${fontSize.base} font-mono font-bold tracking-widest ${
-              market.outcome === 'YES' ? 'text-green-400/70' : 'text-red-400/70'
+              market.outcome === 'YES' ? `${gr.text} opacity-70` : 'text-red-400/70'
             }`}
           >
             SETTLED

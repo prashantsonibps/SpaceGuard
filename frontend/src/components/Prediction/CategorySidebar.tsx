@@ -1,7 +1,7 @@
 "use client";
 
 import { GlassCard } from "@/components/ui/GlassCard";
-import { accent, textOpacity, fontSize } from "@/lib/theme";
+import { accent, textOpacity, fontSize, green } from "@/lib/theme";
 import { useTheme } from "@/lib/ThemeContext";
 import type { Market, MarketCategory } from "@/data/markets";
 
@@ -115,7 +115,7 @@ export function CategorySidebar({
           <div className={`flex justify-between ${fontSize.small} font-mono`}>
             <span className={tp.muted}>P&amp;L</span>
             <span
-              className={`tabular-nums font-semibold ${DEMO_PORTFOLIO.pnl >= 0 ? "text-green-400" : "text-red-400"}`}
+              className={`tabular-nums font-semibold ${DEMO_PORTFOLIO.pnl >= 0 ? green[theme].text : "text-red-400"}`}
             >
               {DEMO_PORTFOLIO.pnl >= 0 ? "+" : ""}$
               {DEMO_PORTFOLIO.pnl.toFixed(2)}

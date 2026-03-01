@@ -3,7 +3,7 @@
 import { TopBar } from "@/components/Dashboard/TopBar";
 import { MARKETS } from "@/data/markets";
 import { useTheme } from "@/lib/ThemeContext";
-import { fontSize } from "@/lib/theme";
+import { fontSize, green } from "@/lib/theme";
 import { PredictionCard } from "@/components/Prediction/PredictionCard";
 
 export default function PredictionPage() {
@@ -32,7 +32,7 @@ export default function PredictionPage() {
         <span className="opacity-40">·</span>
         <span>$1.2M 24H VOL</span>
         <span className="opacity-40">·</span>
-        <span className="text-green-400/80">9 LIVE</span>
+        <span className={green[theme].textMuted}>9 LIVE</span>
       </div>
 
       {/* Card grid */}

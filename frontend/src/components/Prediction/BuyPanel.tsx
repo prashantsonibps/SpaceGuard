@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { GlassCard } from '@/components/ui/GlassCard'
-import { accent, textOpacity, fontSize } from '@/lib/theme'
+import { accent, textOpacity, fontSize, green } from '@/lib/theme'
 import { useTheme } from '@/lib/ThemeContext'
 import { api } from '@/lib/api'
 import type { Market } from '@/data/markets'
@@ -158,7 +158,7 @@ export function BuyPanel({ market, userId, defaultSide }: BuyPanelProps) {
           ${isDisabled
             ? `opacity-30 cursor-not-allowed ${borderDim} ${tp.faint}`
             : status === 'success'
-            ? 'border-green-400/40 bg-green-400/10 text-green-400'
+            ? `${green[theme].border}/40 ${green[theme].bgMuted} ${green[theme].text}`
             : status === 'error'
             ? 'border-red-400/40 bg-red-400/10 text-red-400'
             : side === 'YES'
