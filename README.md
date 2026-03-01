@@ -83,6 +83,16 @@ npm run dev
 ```
 Visit `http://localhost:3000` to see the future of space risk management.
 
+### 4. Hosting the frontend (e.g. Vercel)
+On branch `feat/host-frontend`, the UI uses the inline-expand Financial Terminal and betting flow. To deploy the frontend:
+
+1. Set the backend API URL in your host’s environment:
+   - **`NEXT_PUBLIC_API_URL`** = your backend base URL (e.g. `https://your-api.fly.dev`).
+2. Copy `frontend/.env.example` to `frontend/.env.local` and fill in `NEXT_PUBLIC_API_URL` for local builds, or configure the same variable in your hosting dashboard.
+3. Ensure the backend allows your frontend origin in CORS (the default API allows all origins).
+
+Without `NEXT_PUBLIC_API_URL`, the app falls back to `http://localhost:8000` (local dev).
+
 ---
 
 ## 🔮 Future Roadmap
