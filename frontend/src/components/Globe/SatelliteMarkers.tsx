@@ -1,81 +1,121 @@
 'use client'
 
-import { useRef } from 'react'
+import { useRef, useEffect, useState } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { Sphere } from '@react-three/drei'
 import * as THREE from 'three'
-import { satellites } from '@/data/satellites'
-import { conjunctionEvents, RiskLevel } from '@/data/conjunctions'
 import { positionOnSphere } from '@/lib/orbital'
+import { db } from '@/lib/firebase'
+import { collection, onSnapshot, query } from 'firebase/firestore'
+import { ConjunctionEvent, RiskLevel } from '@/components/Dashboard/EventsPanel'
 
 const VIZ_SCALE = 0.98
 const DOT_SIZE = 0.004
 
-// Build satellite ID → highest risk level from conjunction events
-const riskPriority: Record<RiskLevel, number> = { CRITICAL: 4, HIGH: 3, MEDIUM: 2, LOW: 1 }
-const satRiskMap = new Map<string, RiskLevel>()
-for (const evt of conjunctionEvents) {
-  for (const satId of [evt.satA, evt.satB]) {
-    const existing = satRiskMap.get(satId)
-    if (!existing || riskPriority[evt.riskLevel] > riskPriority[existing]) {
-      satRiskMap.set(satId, evt.riskLevel)
-    }
-  }
-}
-
-const RISK_COLORS: Record<RiskLevel, string> = {
+const RISK_COLORS: Record<string, string> = {
   CRITICAL: '#ef4444',
   HIGH:     '#f97316',
   MEDIUM:   '#eab308',
-  LOW:      '#ffffff',
+  LOW:      '#4ade80',
 }
 
-function satColor(id: string): string {
-  const risk = satRiskMap.get(id)
-  return risk ? RISK_COLORS[risk] : '#ffffff'
-}
-
-interface SatRef {
-  mesh: THREE.Mesh | null
-}
-
+// In a full production app, we would parse TLEs in the frontend to propagate the exact orbit.
+// For the 3D visualization, we will generate placeholder satellites and highlight the real ones
+// from the database if they are involved in conjunctions.
 export function SatelliteMarkers() {
-  const satRefs = useRef<SatRef[]>(satellites.map(() => ({ mesh: null })))
+  const [events, setEvents] = useState<ConjunctionEvent[]>([])
+  
+  // Create 500 background "dots" to simulate the satellite cloud
+  const [backgroundSats] = useState(() => {
+    const sats = []
+    for (let i = 0; i < 500; i++) {
+      sats.push({
+        id: `bg-${i}`,
+        altitudeKm: 400 + Math.random() * 1000,
+        inclinationDeg: Math.random() * 180,
+        raanDeg: Math.random() * 360,
+        phase0Deg: Math.random() * 360,
+        speedFactor: 0.5 + Math.random()
+      })
+    }
+    return sats
+  })
+
+  // Listen to live conjunctions from Firebase
+  useEffect(() => {
+    const q = query(collection(db, 'conjunction_events'))
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const newEvents: ConjunctionEvent[] = []
+      snapshot.forEach((doc) => {
+        newEvents.push({ id: doc.id, ...doc.data() } as ConjunctionEvent)
+      })
+      setEvents(newEvents)
+    })
+    return () => unsubscribe()
+  }, [])
+
+  const satRefs = useRef<(THREE.Mesh | null)[]>([])
   const startTime = useRef(Date.now())
 
   useFrame(() => {
     const elapsed = (Date.now() - startTime.current) / 1000
 
-    satellites.forEach((sat, i) => {
-      const ref = satRefs.current[i]
-      if (!ref.mesh) return
+    backgroundSats.forEach((sat, i) => {
+      const mesh = satRefs.current[i]
+      if (!mesh) return
 
       const phase0 = ((sat.phase0Deg ?? 0) * Math.PI) / 180
       const [x, y, z] = positionOnSphere(
         sat.altitudeKm,
         sat.inclinationDeg,
         sat.raanDeg,
-        elapsed,
+        elapsed * sat.speedFactor,
         phase0,
         VIZ_SCALE,
       )
-      ref.mesh.position.set(x, y, z)
+      mesh.position.set(x, y, z)
     })
+  })
+
+  // We want to specifically render and highlight the satellites involved in conjunctions
+  const activeSatellites = new Map<string, RiskLevel>()
+  events.forEach(evt => {
+    activeSatellites.set(evt.asset_id, evt.risk_level)
+    activeSatellites.set(evt.secondary_id, evt.risk_level)
   })
 
   return (
     <group>
-      {satellites.map((sat, i) => (
+      {/* Background Satellites */}
+      {backgroundSats.map((sat, i) => (
         <Sphere
-          key={`sat-${sat.id}`}
+          key={sat.id}
           ref={(mesh) => {
-            satRefs.current[i].mesh = mesh
+            satRefs.current[i] = mesh
           }}
-          args={[DOT_SIZE, 16, 16]}
+          args={[DOT_SIZE, 8, 8]}
         >
-          <meshBasicMaterial color={satColor(sat.id)} />
+          <meshBasicMaterial color="#ffffff" transparent opacity={0.4} />
         </Sphere>
       ))}
+
+      {/* High-Risk Satellites (Rendered dynamically based on DB) */}
+      {Array.from(activeSatellites.entries()).map(([id, risk], i) => {
+        // Position them statically for the demo or give them a fixed orbit path
+        // so they stand out in the 3D globe.
+        const alt = 450 + (i * 10)
+        const [x, y, z] = positionOnSphere(alt, 51.6, i * 45, 0, 0, VIZ_SCALE)
+        
+        return (
+          <Sphere
+            key={`risk-${id}`}
+            position={[x, y, z]}
+            args={[DOT_SIZE * 3, 16, 16]}
+          >
+            <meshBasicMaterial color={RISK_COLORS[risk] || '#ffffff'} />
+          </Sphere>
+        )
+      })}
     </group>
   )
 }

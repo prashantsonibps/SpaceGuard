@@ -1,12 +1,13 @@
 'use client'
 
-import { useRef, useMemo } from 'react'
+import { useRef, useMemo, useEffect, useState } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { Sphere, Line } from '@react-three/drei'
 import * as THREE from 'three'
-import { conjunctionEvents } from '@/data/conjunctions'
-import { satellites } from '@/data/satellites'
 import { positionOnSphere } from '@/lib/orbital'
+import { db } from '@/lib/firebase'
+import { collection, onSnapshot, query } from 'firebase/firestore'
+import { ConjunctionEvent } from '@/components/Dashboard/EventsPanel'
 
 const VIZ_SCALE = 0.98
 
@@ -23,34 +24,46 @@ interface AlertMarker {
 }
 
 export function ConjunctionAlerts() {
-  const markerRefs = useRef<AlertMarker[]>(
-    conjunctionEvents.map(() => ({ mesh: null, lineRef: null })),
-  )
-  const linePositions = useRef<Float32Array[]>(
-    conjunctionEvents.map(() => new Float32Array(6)),
-  )
-  const startTime = useRef(Date.now())
+  const [events, setEvents] = useState<ConjunctionEvent[]>([])
+  
+  // Listen to live conjunctions from Firebase
+  useEffect(() => {
+    const q = query(collection(db, 'conjunction_events'))
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const newEvents: ConjunctionEvent[] = []
+      snapshot.forEach((doc) => {
+        newEvents.push({ id: doc.id, ...doc.data() } as ConjunctionEvent)
+      })
+      setEvents(newEvents)
+    })
+    return () => unsubscribe()
+  }, [])
 
-  const satMap = useMemo(
-    () => Object.fromEntries(satellites.map((s) => [s.id, s])),
-    [],
-  )
+  const markerRefs = useRef<AlertMarker[]>([])
+  const linePositions = useRef<Float32Array[]>([])
+  
+  // Update refs when events change
+  useEffect(() => {
+    markerRefs.current = events.map(() => ({ mesh: null, lineRef: null }))
+    linePositions.current = events.map(() => new Float32Array(6))
+  }, [events])
+
+  const startTime = useRef(Date.now())
 
   useFrame(() => {
     const elapsed = (Date.now() - startTime.current) / 1000
 
-    conjunctionEvents.forEach((evt, i) => {
+    events.forEach((evt, i) => {
       const ref = markerRefs.current[i]
-      const satA = satMap[evt.satA]
-      const satB = satMap[evt.satB]
-      if (!satA || !satB) return
-
-      const posA = positionOnSphere(
-        satA.altitudeKm, satA.inclinationDeg, satA.raanDeg, elapsed, 0, VIZ_SCALE,
-      )
-      const posB = positionOnSphere(
-        satB.altitudeKm, satB.inclinationDeg, satB.raanDeg, elapsed, 0, VIZ_SCALE,
-      )
+      if (!ref) return
+      
+      // For demo visual purposes, generate positions
+      // In production we'd use the actual TLEs for this specific asset
+      const altA = 450 + (i * 10)
+      const altB = 455 + (i * 10)
+      
+      const posA = positionOnSphere(altA, 51.6, i * 45, elapsed, 0, VIZ_SCALE)
+      const posB = positionOnSphere(altB, 51.6, i * 45, elapsed, Math.PI / 32, VIZ_SCALE)
 
       const mx = (posA[0] + posB[0]) / 2
       const my = (posA[1] + posB[1]) / 2
@@ -62,17 +75,19 @@ export function ConjunctionAlerts() {
       }
 
       // Update line positions
-      const buf = linePositions.current[i]
-      buf[0] = posA[0]; buf[1] = posA[1]; buf[2] = posA[2]
-      buf[3] = posB[0]; buf[4] = posB[1]; buf[5] = posB[2]
+      if (linePositions.current[i]) {
+        const buf = linePositions.current[i]
+        buf[0] = posA[0]; buf[1] = posA[1]; buf[2] = posA[2]
+        buf[3] = posB[0]; buf[4] = posB[1]; buf[5] = posB[2]
+      }
     })
   })
 
   return (
     <group>
-      {conjunctionEvents.map((evt, i) => {
-        const color = riskColors[evt.riskLevel]
-        const isHighRisk = evt.riskLevel === 'CRITICAL' || evt.riskLevel === 'HIGH'
+      {events.map((evt, i) => {
+        const color = riskColors[evt.risk_level] || '#ffffff'
+        const isHighRisk = evt.risk_level === 'CRITICAL' || evt.risk_level === 'HIGH'
 
         return (
           <group key={evt.id}>
@@ -96,7 +111,9 @@ export function ConjunctionAlerts() {
             {/* Pulsing alert sphere at midpoint */}
             <Sphere
               ref={(mesh) => {
-                markerRefs.current[i].mesh = mesh
+                if (markerRefs.current[i]) {
+                  markerRefs.current[i].mesh = mesh
+                }
               }}
               args={[isHighRisk ? 0.028 : 0.018, 12, 12]}
             >

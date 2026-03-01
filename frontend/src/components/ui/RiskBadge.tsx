@@ -1,6 +1,6 @@
 'use client'
 
-import type { RiskLevel } from '@/data/conjunctions'
+import type { RiskLevel } from '@/components/Dashboard/EventsPanel'
 
 interface RiskBadgeProps {
   level: RiskLevel
