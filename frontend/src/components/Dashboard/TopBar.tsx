@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { accent, riskClasses, financialColors } from '@/lib/theme'
+import { accent, riskClasses, financialColors, fontSize } from '@/lib/theme'
 import { useTheme } from '@/lib/ThemeContext'
 
 function SunIcon() {
@@ -64,7 +64,7 @@ export function TopBar({ variant = 'overlay' }: TopBarProps) {
       <div className="flex items-center gap-1">
         <Link
           href="/"
-          className={`text-[10px] font-mono px-2 py-0.5 rounded transition-colors ${
+          className={`${fontSize.small} font-mono px-2 py-0.5 rounded transition-colors ${
             pathname === '/'
               ? `${accent[theme].text} ${accent[theme].bgDim}`
               : 'text-slate-500 dark:text-white/40 hover:text-slate-700 dark:hover:text-white/60'
@@ -74,7 +74,7 @@ export function TopBar({ variant = 'overlay' }: TopBarProps) {
         </Link>
         <Link
           href="/prediction"
-          className={`text-[10px] font-mono px-2 py-0.5 rounded transition-colors ${
+          className={`${fontSize.small} font-mono px-2 py-0.5 rounded transition-colors ${
             pathname === '/prediction'
               ? `${accent[theme].text} ${accent[theme].bgDim}`
               : 'text-slate-500 dark:text-white/40 hover:text-slate-700 dark:hover:text-white/60'

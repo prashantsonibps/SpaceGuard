@@ -1,47 +1,51 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { MARKETS } from '@/data/markets'
-import { riskClasses, financialColors, textOpacity } from '@/lib/theme'
-import { useTheme } from '@/lib/ThemeContext'
-import { PredictionCard, formatVol } from '@/components/Prediction/PredictionCard'
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { MARKETS } from "@/data/markets";
+import { riskClasses, financialColors, textOpacity, fontSize } from "@/lib/theme";
+import { useTheme } from "@/lib/ThemeContext";
+import {
+  PredictionCard,
+  formatVol,
+} from "@/components/Prediction/PredictionCard";
 
 // ── Derived market data (module-level, stable) ─────────────────────────────────
-const liveMarkets = MARKETS.filter(m => m.status === 'LIVE')
-const totalVol24h = MARKETS.reduce((s, m) => s + m.volume24h, 0)
+const liveMarkets = MARKETS.filter((m) => m.status === "LIVE");
+const totalVol24h = MARKETS.reduce((s, m) => s + m.volume24h, 0);
 const avgYesPrice = Math.round(
-  liveMarkets.reduce((s, m) => s + m.yesPrice, 0) / Math.max(1, liveMarkets.length)
-)
+  liveMarkets.reduce((s, m) => s + m.yesPrice, 0) /
+    Math.max(1, liveMarkets.length),
+);
 
 // ── Main export ────────────────────────────────────────────────────────────────
 export function FinancialTerminal({ userId: _userId }: { userId?: string }) {
-  const { theme } = useTheme()
-  const [expanded, setExpanded] = useState(false)
-  const [windowH, setWindowH] = useState<number>(0)
+  const { theme } = useTheme();
+  const [expanded, setExpanded] = useState(false);
+  const [windowH, setWindowH] = useState<number>(0);
 
   useEffect(() => {
-    setWindowH(window.innerHeight)
-    const onResize = () => setWindowH(window.innerHeight)
-    window.addEventListener('resize', onResize)
-    return () => window.removeEventListener('resize', onResize)
-  }, [])
+    setWindowH(window.innerHeight);
+    const onResize = () => setWindowH(window.innerHeight);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
 
-  const expandedH = windowH ? windowH - 80 : 600
+  const expandedH = windowH ? windowH - 80 : 600;
 
   return (
     <motion.div
       className="absolute z-40 rounded-xl overflow-hidden backdrop-blur-md border border-black/[0.18] dark:border-white/10 bg-white/80 dark:bg-neutral-900/50"
-      style={{ bottom: '1rem', left: '1rem' }}
-      initial={{ opacity: 0, y: 10, right: '20rem', height: 44 }}
+      style={{ bottom: "1rem", left: "1rem" }}
+      initial={{ opacity: 0, y: 10, right: "20rem", height: 44 }}
       animate={
         expanded
-          ? { opacity: 1, y: 0, right: '1rem', height: expandedH }
-          : { opacity: 1, y: 0, right: '20rem', height: 44 }
+          ? { opacity: 1, y: 0, right: "1rem", height: expandedH }
+          : { opacity: 1, y: 0, right: "20rem", height: 44 }
       }
       transition={{
-        opacity: { duration: 0.4, ease: 'easeOut' },
-        y: { duration: 0.4, ease: 'easeOut' },
+        opacity: { duration: 0.4, ease: "easeOut" },
+        y: { duration: 0.4, ease: "easeOut" },
         right: { duration: 0.45, ease: [0.4, 0, 0.2, 1] },
         height: { duration: 0.45, ease: [0.4, 0, 0.2, 1] },
       }}
@@ -60,19 +64,25 @@ export function FinancialTerminal({ userId: _userId }: { userId?: string }) {
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-2.5 border-b border-black/[0.18] dark:border-white/[0.08] shrink-0">
               <div className="flex items-center gap-3">
-                <span className={`font-orbitron text-[11px] font-bold ${textOpacity[theme].secondary} tracking-[0.25em]`}>
+                <span
+                  className={`font-orbitron text-[11px] font-bold ${textOpacity[theme].secondary} tracking-[0.25em]`}
+                >
                   PREDICTION MARKETS
                 </span>
                 <div className="flex items-center gap-1.5">
-                  <span className={`w-1.5 h-1.5 rounded-full ${riskClasses[theme].LOW.dot} animate-pulse shrink-0`} />
-                  <span className={`text-[9px] font-mono ${textOpacity[theme].caption}`}>
+                  <span
+                    className={`w-1.5 h-1.5 rounded-full ${riskClasses[theme].LOW.dot} animate-pulse shrink-0`}
+                  />
+                  <span
+                    className={`${fontSize.small} font-mono ${textOpacity[theme].caption}`}
+                  >
                     {liveMarkets.length} live · {formatVol(totalVol24h)} 24h vol
                   </span>
                 </div>
               </div>
               <button
                 onClick={() => setExpanded(false)}
-                className={`text-[9px] font-mono ${textOpacity[theme].caption} border border-black/[0.18] dark:border-white/[0.08] px-2 py-1 rounded
+                className={`${fontSize.small} font-mono ${textOpacity[theme].caption} border border-black/[0.18] dark:border-white/[0.08] px-2 py-1 rounded
                   hover:${textOpacity[theme].secondary} hover:border-black/30 dark:hover:border-white/20 transition-colors tracking-widest`}
               >
                 COLLAPSE ↙
@@ -80,24 +90,35 @@ export function FinancialTerminal({ userId: _userId }: { userId?: string }) {
             </div>
 
             {/* Stats strip */}
-            <div className={`flex items-center gap-3 px-4 py-1.5 border-b text-[9px] font-mono tracking-widest shrink-0 ${
-              theme === 'dark' ? 'border-white/[0.06] text-white/40' : 'border-black/[0.08] text-slate-500'
-            }`}>
+            <div
+              className={`flex items-center gap-3 px-4 py-1.5 border-b ${fontSize.small} font-mono tracking-widest shrink-0 ${
+                theme === "dark"
+                  ? "border-white/[0.06] text-white/40"
+                  : "border-black/[0.08] text-slate-500"
+              }`}
+            >
               <span>847 TRACKED</span>
               <span className="opacity-40">·</span>
               <span>12 MARKETS</span>
               <span className="opacity-40">·</span>
               <span>{formatVol(totalVol24h)} 24H VOL</span>
               <span className="opacity-40">·</span>
-              <span className="text-green-400/80">{liveMarkets.length} LIVE</span>
+              <span className="text-green-400/80">
+                {liveMarkets.length} LIVE
+              </span>
               <span className="opacity-40">·</span>
-              <span>AVG YES <span className={financialColors[theme].var}>{avgYesPrice}¢</span></span>
+              <span>
+                AVG YES{" "}
+                <span className={financialColors[theme].var}>
+                  {avgYesPrice}¢
+                </span>
+              </span>
             </div>
 
             {/* Market card grid */}
             <div className="flex-1 overflow-y-auto">
               <div className="grid grid-cols-2 gap-3 p-4">
-                {MARKETS.map(market => (
+                {MARKETS.map((market) => (
                   <PredictionCard key={market.id} market={market} />
                 ))}
               </div>
@@ -111,21 +132,33 @@ export function FinancialTerminal({ userId: _userId }: { userId?: string }) {
         className="absolute bottom-0 left-0 right-0 px-3 flex items-center justify-between gap-4 border-t border-black/[0.18] dark:border-white/[0.08]"
         style={{ height: 44 }}
       >
-        <div className="flex items-center gap-5 font-mono text-[10px] min-w-0">
-          <span className={`${textOpacity[theme].faint} shrink-0 font-orbitron tracking-widest text-[9px]`}>
+        <div className={`flex items-center gap-5 font-mono ${fontSize.small} min-w-0`}>
+          <span
+            className={`${textOpacity[theme].faint} shrink-0 font-orbitron tracking-widest`}
+          >
             PREDICTIONS
           </span>
           <span className={textOpacity[theme].muted}>
-            Live <span className={`${financialColors[theme].wagered} font-medium`}>{liveMarkets.length}</span>
+            Live{" "}
+            <span className={`${financialColors[theme].wagered} font-medium`}>
+              {liveMarkets.length}
+            </span>
           </span>
           <span className={textOpacity[theme].muted}>
-            Vol <span className={financialColors[theme].balance}>{formatVol(totalVol24h)}</span>
+            Vol{" "}
+            <span className={financialColors[theme].balance}>
+              {formatVol(totalVol24h)}
+            </span>
           </span>
           <span className={textOpacity[theme].muted}>
-            Avg YES <span className={financialColors[theme].var}>{avgYesPrice}¢</span>
+            Avg YES{" "}
+            <span className={financialColors[theme].var}>{avgYesPrice}¢</span>
           </span>
           <span className={textOpacity[theme].muted}>
-            Markets <span className={textOpacity[theme].secondary}>{MARKETS.length}</span>
+            Markets{" "}
+            <span className={textOpacity[theme].secondary}>
+              {MARKETS.length}
+            </span>
           </span>
         </div>
 
@@ -137,7 +170,7 @@ export function FinancialTerminal({ userId: _userId }: { userId?: string }) {
               exit={{ opacity: 0 }}
               transition={{ duration: 0.15 }}
               onClick={() => setExpanded(true)}
-              className={`shrink-0 px-2.5 py-1 rounded text-[9px] font-mono tracking-widest
+              className={`shrink-0 px-2.5 py-1 rounded ${fontSize.small} font-mono tracking-widest
                 ${textOpacity[theme].muted} border border-black/[0.18] dark:border-white/[0.08] hover:border-black/25 dark:hover:border-white/25 hover:${textOpacity[theme].secondary}
                 transition-colors`}
             >
@@ -147,5 +180,5 @@ export function FinancialTerminal({ userId: _userId }: { userId?: string }) {
         </AnimatePresence>
       </div>
     </motion.div>
-  )
+  );
 }

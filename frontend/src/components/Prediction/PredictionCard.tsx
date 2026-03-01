@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion'
 import type { Market, MarketCategory } from '@/data/markets'
 import { useTheme } from '@/lib/ThemeContext'
-import { textOpacity } from '@/lib/theme'
+import { textOpacity, fontSize } from '@/lib/theme'
 import { Zap, Layers, Navigation, Shield, Globe } from 'lucide-react'
 
 // ── Category meta ──────────────────────────────────────────────────────────────
@@ -57,7 +57,7 @@ function OptionRow({
 
   return (
     <div className="flex items-center gap-2 min-h-[28px]">
-      <span className={`text-sm font-mono font-bold shrink-0 w-10 ${textCls}`}>
+      <span className={`${fontSize.medium} font-mono font-bold shrink-0 w-10 ${textCls}`}>
         {label}
       </span>
       <div className={`flex-1 min-w-0 h-1.5 rounded-full ${barBg} overflow-hidden`}>
@@ -66,7 +66,7 @@ function OptionRow({
           style={{ width: `${Math.max(1, Math.min(100, pct))}%` }}
         />
       </div>
-      <span className="text-sm font-mono tabular-nums shrink-0 w-12 text-right opacity-70">
+      <span className={`${fontSize.base} font-mono tabular-nums shrink-0 w-12 text-right opacity-70`}>
         {mult}
       </span>
       <button
@@ -74,7 +74,7 @@ function OptionRow({
         onClick={onClick}
         disabled={disabled}
         className={`
-          shrink-0 px-3 py-1 rounded-full text-base font-mono font-bold tabular-nums
+          shrink-0 px-3 py-1 rounded-full ${fontSize.large} font-mono font-bold tabular-nums
           border ${borderCls} ${textCls}
           transition-opacity hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed
         `}
@@ -121,7 +121,7 @@ export function PredictionCard({ market }: { market: Market }) {
           <div className={`w-7 h-7 rounded-lg ${catBg} flex items-center justify-center shrink-0 mt-0.5`}>
             <Icon className={`w-3.5 h-3.5 ${iconColor}`} />
           </div>
-          <p className={`text-sm font-mono leading-snug ${tp.secondary} flex-1`}>
+          <p className={`${fontSize.medium} font-mono leading-snug ${tp.secondary} flex-1`}>
             {market.question}
           </p>
         </div>
@@ -131,7 +131,7 @@ export function PredictionCard({ market }: { market: Market }) {
       {isResolved ? (
         <div className="px-3.5 pb-3">
           <span
-            className={`text-sm font-mono font-bold tracking-widest ${
+            className={`${fontSize.base} font-mono font-bold tracking-widest ${
               market.outcome === 'YES' ? 'text-green-400' : 'text-red-400'
             }`}
           >
@@ -159,21 +159,21 @@ export function PredictionCard({ market }: { market: Market }) {
 
       {/* Footer */}
       <div className={`flex items-center justify-between px-3.5 py-2.5 border-t ${borderClass}`}>
-        <span className={`text-sm font-mono ${tp.faint}`}>
+        <span className={`${fontSize.base} font-mono ${tp.faint}`}>
           {formatVol(market.totalVolume)} vol
         </span>
         {timeLeft ? (
-          <span className={`text-sm font-mono ${tp.faint}`}>{timeLeft}</span>
+          <span className={`${fontSize.base} font-mono ${tp.faint}`}>{timeLeft}</span>
         ) : isResolved ? (
           <span
-            className={`text-sm font-mono font-bold tracking-widest ${
+            className={`${fontSize.base} font-mono font-bold tracking-widest ${
               market.outcome === 'YES' ? 'text-green-400/70' : 'text-red-400/70'
             }`}
           >
             SETTLED
           </span>
         ) : (
-          <span className={`text-sm font-mono ${tp.faint}`}>CLOSED</span>
+          <span className={`${fontSize.base} font-mono ${tp.faint}`}>CLOSED</span>
         )}
       </div>
     </motion.div>

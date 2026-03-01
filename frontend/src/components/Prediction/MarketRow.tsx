@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { riskClasses, textOpacity, accent } from '@/lib/theme'
+import { riskClasses, textOpacity, accent, fontSize } from '@/lib/theme'
 import { useTheme } from '@/lib/ThemeContext'
 import { RiskBadge } from '@/components/ui/RiskBadge'
 import { MarketStatusBadge } from './MarketStatusBadge'
@@ -30,7 +30,7 @@ function ProbBar({ yes, theme }: { yes: number; theme: 'dark' | 'light' }) {
   const no = 100 - yes
   return (
     <div className="flex items-center gap-2">
-      <span className={`text-[9px] font-mono tabular-nums w-8 text-right shrink-0 ${
+      <span className={`${fontSize.small} font-mono tabular-nums w-8 text-right shrink-0 ${
         theme === 'dark' ? 'text-emerald-400' : 'text-emerald-700'
       }`}>
         {yes}%
@@ -46,7 +46,7 @@ function ProbBar({ yes, theme }: { yes: number; theme: 'dark' | 'light' }) {
           style={{ width: `${no}%` }}
         />
       </div>
-      <span className={`text-[9px] font-mono tabular-nums w-8 shrink-0 ${
+      <span className={`${fontSize.small} font-mono tabular-nums w-8 shrink-0 ${
         theme === 'dark' ? 'text-red-400/70' : 'text-red-600/70'
       }`}>
         {no}%
@@ -96,28 +96,28 @@ export function MarketRow({ market, index, isSelected, onSelect, userId }: Marke
           {/* Left: risk badge + category tag + question */}
           <div className="flex-1 min-w-0 flex items-center gap-2">
             <RiskBadge level={market.riskLevel} />
-            <span className={`text-[8px] font-mono px-1.5 py-0.5 rounded border ${tagBorder} ${tp.muted} shrink-0 leading-none`}>
+            <span className={`${fontSize.small} font-mono px-1.5 py-0.5 rounded border ${tagBorder} ${tp.muted} shrink-0 leading-none`}>
               {CATEGORY_LABEL[market.category]}
             </span>
-            <p className={`text-[12px] font-mono ${tp.primary} leading-snug truncate`}>
+            <p className={`${fontSize.medium} font-mono ${tp.primary} leading-snug truncate`}>
               {market.question}
             </p>
           </div>
 
           {/* VOL */}
           <div className="shrink-0 text-right w-16">
-            <div className={`text-[11px] font-mono ${tp.secondary} tabular-nums`}>
+            <div className={`${fontSize.base} font-mono ${tp.secondary} tabular-nums`}>
               {formatVolume(market.volume24h)}
             </div>
-            <div className={`text-[8px] font-mono ${tp.faint}`}>VOL</div>
+            <div className={`${fontSize.small} font-mono ${tp.faint}`}>VOL</div>
           </div>
 
           {/* CLOSES */}
           <div className="shrink-0 text-right w-16">
-            <div className={`text-[11px] font-mono ${tp.secondary} tabular-nums`}>
+            <div className={`${fontSize.base} font-mono ${tp.secondary} tabular-nums`}>
               {countdown}
             </div>
-            <div className={`text-[8px] font-mono ${tp.faint}`}>CLOSES</div>
+            <div className={`${fontSize.small} font-mono ${tp.faint}`}>CLOSES</div>
           </div>
 
           {/* STATUS */}
@@ -136,7 +136,7 @@ export function MarketRow({ market, index, isSelected, onSelect, userId }: Marke
       <div className="flex justify-end gap-2 px-4 pb-2.5 pt-0.5">
         <button
           onClick={(e) => handleBuyClick(e, 'YES')}
-          className={`px-2.5 py-1 text-[9px] font-mono rounded border transition-colors ${
+          className={`px-2.5 py-1 ${fontSize.small} font-mono rounded border transition-colors ${
             theme === 'dark'
               ? 'border-emerald-400/30 bg-emerald-400/[0.07] text-emerald-400 hover:bg-emerald-400/20'
               : 'border-emerald-700/30 bg-emerald-600/[0.07] text-emerald-700 hover:bg-emerald-600/15'
@@ -146,7 +146,7 @@ export function MarketRow({ market, index, isSelected, onSelect, userId }: Marke
         </button>
         <button
           onClick={(e) => handleBuyClick(e, 'NO')}
-          className={`px-2.5 py-1 text-[9px] font-mono rounded border transition-colors ${
+          className={`px-2.5 py-1 ${fontSize.small} font-mono rounded border transition-colors ${
             theme === 'dark'
               ? 'border-red-400/30 bg-red-400/[0.07] text-red-400 hover:bg-red-400/20'
               : 'border-red-500/30 bg-red-400/[0.07] text-red-600 hover:bg-red-400/20'

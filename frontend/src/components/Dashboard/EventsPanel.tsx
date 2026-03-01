@@ -6,7 +6,7 @@ import { GlassCard } from '@/components/ui/GlassCard'
 import { db } from '@/lib/firebase'
 import { collection, onSnapshot, query, orderBy } from 'firebase/firestore'
 import { BettingModal } from './BettingModal'
-import { riskClasses, accent, textOpacity } from '@/lib/theme'
+import { riskClasses, accent, textOpacity, fontSize } from '@/lib/theme'
 import { useTheme } from '@/lib/ThemeContext'
 
 // Update the type to match our new Firestore schema
@@ -84,21 +84,21 @@ function EventRow({
           <div className="flex items-center justify-between mb-1.5">
             <div className="flex items-center gap-1.5">
               <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${(rc[event.risk_level] ?? rc.LOW).dot} ${event.risk_level === 'CRITICAL' ? 'animate-pulse' : ''}`} />
-              <span className={`text-[10px] font-mono font-bold tracking-widest ${(rc[event.risk_level] ?? rc.LOW).text}`}>
+              <span className={`${fontSize.small} font-mono font-bold tracking-widest ${(rc[event.risk_level] ?? rc.LOW).text}`}>
                 {event.risk_level || "UNKNOWN"}
               </span>
-              <span className={`text-[10px] font-mono ${textOpacity[theme].faint} ml-1 truncate max-w-[80px]`}>
+              <span className={`${fontSize.small} font-mono ${textOpacity[theme].faint} ml-1 truncate max-w-[80px]`}>
                 {type === 'NEO' ? 'ASTEROID' : event.asset_id}
               </span>
             </div>
-            <span className={`text-[10px] font-mono ${textOpacity[theme].faint} tabular-nums`}>
+            <span className={`${fontSize.small} font-mono ${textOpacity[theme].faint} tabular-nums`}>
               {type === 'NEO' ? event.time_of_closest_approach : `T−${formatCountdown(event.time_of_closest_approach)}`}
             </span>
           </div>
 
-          <div className={`font-mono text-[11px] ${textOpacity[theme].secondary} leading-snug mb-2 truncate`}>
+          <div className={`font-mono ${fontSize.base} ${textOpacity[theme].secondary} leading-snug mb-2 truncate`}>
             {type === 'NEO' ? (
-              <span className={textOpacity[theme].primary}>{event.asset_name} <span className={`${textOpacity[theme].faint} text-[9px]`}>(NEO)</span></span>
+              <span className={textOpacity[theme].primary}>{event.asset_name} <span className={`${textOpacity[theme].faint} ${fontSize.small}`}>(NEO)</span></span>
             ) : (
               <>
                 {event.asset_name}
@@ -108,9 +108,9 @@ function EventRow({
             )}
           </div>
 
-          <div className="grid grid-cols-3 gap-1 text-[10px] font-mono">
+          <div className={`grid grid-cols-3 gap-1 ${fontSize.small} font-mono`}>
             <div>
-              <div className={`${textOpacity[theme].faint} uppercase tracking-wider text-[9px]`}>Dist</div>
+              <div className={`${textOpacity[theme].faint} uppercase tracking-wider ${fontSize.small}`}>Dist</div>
               <div className={`${textOpacity[theme].secondary} tabular-nums`}>
                 {type === 'NEO'
                   ? `${(event.miss_distance_km ? event.miss_distance_km / 1000000 : 0).toFixed(1)}M km`
@@ -119,7 +119,7 @@ function EventRow({
               </div>
             </div>
             <div>
-              <div className={`${textOpacity[theme].faint} uppercase tracking-wider text-[9px]`}>{type === 'NEO' ? 'Size' : 'Prob'}</div>
+              <div className={`${textOpacity[theme].faint} uppercase tracking-wider ${fontSize.small}`}>{type === 'NEO' ? 'Size' : 'Prob'}</div>
               <div className={`tabular-nums ${(rc[event.risk_level] ?? rc.LOW).text}`}>
                 {type === 'NEO'
                   ? `${(event.estimated_diameter_max_km || 0).toFixed(2)} km`
@@ -128,7 +128,7 @@ function EventRow({
               </div>
             </div>
             <div>
-              <div className={`${textOpacity[theme].faint} uppercase tracking-wider text-[9px]`}>Agent Hedge</div>
+              <div className={`${textOpacity[theme].faint} uppercase tracking-wider ${fontSize.small}`}>Agent Hedge</div>
               <div className={`tabular-nums ${event.hedge_status === 'HEDGE' ? accent[theme].text : textOpacity[theme].secondary}`}>
                 {event.hedge_status ? `$${(event.hedge_amount_usd || 0).toLocaleString()}` : 'PENDING'}
               </div>
@@ -145,7 +145,7 @@ function EventRow({
               exit={{ opacity: 0, height: 0 }}
               transition={{ duration: 0.18 }}
             >
-              <div className={`text-[10px] font-mono ${textOpacity[theme].secondary} bg-black/[0.04] dark:bg-white/[0.04] border ${accent[theme].borderDim} rounded px-2 py-1.5 mb-2 leading-relaxed`}>
+              <div className={`${fontSize.small} font-mono ${textOpacity[theme].secondary} bg-black/[0.04] dark:bg-white/[0.04] border ${accent[theme].borderDim} rounded px-2 py-1.5 mb-2 leading-relaxed`}>
                 <span className={`${accent[theme].text} font-bold block mb-1`}>🤖 Gemini AI Assessment:</span>
                 {event.agent_assessment || "Awaiting AI evaluation..."}
               </div>
@@ -153,7 +153,7 @@ function EventRow({
               <div className="flex gap-2 mt-2">
                 <button
                   disabled={event.hedge_status !== 'HEDGE'}
-                  className={`flex-1 py-1 rounded text-[10px] font-mono border transition-colors
+                  className={`flex-1 py-1 rounded ${fontSize.small} font-mono border transition-colors
                     ${event.hedge_status === 'HEDGE' ? `${accent[theme].text} border-sky-300/30 ${accent[theme].bgDim} ${accent[theme].bgDimHover} cursor-pointer` : 'text-slate-400 dark:text-white/20 border-black/20 dark:border-white/10 bg-transparent cursor-not-allowed'}`}
                 >
                   {event.hedge_status === 'HEDGE' ? 'APPROVE HEDGE' : 'NO ACTION REQ.'}
@@ -163,7 +163,7 @@ function EventRow({
                     e.stopPropagation();
                     setIsBettingOpen(true);
                   }}
-                  className="flex-1 py-1 rounded text-[10px] font-mono border border-purple-400/30 bg-purple-400/10 text-purple-500 dark:text-purple-400 hover:bg-purple-400/20 transition-colors"
+                  className={`flex-1 py-1 rounded ${fontSize.small} font-mono border border-purple-400/30 bg-purple-400/10 text-purple-500 dark:text-purple-400 hover:bg-purple-400/20 transition-colors`}
                 >
                   PLACE WAGER
                 </button>
@@ -269,16 +269,16 @@ export function EventsPanel({
       {/* Header */}
       <div className="px-3 py-2.5 border-b border-black/20 dark:border-white/10 shrink-0">
         <div className="flex items-center justify-between mb-2">
-          <h2 className={`font-orbitron text-[11px] font-bold ${textOpacity[theme].primary} tracking-[0.2em]`}>
+          <h2 className={`font-orbitron ${fontSize.base} font-bold ${textOpacity[theme].primary} tracking-[0.2em]`}>
             RISK MONITOR
           </h2>
-          <p className={`text-[9px] font-mono ${textOpacity[theme].faint} tabular-nums`}>
+          <p className={`${fontSize.small} font-mono ${textOpacity[theme].faint} tabular-nums`}>
             {time ? time.toISOString().slice(11, 19) : '––:––:––'} UTC
           </p>
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-1 bg-black/5 dark:bg-white/5 p-0.5 rounded text-[10px] font-mono mb-2">
+        <div className={`flex gap-1 bg-black/5 dark:bg-white/5 p-0.5 rounded ${fontSize.small} font-mono mb-2`}>
           <button
             onClick={() => setActiveTab('SAT')}
             className={`flex-1 py-1 rounded text-center transition-all ${activeTab === 'SAT' ? 'bg-black/10 dark:bg-white/10 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 dark:text-white/40 hover:text-slate-700 dark:hover:text-white/60'}`}
@@ -297,7 +297,7 @@ export function EventsPanel({
           {criticalCount > 0 && (
             <div className="flex items-center gap-1 justify-end">
               <div className={`w-1.5 h-1.5 rounded-full ${rc.CRITICAL.dot} animate-pulse`} />
-              <span className={`text-[9px] font-mono ${rc.CRITICAL.text}`}>{criticalCount} CRITICAL</span>
+              <span className={`${fontSize.small} font-mono ${rc.CRITICAL.text}`}>{criticalCount} CRITICAL</span>
             </div>
           )}
         </div>
@@ -331,7 +331,7 @@ export function EventsPanel({
 
       {/* Footer */}
       <div className="px-3 py-1.5 border-t border-black/20 dark:border-white/10 shrink-0">
-        <div className={`text-[9px] font-mono ${accent[theme].text} opacity-80 text-center tracking-wider flex justify-center items-center gap-1.5`}>
+        <div className={`${fontSize.small} font-mono ${accent[theme].text} opacity-80 text-center tracking-wider flex justify-center items-center gap-1.5`}>
           <div className={`w-1.5 h-1.5 rounded-full ${accent[theme].dot} animate-pulse`} />
           GEMINI AI AGENT ACTIVE
         </div>

@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { textOpacity, accent } from '@/lib/theme'
+import { textOpacity, accent, fontSize } from '@/lib/theme'
 import { useTheme } from '@/lib/ThemeContext'
 import { PriceChart } from './PriceChart'
 import { BuyPanel } from './BuyPanel'
@@ -32,14 +32,14 @@ export function MarketDetail({ market, userId, defaultSide }: MarketDetailProps)
         {/* Left: details + chart */}
         <div className="flex flex-col gap-2 min-w-0">
           {/* Details text */}
-          <p className={`text-[10px] font-mono ${tp.secondary} leading-relaxed`}>
+          <p className={`${fontSize.small} font-mono ${tp.secondary} leading-relaxed`}>
             {market.details}
           </p>
 
           {/* Chart header */}
           <div className="flex items-center justify-between">
-            <span className={`text-[8px] font-mono tracking-widest ${tp.muted}`}>YES PRICE — 24H</span>
-            <span className={`text-[9px] font-mono tabular-nums ${ac.text}`}>
+            <span className={`${fontSize.small} font-mono tracking-widest ${tp.muted}`}>YES PRICE — 24H</span>
+            <span className={`${fontSize.small} font-mono tabular-nums ${ac.text}`}>
               {market.yesPrice}¢ current
             </span>
           </div>

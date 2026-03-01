@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { GlassCard } from '@/components/ui/GlassCard'
-import { accent, textOpacity } from '@/lib/theme'
+import { accent, textOpacity, fontSize } from '@/lib/theme'
 import { useTheme } from '@/lib/ThemeContext'
 import { api } from '@/lib/api'
 import type { Market } from '@/data/markets'
@@ -60,7 +60,7 @@ export function BuyPanel({ market, userId, defaultSide }: BuyPanelProps) {
     }
   }
 
-  const toggleBase = `flex-1 py-1.5 text-[10px] font-mono border rounded transition-colors flex flex-col items-center gap-0.5`
+  const toggleBase = `flex-1 py-1.5 ${fontSize.small} font-mono border rounded transition-colors flex flex-col items-center gap-0.5`
   const activeYes = theme === 'dark'
     ? 'bg-emerald-500/10 border-emerald-400/40 text-emerald-400'
     : 'bg-emerald-600/[0.07] border-emerald-600/40 text-emerald-700'
@@ -79,7 +79,7 @@ export function BuyPanel({ market, userId, defaultSide }: BuyPanelProps) {
           className={`${toggleBase} ${side === 'YES' ? activeYes : inactive} ${isDisabled ? 'opacity-30 cursor-not-allowed' : ''}`}
         >
           <span className="font-bold">YES</span>
-          <span className="text-[8px] opacity-70">{market.yesPrice}¢</span>
+          <span className={`${fontSize.small} opacity-70`}>{market.yesPrice}¢</span>
         </button>
         <button
           onClick={() => setSide('NO')}
@@ -87,22 +87,22 @@ export function BuyPanel({ market, userId, defaultSide }: BuyPanelProps) {
           className={`${toggleBase} ${side === 'NO' ? activeNo : inactive} ${isDisabled ? 'opacity-30 cursor-not-allowed' : ''}`}
         >
           <span className="font-bold">NO</span>
-          <span className="text-[8px] opacity-70">{100 - market.yesPrice}¢</span>
+          <span className={`${fontSize.small} opacity-70`}>{100 - market.yesPrice}¢</span>
         </button>
       </div>
 
       {/* Amount input */}
       <div>
-        <div className={`text-[8px] font-mono ${tp.muted} tracking-widest mb-1`}>AMOUNT (USD)</div>
+        <div className={`${fontSize.small} font-mono ${tp.muted} tracking-widest mb-1`}>AMOUNT (USD)</div>
         <div className={`flex items-center gap-1 ${bgInput} border ${borderDim} rounded px-2 py-1 ${isDisabled ? 'opacity-30' : ''}`}>
-          <span className={`text-[10px] font-mono ${tp.tertiary}`}>$</span>
+          <span className={`${fontSize.small} font-mono ${tp.tertiary}`}>$</span>
           <input
             type="number"
             min={1}
             value={amount}
             onChange={e => setAmount(Math.max(1, Number(e.target.value)))}
             disabled={isDisabled}
-            className={`flex-1 bg-transparent text-[11px] font-mono ${tp.primary} outline-none w-0 tabular-nums`}
+            className={`flex-1 bg-transparent ${fontSize.base} font-mono ${tp.primary} outline-none w-0 tabular-nums`}
           />
         </div>
 
@@ -113,7 +113,7 @@ export function BuyPanel({ market, userId, defaultSide }: BuyPanelProps) {
               key={a}
               onClick={() => setAmount(a)}
               disabled={isDisabled}
-              className={`flex-1 py-0.5 text-[9px] font-mono rounded border ${borderDim} ${tp.muted} transition-colors ${isDisabled ? 'opacity-30 cursor-not-allowed' : ''}`}
+              className={`flex-1 py-0.5 ${fontSize.small} font-mono rounded border ${borderDim} ${tp.muted} transition-colors ${isDisabled ? 'opacity-30 cursor-not-allowed' : ''}`}
             >
               {a}
             </button>
@@ -121,7 +121,7 @@ export function BuyPanel({ market, userId, defaultSide }: BuyPanelProps) {
           <button
             onClick={() => setAmount(1000)}
             disabled={isDisabled}
-            className={`flex-1 py-0.5 text-[9px] font-mono rounded border ${borderDim} ${tp.muted} transition-colors ${isDisabled ? 'opacity-30 cursor-not-allowed' : ''}`}
+            className={`flex-1 py-0.5 ${fontSize.small} font-mono rounded border ${borderDim} ${tp.muted} transition-colors ${isDisabled ? 'opacity-30 cursor-not-allowed' : ''}`}
           >
             MAX
           </button>
@@ -133,13 +133,13 @@ export function BuyPanel({ market, userId, defaultSide }: BuyPanelProps) {
 
       {/* Metrics */}
       <div className="space-y-1">
-        <div className="flex justify-between text-[9px] font-mono">
+        <div className={`flex justify-between ${fontSize.small} font-mono`}>
           <span className={tp.muted}>POTENTIAL RETURN</span>
           <span className={`${ac.text} tabular-nums`}>
             ${potentialReturn.toFixed(2)} <span className={tp.faint}>{multiplier}x</span>
           </span>
         </div>
-        <div className="flex justify-between text-[9px] font-mono">
+        <div className={`flex justify-between ${fontSize.small} font-mono`}>
           <span className={tp.muted}>SHARES</span>
           <span className={`${tp.secondary} tabular-nums`}>{shares}</span>
         </div>
@@ -153,7 +153,7 @@ export function BuyPanel({ market, userId, defaultSide }: BuyPanelProps) {
         onClick={handleConfirm}
         disabled={isDisabled || status === 'loading'}
         className={`
-          w-full py-2 text-[10px] font-mono font-bold tracking-widest rounded border
+          w-full py-2 ${fontSize.small} font-mono font-bold tracking-widest rounded border
           transition-colors
           ${isDisabled
             ? `opacity-30 cursor-not-allowed ${borderDim} ${tp.faint}`
@@ -179,7 +179,7 @@ export function BuyPanel({ market, userId, defaultSide }: BuyPanelProps) {
 
       {/* No user warning */}
       {userId === null && (
-        <p className={`text-center text-[8px] font-mono ${tp.muted}`}>
+        <p className={`text-center ${fontSize.small} font-mono ${tp.muted}`}>
           Connect wallet to trade
         </p>
       )}
