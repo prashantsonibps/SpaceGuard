@@ -331,6 +331,12 @@ export function FinancialTerminal() {
     return sum + Number(h.notional.replace(/[^0-9.-]+/g,""))
   }, 0)
 
+  const logRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight
+  }, [logLines])
+
   const expandedH = 480
   const displayedLines = logLines
 
