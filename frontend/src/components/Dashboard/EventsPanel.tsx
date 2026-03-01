@@ -67,8 +67,21 @@ const riskDot: Record<RiskLevel, string> = {
   LOW: 'bg-green-500',
 }
 
-function EventRow({ event, index, type, userId }: { event: ConjunctionEvent; index: number; type: 'SAT' | 'NEO'; userId: string }) {
-  const [expanded, setExpanded] = useState(false)
+function EventRow({
+  event,
+  index,
+  type,
+  userId,
+  isSelected,
+  onSelect,
+}: {
+  event: ConjunctionEvent
+  index: number
+  type: 'SAT' | 'NEO'
+  userId: string
+  isSelected: boolean
+  onSelect: (id: string | null) => void
+}) {
   const [isBettingOpen, setIsBettingOpen] = useState(false)
 
   const probPct = event.collision_probability ? (event.collision_probability * 100).toFixed(4) : '0.00'
@@ -76,14 +89,14 @@ function EventRow({ event, index, type, userId }: { event: ConjunctionEvent; ind
   return (
     <>
       <motion.div
-        className={`border-l-2 ${riskBorder[event.risk_level] || riskBorder.LOW} border-b border-white/5 last:border-b-0`}
+        className={`border-l-2 ${riskBorder[event.risk_level] || riskBorder.LOW} border-b border-white/5 last:border-b-0 ${isSelected ? 'bg-white/[0.06]' : ''}`}
         initial={{ opacity: 0, x: 12 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ delay: index * 0.08 + 0.2 }}
       >
         <button
           className="w-full text-left px-3 py-2.5 hover:bg-white/[0.03] transition-colors"
-          onClick={() => setExpanded(!expanded)}
+          onClick={() => onSelect(isSelected ? null : event.id)}
         >
           <div className="flex items-center justify-between mb-1.5">
             <div className="flex items-center gap-1.5">
@@ -141,7 +154,7 @@ function EventRow({ event, index, type, userId }: { event: ConjunctionEvent; ind
         </button>
 
         <AnimatePresence>
-          {expanded && (
+          {isSelected && (
             <motion.div
               className="px-3 pb-3 ml-0"
               initial={{ opacity: 0, height: 0 }}
@@ -190,7 +203,15 @@ function EventRow({ event, index, type, userId }: { event: ConjunctionEvent; ind
   )
 }
 
-export function EventsPanel({ userId }: { userId?: string }) {
+export function EventsPanel({
+  userId,
+  selectedEventId,
+  onSelectEvent,
+}: {
+  userId?: string
+  selectedEventId: string | null
+  onSelectEvent: (id: string | null) => void
+}) {
   const [time, setTime] = useState<Date | null>(null)
   const [events, setEvents] = useState<ConjunctionEvent[]>([])
   const [neoEvents, setNeoEvents] = useState<ConjunctionEvent[]>([])
@@ -310,7 +331,15 @@ export function EventsPanel({ userId }: { userId?: string }) {
           </div>
         ) : (
           currentList.map((event, i) => (
-            <EventRow key={event.id} event={event} index={i} type={activeTab} userId={userId} />
+            <EventRow
+              key={event.id}
+              event={event}
+              index={i}
+              type={activeTab}
+              userId={userId}
+              isSelected={selectedEventId === event.id}
+              onSelect={onSelectEvent}
+            />
           ))
         )}
       </div>

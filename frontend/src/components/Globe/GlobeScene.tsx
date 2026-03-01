@@ -41,7 +41,7 @@ function SkyStars() {
   )
 }
 
-function SceneContent() {
+function SceneContent({ selectedEventId }: { selectedEventId?: string | null }) {
   return (
     <>
       {/* Lighting — neutral white for black/white dotted aesthetic */}
@@ -54,7 +54,7 @@ function SceneContent() {
       {/* Earth + satellites */}
       <Suspense fallback={null}>
         <Earth autoRotate={false} />
-        <SatelliteMarkers />
+        <SatelliteMarkers selectedEventId={selectedEventId} />
       </Suspense>
 
       {/* Camera controls — damping disabled for instant response */}
@@ -78,7 +78,7 @@ function SceneContent() {
   )
 }
 
-export function GlobeScene() {
+export function GlobeScene({ selectedEventId }: { selectedEventId?: string | null }) {
   const [visible, setVisible] = useState(false)
 
   return (
@@ -96,7 +96,7 @@ export function GlobeScene() {
         gl={{ antialias: true, alpha: false }}
         onCreated={() => setVisible(true)}
       >
-        <SceneContent />
+        <SceneContent selectedEventId={selectedEventId} />
       </Canvas>
     </div>
   )
