@@ -2,12 +2,10 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { GlassCard } from '@/components/ui/GlassCard'
 
 interface HedgeRecord {
   id: string
   timestamp: string
-  event: string
   instrument: string
   notional: string
   status: 'EXECUTED' | 'PENDING' | 'MONITORING'
@@ -19,7 +17,6 @@ const hedgeHistory: HedgeRecord[] = [
   {
     id: 'H-0891',
     timestamp: '14:23:07',
-    event: 'EVT-001',
     instrument: 'SpaceCraft liability put',
     notional: '$45.0M',
     status: 'EXECUTED',
@@ -29,7 +26,6 @@ const hedgeHistory: HedgeRecord[] = [
   {
     id: 'H-0890',
     timestamp: '11:45:32',
-    event: 'EVT-002',
     instrument: 'Satellite insurance call',
     notional: '$18.2M',
     status: 'EXECUTED',
@@ -39,7 +35,6 @@ const hedgeHistory: HedgeRecord[] = [
   {
     id: 'H-0889',
     timestamp: '09:12:15',
-    event: 'EVT-003',
     instrument: 'Navigation disruption hedge',
     notional: '$9.1M',
     status: 'PENDING',
@@ -49,7 +44,6 @@ const hedgeHistory: HedgeRecord[] = [
   {
     id: 'H-0888',
     timestamp: '06:58:41',
-    event: 'EVT-001',
     instrument: 'ISS adjacent contracts put',
     notional: '$120.0M',
     status: 'EXECUTED',
@@ -59,7 +53,6 @@ const hedgeHistory: HedgeRecord[] = [
   {
     id: 'H-0887',
     timestamp: '03:31:09',
-    event: 'EVT-002',
     instrument: 'LEO constellation disruption',
     notional: '$32.5M',
     status: 'MONITORING',
@@ -87,7 +80,6 @@ const statusStyle: Record<string, string> = {
   MONITORING: 'text-sky-400',
 }
 
-// Simple ASCII-style bar chart for exposure data
 function ExposureBar({ label, value, max, risk }: { label: string; value: number; max: number; risk: string }) {
   const pct = Math.round((value / max) * 20)
   const riskColor: Record<string, string> = {
@@ -105,12 +97,163 @@ function ExposureBar({ label, value, max, risk }: { label: string; value: number
   )
 }
 
-// ── Collapsed strip (always visible) ─────────────────────────────────────────
-function CollapsedBar({ onExpand, lines }: { onExpand: () => void; lines: string[] }) {
+// ── Main export ───────────────────────────────────────────────────────────────
+export function FinancialTerminal() {
+  const [expanded, setExpanded] = useState(false)
+  const [displayedLines, setDisplayedLines] = useState<string[]>([agentMessages[0]])
+  const [windowH, setWindowH] = useState<number>(0)
+  const logRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    setWindowH(window.innerHeight)
+    const onResize = () => setWindowH(window.innerHeight)
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
+
+  useEffect(() => {
+    let idx = 1
+    const timer = setInterval(() => {
+      if (idx < agentMessages.length) {
+        setDisplayedLines((prev) => [...prev, agentMessages[idx]])
+        idx++
+      }
+    }, 1800)
+    return () => clearInterval(timer)
+  }, [])
+
+  useEffect(() => {
+    if (logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight
+  }, [displayedLines])
+
+  // EventsPanel: top-16 (64px) + bottom-4 (16px) = windowH - 80
+  const expandedH = windowH ? windowH - 80 : 600
+
   return (
-    <GlassCard className="absolute bottom-4 left-4 right-[20rem] z-40">
-      <div className="px-3 py-2 flex items-center justify-between gap-4">
-        {/* Key metrics */}
+    <motion.div
+      className="absolute z-40 rounded-xl overflow-hidden backdrop-blur-md
+                 bg-[#020817]/85 border border-sky-400/10"
+      style={{ bottom: '1rem', left: '1rem' }}
+      animate={
+        expanded
+          ? { right: '1rem', height: expandedH }
+          : { right: '20rem', height: 44 }
+      }
+      transition={{ duration: 0.45, ease: [0.4, 0, 0.2, 1] }}
+    >
+      {/* ── Expandable region — absolutely inset above the bar, never in flex flow ── */}
+      <AnimatePresence>
+        {expanded && (
+          <motion.div
+            className="absolute inset-0 flex flex-col overflow-hidden"
+            style={{ bottom: 44 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2, delay: 0.1 }}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between px-4 py-2 border-b border-sky-400/[0.08] shrink-0">
+              <div className="flex items-center gap-3">
+                <span className="font-orbitron text-[10px] font-bold text-white/60 tracking-[0.25em]">FINANCIAL TERMINAL</span>
+                <span className="text-[9px] font-mono text-white/25">W&B Weave · Live</span>
+              </div>
+              <button
+                onClick={() => setExpanded(false)}
+                className="text-[9px] font-mono text-white/30 border border-sky-400/[0.08] px-2 py-1 rounded
+                  hover:text-white/55 hover:border-sky-400/20 transition-colors tracking-widest"
+              >
+                COLLAPSE ↙
+              </button>
+            </div>
+
+            {/* Metrics row */}
+            <div className="flex gap-3 px-4 py-3 shrink-0">
+              {[
+                { label: 'PORTFOLIO', value: '$2.4B', color: 'text-orange-400' },
+                { label: 'HEDGED', value: '$72.3M', color: 'text-green-400' },
+                { label: 'VAR 95%', value: '$124M', color: 'text-yellow-400' },
+                { label: 'POSITIONS', value: '7', color: 'text-white/70' },
+              ].map((m) => (
+                <div key={m.label} className="border border-sky-400/[0.08] rounded px-3 py-1.5 bg-white/[0.02]">
+                  <div className="text-[9px] font-mono text-white/25 tracking-widest mb-0.5">{m.label}</div>
+                  <div className={`text-base font-mono font-bold ${m.color}`}>{m.value}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* 3-column grid */}
+            <div className="flex-1 overflow-hidden px-4 pb-3">
+              <div className="grid grid-cols-[11rem_1fr_11rem] gap-4 h-full">
+
+                {/* Col 1 — Exposure bars */}
+                <div className="flex flex-col min-h-0">
+                  <div className="text-[9px] font-mono text-white/20 tracking-widest mb-2 uppercase shrink-0">Exposure by Event</div>
+                  <div className="space-y-1.5">
+                    <ExposureBar label="EVT-001" value={850} max={850} risk="CRITICAL" />
+                    <ExposureBar label="EVT-002" value={320} max={850} risk="HIGH" />
+                    <ExposureBar label="EVT-003" value={180} max={850} risk="MEDIUM" />
+                    <ExposureBar label="EVT-004" value={45}  max={850} risk="LOW" />
+                    <ExposureBar label="EVT-005" value={12}  max={850} risk="LOW" />
+                  </div>
+                </div>
+
+                {/* Col 2 — Hedge history */}
+                <div className="flex flex-col min-h-0">
+                  <div className="text-[9px] font-mono text-white/20 tracking-widest mb-2 uppercase shrink-0">Hedge History · Weave Audit</div>
+                  <div className="border border-sky-400/[0.08] rounded overflow-hidden flex flex-col min-h-0">
+                    <div className="grid grid-cols-[4rem_1fr_4rem_5rem] gap-2 px-3 py-1 border-b border-sky-400/[0.08]
+                      text-[9px] font-mono text-white/20 tracking-widest uppercase bg-white/[0.02] shrink-0">
+                      <span>Time</span><span>Instrument</span>
+                      <span>P&L</span><span>Status</span>
+                    </div>
+                    <div className="overflow-y-auto flex-1">
+                      {hedgeHistory.map((h) => (
+                        <div
+                          key={h.id}
+                          className="grid grid-cols-[4rem_1fr_4rem_5rem] gap-2 px-3 py-1.5
+                            border-b border-sky-400/[0.06] last:border-0 text-[10px] font-mono hover:bg-white/[0.02] transition-colors"
+                        >
+                          <span className="text-white/25 tabular-nums">{h.timestamp}</span>
+                          <span className="text-white/55 truncate">{h.instrument}</span>
+                          <span className={h.pnl.startsWith('+') ? 'text-green-400' : 'text-white/25'}>{h.pnl}</span>
+                          <span className={statusStyle[h.status]}>{h.status}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Col 3 — Agent log */}
+                <div className="flex flex-col min-h-0">
+                  <div className="text-[9px] font-mono text-white/20 tracking-widest mb-2 uppercase shrink-0">AI Agent Reasoning</div>
+                  <div
+                    ref={logRef}
+                    className="border border-sky-400/[0.08] rounded px-3 py-2 flex-1 overflow-y-auto space-y-0.5 bg-white/[0.02]"
+                  >
+                    {displayedLines.map((line, i) => (
+                      <motion.div
+                        key={i}
+                        className={`text-[9px] font-mono ${line.startsWith('✓') ? 'text-green-400' : 'text-white/30'}`}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        {line}
+                      </motion.div>
+                    ))}
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── Always-visible bottom bar — pinned to bottom, outside flex flow ── */}
+      <div className="absolute bottom-0 left-0 right-0 px-3 flex items-center justify-between gap-4 border-t border-sky-400/[0.08]"
+           style={{ height: 44 }}>
         <div className="flex items-center gap-5 font-mono text-[10px] min-w-0">
           <span className="text-white/35 shrink-0 font-orbitron tracking-widest text-[9px]">FINANCIAL</span>
           <span className="text-white/40">
@@ -127,187 +270,23 @@ function CollapsedBar({ onExpand, lines }: { onExpand: () => void; lines: string
           </span>
         </div>
 
-        {/* Latest agent line */}
-        {lines.length > 0 && (
-          <div className="flex-1 min-w-0 hidden lg:block">
-            <span
-              className={`text-[10px] font-mono truncate block ${
-                lines[lines.length - 1].startsWith('✓') ? 'text-green-400' : 'text-white/30'
-              }`}
+        <AnimatePresence>
+          {!expanded && (
+            <motion.button
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
+              onClick={() => setExpanded(true)}
+              className="shrink-0 px-2.5 py-1 rounded text-[9px] font-mono tracking-widest
+                text-white/40 border border-sky-400/[0.08] hover:border-sky-400/25 hover:text-white/60
+                transition-colors"
             >
-              {lines[lines.length - 1]}
-            </span>
-          </div>
-        )}
-
-        {/* Expand button */}
-        <button
-          onClick={onExpand}
-          className="shrink-0 px-2.5 py-1 rounded text-[9px] font-mono tracking-widest
-            text-white/40 border border-white/10 hover:border-white/25 hover:text-white/60
-            transition-colors"
-        >
-          EXPAND ↗
-        </button>
-      </div>
-    </GlassCard>
-  )
-}
-
-// ── Full-screen expanded overlay ──────────────────────────────────────────────
-function ExpandedOverlay({ onClose, lines }: { onClose: () => void; lines: string[] }) {
-  const logRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    if (logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight
-  }, [lines])
-
-  return (
-    <motion.div
-      className="fixed inset-8 z-50 bg-[#020817]/95 backdrop-blur-sm flex flex-col rounded-lg"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: 20 }}
-      transition={{ duration: 0.2 }}
-    >
-      {/* Top bar */}
-      <div className="flex items-center justify-between px-6 py-3 border-b border-white/8 shrink-0">
-        <div className="flex items-center gap-4">
-          <span className="font-orbitron text-xs font-bold text-white/70 tracking-[0.25em]">
-            FINANCIAL TERMINAL
-          </span>
-          <span className="text-[10px] font-mono text-white/25">W&B Weave Audit · Live</span>
-        </div>
-        <button
-          onClick={onClose}
-          className="text-[10px] font-mono text-white/35 border border-white/10 px-2.5 py-1 rounded
-            hover:text-white/60 hover:border-white/25 transition-colors tracking-widest"
-        >
-          COLLAPSE ↙
-        </button>
-      </div>
-
-      <div className="flex-1 overflow-y-auto px-6 py-5 space-y-8">
-        {/* Key metrics row */}
-        <div className="grid grid-cols-4 gap-4">
-          {[
-            { label: 'PORTFOLIO AT RISK', value: '$2.4B', color: 'text-orange-400' },
-            { label: 'TOTAL HEDGED', value: '$72.3M', color: 'text-green-400' },
-            { label: 'VAR (95% 1-DAY)', value: '$124M', color: 'text-yellow-400' },
-            { label: 'ACTIVE POSITIONS', value: '7', color: 'text-white/80' },
-          ].map((m) => (
-            <div key={m.label} className="border border-white/8 rounded px-4 py-3">
-              <div className="text-[9px] font-mono text-white/30 tracking-widest mb-1">{m.label}</div>
-              <div className={`text-xl font-mono font-bold ${m.color}`}>{m.value}</div>
-            </div>
-          ))}
-        </div>
-
-        {/* Exposure by event (ASCII bars) */}
-        <div>
-          <div className="text-[9px] font-mono text-white/25 tracking-widest mb-3 uppercase">
-            Portfolio Exposure by Event
-          </div>
-          <div className="space-y-1.5">
-            <ExposureBar label="EVT-001" value={850} max={850} risk="CRITICAL" />
-            <ExposureBar label="EVT-002" value={320} max={850} risk="HIGH" />
-            <ExposureBar label="EVT-003" value={180} max={850} risk="MEDIUM" />
-            <ExposureBar label="EVT-004" value={45}  max={850} risk="LOW" />
-            <ExposureBar label="EVT-005" value={12}  max={850} risk="LOW" />
-          </div>
-        </div>
-
-        {/* Hedge history table */}
-        <div>
-          <div className="text-[9px] font-mono text-white/25 tracking-widest mb-3 uppercase">
-            Hedge History · Weave Audit Trail
-          </div>
-          <div className="border border-white/8 rounded overflow-hidden">
-            {/* Table header */}
-            <div className="grid grid-cols-[5rem_4rem_1fr_5rem_5rem_5rem] gap-3 px-3 py-1.5 border-b border-white/8
-              text-[9px] font-mono text-white/25 tracking-widest uppercase bg-white/[0.02]">
-              <span>Time</span>
-              <span>Event</span>
-              <span>Instrument</span>
-              <span>Notional</span>
-              <span>P&amp;L</span>
-              <span>Status</span>
-            </div>
-            {hedgeHistory.map((h) => (
-              <div
-                key={h.id}
-                className="grid grid-cols-[5rem_4rem_1fr_5rem_5rem_5rem] gap-3 px-3 py-2
-                  border-b border-white/5 last:border-0 text-[10px] font-mono
-                  hover:bg-white/[0.02] transition-colors"
-              >
-                <span className="text-white/30 tabular-nums">{h.timestamp}</span>
-                <span className="text-white/40">{h.event}</span>
-                <span className="text-white/60 truncate">{h.instrument}</span>
-                <span className="text-white/60 tabular-nums">{h.notional}</span>
-                <span className={h.pnl.startsWith('+') ? 'text-green-400' : 'text-white/30'}>
-                  {h.pnl}
-                </span>
-                <span className={statusStyle[h.status]}>{h.status}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* AI reasoning log */}
-        <div>
-          <div className="text-[9px] font-mono text-white/25 tracking-widest mb-3 uppercase">
-            AI Agent Reasoning Log
-          </div>
-          <div
-            ref={logRef}
-            className="border border-white/8 rounded px-3 py-3 max-h-48 overflow-y-auto space-y-1"
-          >
-            {lines.map((line, i) => (
-              <motion.div
-                key={i}
-                className={`text-[10px] font-mono ${
-                  line.startsWith('✓') ? 'text-green-400' : 'text-white/35'
-                }`}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.3 }}
-              >
-                {line}
-              </motion.div>
-            ))}
-          </div>
-        </div>
+              EXPAND ↗
+            </motion.button>
+          )}
+        </AnimatePresence>
       </div>
     </motion.div>
-  )
-}
-
-// ── Main export ───────────────────────────────────────────────────────────────
-export function FinancialTerminal() {
-  const [expanded, setExpanded] = useState(false)
-  const [displayedLines, setDisplayedLines] = useState<string[]>([agentMessages[0]])
-
-  useEffect(() => {
-    let idx = 1
-    const timer = setInterval(() => {
-      if (idx < agentMessages.length) {
-        setDisplayedLines((prev) => [...prev, agentMessages[idx]])
-        idx++
-      }
-    }, 1800)
-    return () => clearInterval(timer)
-  }, [])
-
-  return (
-    <>
-      {!expanded && (
-        <CollapsedBar onExpand={() => setExpanded(true)} lines={displayedLines} />
-      )}
-      <AnimatePresence>
-        {expanded && (
-          <ExpandedOverlay onClose={() => setExpanded(false)} lines={displayedLines} />
-        )}
-      </AnimatePresence>
-    </>
   )
 }
