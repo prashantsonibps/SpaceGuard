@@ -423,7 +423,7 @@ export function EventsPanel({
     <GlassCard className="absolute right-4 top-16 bottom-4 w-72 flex flex-col z-40 !bg-white/80 dark:!bg-neutral-900/50">
       {/* Header */}
       <div className="px-3 py-2.5 border-b border-black/20 dark:border-white/10 shrink-0">
-        <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center justify-between">
           <h2 className={`font-orbitron ${fontSize.base} font-bold ${textOpacity[theme].primary} tracking-[0.2em]`}>
             RISK MONITOR
           </h2>
