@@ -1,10 +1,12 @@
 "use client";
 
+import { useState } from "react";
 import { motion } from "framer-motion";
 import type { Market, MarketCategory } from "@/data/markets";
 import { useTheme } from "@/lib/ThemeContext";
 import { textOpacity, fontSize, green, border } from "@/lib/theme";
 import { Zap, Layers, Navigation, Shield, Globe } from "lucide-react";
+import { BettingModal } from "@/components/Dashboard/BettingModal";
 
 // ── Category meta ──────────────────────────────────────────────────────────────
 export const CATEGORY_META: Record<
@@ -125,6 +127,9 @@ export function PredictionCard({ market }: { market: Market }) {
   const hoverClass =
     theme === "dark" ? "hover:bg-neutral-800/70" : "hover:bg-white";
 
+  const [modalOpen, setModalOpen] = useState(false)
+  const [selectedOutcome, setSelectedOutcome] = useState<'YES' | 'NO'>('YES')
+
   const yesP = market.yesPrice;
   const noP = 100 - yesP;
   const yesMult = (100 / yesP).toFixed(2) + "x";
@@ -182,6 +187,12 @@ export function PredictionCard({ market }: { market: Market }) {
             mult={yesMult}
             color="green"
             disabled={isClosed}
+            onClick={() => {
+              console.log('[PredictionCard] YES % clicked', { id: market.id, yesP })
+              console.log('[PredictionCard] setModalOpen', true)
+              setSelectedOutcome('YES')
+              setModalOpen(true)
+            }}
           />
           <OptionRow
             label="NO"
@@ -189,9 +200,28 @@ export function PredictionCard({ market }: { market: Market }) {
             mult={noMult}
             color="sky"
             disabled={isClosed}
+            onClick={() => {
+              console.log('[PredictionCard] NO % clicked', { id: market.id, noP })
+              console.log('[PredictionCard] setModalOpen', true)
+              setSelectedOutcome('NO')
+              setModalOpen(true)
+            }}
           />
         </div>
       )}
+
+      <BettingModal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        eventId={market.linkedEventId ?? market.id}
+        eventName={market.question}
+        eventType="conjunction"
+        userId="demo-user"
+        onBetPlaced={() => {
+          console.log('[PredictionCard] bet placed for', market.id)
+          setModalOpen(false)
+        }}
+      />
 
       {/* Footer */}
       <div

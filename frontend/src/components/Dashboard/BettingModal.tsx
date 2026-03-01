@@ -32,15 +32,24 @@ export function BettingModal({ isOpen, onClose, eventId, eventName, eventType, u
     return () => setMounted(false)
   }, [])
 
+  useEffect(() => {
+    if (isOpen) {
+      console.log('[BettingModal] opened', { eventId, eventName, eventType, userId })
+    }
+  }, [isOpen])
+
   const handleBet = async () => {
+    console.log('[BettingModal] handleBet called', { outcome, price, amount })
     setLoading(true)
     setError(null)
     try {
       const safeOutcome = outcome === 'DELAY' ? 'NO' : (outcome as 'YES' | 'NO')
       await api.placeOrder(userId, eventId, safeOutcome, 'BUY', price, amount)
+      console.log('[BettingModal] bet success')
       onBetPlaced()
       onClose()
     } catch (err: any) {
+      console.log('[BettingModal] bet error', err)
       setError(err.message)
     } finally {
       setLoading(false)
@@ -59,7 +68,7 @@ export function BettingModal({ isOpen, onClose, eventId, eventName, eventType, u
             onClick={(e) => e.stopPropagation()}
           >
             <GlassCard className="w-80 p-6">
-              <h2 className={`text-lg font-bold ${textOpacity[theme].primary} mb-1`}>Place Wager</h2>
+              <h2 className={`text-lg font-bold ${textOpacity[theme].primary} mb-1`}>Place Bet</h2>
               <p className={`text-xs font-mono ${textOpacity[theme].muted} mb-4 truncate`}>{eventName}</p>
 
               <div className="space-y-4">
