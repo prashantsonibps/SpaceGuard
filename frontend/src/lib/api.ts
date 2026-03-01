@@ -2,6 +2,8 @@ const API_BASE_URL =
   (typeof process !== 'undefined' && process.env.NEXT_PUBLIC_API_URL) ||
   'http://localhost:8000';
 
+export const apiEvents = new EventTarget();
+
 export interface User {
   id: string;
   balance: number;
@@ -84,7 +86,12 @@ export const api = {
       const error = await response.json();
       throw new Error(error.detail || 'Failed to place order');
     }
-    return response.json();
+    const newOrder = await response.json();
+
+    // Dispatch optimistic update event so the OrderBook or Portfolio can inject it locally
+    apiEvents.dispatchEvent(new CustomEvent('orderPlaced', { detail: newOrder }));
+
+    return newOrder;
   },
 
   async getUserOrders(userId: string): Promise<Order[]> {

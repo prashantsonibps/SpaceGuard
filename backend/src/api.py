@@ -12,6 +12,7 @@ from .db import initialize_db
 from google.cloud import firestore
 from contextlib import asynccontextmanager
 from .main import run_pipeline
+from .amm_bot import start_amm_bot
 
 def pipeline_loop():
     """Runs the ingestion pipeline repeatedly in the background."""
@@ -28,6 +29,11 @@ async def lifespan(app: FastAPI):
     print("Starting background data ingestion pipeline...")
     thread = threading.Thread(target=pipeline_loop, daemon=True)
     thread.start()
+    
+    print("Starting AMM Liquidity Bot...")
+    amm_thread = threading.Thread(target=start_amm_bot, daemon=True)
+    amm_thread.start()
+    
     yield
     print("Shutting down API...")
 
