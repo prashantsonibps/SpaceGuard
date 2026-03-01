@@ -63,6 +63,9 @@ htmlcov/
 # Firebase
 .firebase/
 
+# Environment config files
+*.env.yaml
+
 # Logs
 logs/
 *.log

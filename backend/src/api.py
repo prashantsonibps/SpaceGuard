@@ -1,3 +1,4 @@
+import os
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -10,9 +11,16 @@ from google.cloud import firestore
 
 app = FastAPI(title="SpaceGuard Betting API")
 
+# CORS: Use CORS_ORIGINS env (comma-separated) or allow all for local dev
+_cors_origins = os.getenv("CORS_ORIGINS", "*")
+if _cors_origins == "*":
+    allow_origins = ["*"]
+else:
+    allow_origins = [o.strip() for o in _cors_origins.split(",") if o.strip()]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=allow_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
