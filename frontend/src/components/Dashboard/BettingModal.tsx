@@ -12,7 +12,7 @@ interface BettingModalProps {
   onClose: () => void
   eventId: string
   eventName: string
-  eventType: 'launch' | 'conjunction'
+  eventType: 'launch' | 'conjunction' | 'weather'
   userId: string
   onBetPlaced: () => void
 }
