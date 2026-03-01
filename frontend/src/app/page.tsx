@@ -41,12 +41,8 @@ export default function HomePage() {
 
       {/* Overlay UI */}
       <TopBar />
-      {userId && (
-        <>
-          <EventsPanel userId={userId} />
-          <FinancialTerminal userId={userId} />
-        </>
-      )}
+      {userId && <EventsPanel userId={userId} />}
+      <FinancialTerminal userId={userId ?? undefined} />
     </div>
   )
 }
