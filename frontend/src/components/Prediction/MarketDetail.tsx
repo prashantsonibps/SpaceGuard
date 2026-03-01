@@ -1,9 +1,8 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { textOpacity, accent, fontSize } from '@/lib/theme'
+import { textOpacity, fontSize } from '@/lib/theme'
 import { useTheme } from '@/lib/ThemeContext'
-import { PriceChart } from './PriceChart'
 import { TradePanel } from './TradePanel'
 import { OrderBook } from './OrderBook'
 import type { Market } from '@/data/markets'
@@ -17,9 +16,7 @@ interface MarketDetailProps {
 export function MarketDetail({ market, userId, defaultSide }: MarketDetailProps) {
   const { theme } = useTheme()
   const tp = textOpacity[theme]
-  const ac = accent[theme]
   const borderDim = theme === 'dark' ? 'border-white/5' : 'border-black/[0.06]'
-  const bgDim = theme === 'dark' ? 'bg-white/[0.02]' : 'bg-black/[0.02]'
 
   return (
     <motion.div
@@ -37,18 +34,6 @@ export function MarketDetail({ market, userId, defaultSide }: MarketDetailProps)
             {market.details}
           </p>
 
-          {/* Chart header */}
-          <div className="flex items-center justify-between">
-            <span className={`${fontSize.small} font-mono tracking-widest ${tp.muted}`}>YES PRICE — 24H</span>
-            <span className={`${fontSize.small} font-mono tabular-nums ${ac.text}`}>
-              {market.yesPrice}¢ current
-            </span>
-          </div>
-
-          {/* Price chart */}
-          <div className={`rounded border ${borderDim} ${bgDim} p-1`}>
-            <PriceChart market={market} height={96} />
-          </div>
         </div>
 
         {/* Right: buy panel & orderbook */}
