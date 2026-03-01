@@ -64,21 +64,19 @@ export function TopBar({ variant = 'overlay' }: TopBarProps) {
       <div className="flex items-center gap-1">
         <Link
           href="/"
-          className={`${fontSize.small} font-mono px-2 py-0.5 rounded transition-colors ${
-            pathname === '/'
+          className={`${fontSize.small} font-mono px-2 py-0.5 rounded transition-colors ${pathname === '/'
               ? `${accent[theme].text} ${accent[theme].bgDim}`
               : 'text-slate-500 dark:text-white/40 hover:text-slate-700 dark:hover:text-white/60'
-          }`}
+            }`}
         >
           GLOBE
         </Link>
         <Link
           href="/prediction"
-          className={`${fontSize.small} font-mono px-2 py-0.5 rounded transition-colors ${
-            pathname === '/prediction'
+          className={`${fontSize.small} font-mono px-2 py-0.5 rounded transition-colors ${pathname === '/prediction'
               ? `${accent[theme].text} ${accent[theme].bgDim}`
               : 'text-slate-500 dark:text-white/40 hover:text-slate-700 dark:hover:text-white/60'
-          }`}
+            }`}
         >
           MARKETS
         </Link>
@@ -117,9 +115,17 @@ export function TopBar({ variant = 'overlay' }: TopBarProps) {
         </div>
       </div>
 
-      <div className="ml-auto flex items-center gap-2 text-xs font-mono text-slate-500 dark:text-white/40">
-        <span>TLE UPDATED</span>
-        <span className="text-slate-600 dark:text-white/60">2m ago</span>
+      <div className="ml-auto flex items-center gap-4 text-xs font-mono">
+        <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-green-500/10 border border-green-500/20">
+          <span className={`w-1.5 h-1.5 rounded-full ${green[theme].bg} animate-pulse`} />
+          <span className={`${green[theme].text}`}>SYSTEM HEALTH: OPTIMAL</span>
+        </div>
+        <div className="flex items-center gap-1.5 text-slate-500 dark:text-white/40">
+          <span>SOURCE: AUTHORITATIVE</span>
+          <div className="w-px h-3 bg-black/20 dark:bg-white/20" />
+          <span>TLE UPDATED</span>
+          <span className="text-slate-600 dark:text-white/60">LIVE</span>
+        </div>
       </div>
 
       {/* Light / Dark toggle */}

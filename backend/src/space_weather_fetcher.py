@@ -6,11 +6,13 @@ caught and logged so the main pipeline continues.
 """
 
 import os
-import requests
 from datetime import datetime, timedelta, timezone
 from dotenv import load_dotenv
+from utils import get_logger, safe_retry, time_it
+from models import SpaceWeatherEventModel
 
 load_dotenv()
+logger = get_logger("space_weather")
 
 # NASA DONKI base URL
 DONKI_BASE_URL = "https://api.nasa.gov/DONKI"
@@ -26,6 +28,8 @@ def _donki_url(endpoint, start_date, end_date, api_key):
     )
 
 
+@safe_retry
+@time_it
 def fetch_space_weather_events(days=7):
     """
     Fetches Coronal Mass Ejections (CME) and Solar Flares (FLR) from NASA DONKI
@@ -33,6 +37,7 @@ def fetch_space_weather_events(days=7):
 
     Returns a list of event dicts, or [] on any failure.
     """
+    import requests
     api_key = os.getenv("NASA_API_KEY", "DEMO_KEY")
     end_date = datetime.now(timezone.utc)
     start_date = end_date - timedelta(days=days)
@@ -44,7 +49,7 @@ def fetch_space_weather_events(days=7):
 
     # --- Coronal Mass Ejections ---
     try:
-        print(f"  Fetching CME data ({start_str} → {end_str})...")
+        logger.info(f"Fetching CME data ({start_str} → {end_str})...")
         resp = requests.get(
             _donki_url("CME", start_str, end_str, api_key),
             timeout=REQUEST_TIMEOUT_S,
@@ -52,28 +57,31 @@ def fetch_space_weather_events(days=7):
         resp.raise_for_status()
         cme_list = resp.json() or []
         for cme in cme_list:
-            events.append(
-                {
-                    "id": cme.get("activityID", f"CME-{len(events)}"),
-                    "type": "CME",
-                    "start_time": cme.get("startTime", ""),
-                    "note": cme.get("note", "No details"),
-                    "catalog": cme.get("catalog", ""),
-                    "instruments": [
-                        i.get("displayName", "")
-                        for i in cme.get("instruments", [])
-                    ],
-                    "risk_level": _cme_risk(cme),
-                    "last_updated": datetime.now(timezone.utc).isoformat(),
-                }
-            )
-        print(f"  CME events found: {len(cme_list)}")
+            event_data = {
+                "id": str(cme.get("activityID", f"CME-{len(events)}")),
+                "type": "CME",
+                "start_time": cme.get("startTime", ""),
+                "note": cme.get("note", "No details"),
+                "catalog": cme.get("catalog", ""),
+                "instruments": [
+                    i.get("displayName", "")
+                    for i in cme.get("instruments", [])
+                ],
+                "risk_level": _cme_risk(cme),
+                "last_updated": datetime.now(timezone.utc).isoformat(),
+            }
+            try:
+                validated_event = SpaceWeatherEventModel(**event_data)
+                events.append(validated_event.model_dump())
+            except Exception as e:
+                logger.error(f"Error validating CME event {event_data['id']}: {e}")
+        logger.info(f"CME events found: {len(cme_list)}")
     except Exception as e:
-        print(f"  ⚠  CME fetch failed (non-fatal): {e}")
+        logger.error(f"⚠ CME fetch failed (non-fatal): {e}")
 
     # --- Solar Flares ---
     try:
-        print(f"  Fetching Solar Flare data ({start_str} → {end_str})...")
+        logger.info(f"Fetching Solar Flare data ({start_str} → {end_str})...")
         resp = requests.get(
             _donki_url("FLR", start_str, end_str, api_key),
             timeout=REQUEST_TIMEOUT_S,
@@ -81,26 +89,29 @@ def fetch_space_weather_events(days=7):
         resp.raise_for_status()
         flr_list = resp.json() or []
         for flr in flr_list:
-            events.append(
-                {
-                    "id": flr.get("flrID", f"FLR-{len(events)}"),
-                    "type": "SOLAR_FLARE",
-                    "start_time": flr.get("beginTime", ""),
-                    "peak_time": flr.get("peakTime", ""),
-                    "end_time": flr.get("endTime", ""),
-                    "class_type": flr.get("classType", "Unknown"),
-                    "source_location": flr.get("sourceLocation", ""),
-                    "instruments": [
-                        i.get("displayName", "")
-                        for i in flr.get("instruments", [])
-                    ],
-                    "risk_level": _flr_risk(flr.get("classType", "")),
-                    "last_updated": datetime.now(timezone.utc).isoformat(),
-                }
-            )
-        print(f"  Solar flare events found: {len(flr_list)}")
+            event_data = {
+                "id": str(flr.get("flrID", f"FLR-{len(events)}")),
+                "type": "SOLAR_FLARE",
+                "start_time": flr.get("beginTime", ""),
+                "peak_time": flr.get("peakTime", ""),
+                "end_time": flr.get("endTime", ""),
+                "class_type": flr.get("classType", "Unknown"),
+                "source_location": flr.get("sourceLocation", ""),
+                "instruments": [
+                    i.get("displayName", "")
+                    for i in flr.get("instruments", [])
+                ],
+                "risk_level": _flr_risk(flr.get("classType", "")),
+                "last_updated": datetime.now(timezone.utc).isoformat(),
+            }
+            try:
+                validated_event = SpaceWeatherEventModel(**event_data)
+                events.append(validated_event.model_dump())
+            except Exception as e:
+                logger.error(f"Error validating Solar Flare event {event_data['id']}: {e}")
+        logger.info(f"Solar flare events found: {len(flr_list)}")
     except Exception as e:
-        print(f"  ⚠  Solar Flare fetch failed (non-fatal): {e}")
+        logger.error(f"⚠ Solar Flare fetch failed (non-fatal): {e}")
 
     return events
 

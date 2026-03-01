@@ -20,6 +20,10 @@ from tle_fetcher import get_all_satellite_data
 from launch_fetcher import fetch_upcoming_launches
 from conjunction_calculator import calculate_conjunctions
 from neo_fetcher import fetch_neo_events
+from spacetrack_fetcher import fetch_high_interest_tles, fetch_recent_cdms
+from noaa_fetcher import fetch_all_noaa_indices
+from meteor_fetcher import fetch_recent_fireballs
+from n2yo_fetcher import fetch_visual_passes
 from db import initialize_db, save_satellites, save_launches, save_conjunctions, save_neo_events
 from agent import analyze_risk_and_hedge
 
@@ -120,8 +124,57 @@ def run_pipeline():
             save_space_weather_events(db, space_weather)
         except Exception as e:
             print(f"❌ Space weather step failed (non-fatal): {e}\n")
-    else:
-        print("  ⚠  Skipped (space_weather_fetcher module unavailable).")
+    # ── Step 3.7: Authoritative Data (Space-Track & NOAA) ────────────────────
+    print("\n--- 3.7 Authoritative Data (Space-Track & NOAA) ---")
+    try:
+        # TLEs for ISS and NOAA 19
+        st_tles = fetch_high_interest_tles([25544, 33591])
+        if st_tles:
+            print(f"Fetched {len(st_tles)} authoritative TLEs from Space-Track.")
+            save_satellites(db, st_tles)
+        
+        cdms = fetch_recent_cdms(days=3)
+        if cdms:
+            print(f"Fetched {len(cdms)} Conjunction Data Messages from Space-Track.")
+            save_conjunctions(db, cdms)
+            
+        noaa_indices = fetch_all_noaa_indices()
+        if noaa_indices:
+            print(f"Fetched {len(noaa_indices)} NOAA Space Weather indices.")
+            # Save to a new collection
+            for idx in noaa_indices:
+                db.collection("noaa_indices").document(idx["name"].replace(" ", "_")).set(idx)
+    except Exception as e:
+        print(f"❌ Space-Track / NOAA step failed (non-fatal): {e}\n")
+
+    # ── Step 3.8: Meteor Fireball Data ──────────────────────────────────────
+    print("\n--- 3.8 Fetching Meteor Fireball Data ---")
+    try:
+        fireballs = fetch_recent_fireballs(limit=10)
+        print(f"Total recent fireball events: {len(fireballs)}")
+        # Save to a new collection
+        for fb in fireballs:
+            db.collection("fireball_events").document(fb["id"]).set(fb)
+    except Exception as e:
+        print(f"❌ Meteor fetch step failed (non-fatal): {e}\n")
+
+    # ── Step 3.9: Localized Passes (N2YO demo for ISS) ──────────────────────
+    print("\n--- 3.9 Fetching Localized Passes (N2YO Demo) ---")
+    try:
+        # ISS passes over NASA HQ (approx 38.88, -77.00)
+        passes = fetch_visual_passes(25544, 38.88, -77.00)
+        if passes:
+            print(f"Found {len(passes)} visual passes for ISS.")
+            # Save to a new collection
+            db.collection("observation_passes").document("ISS_NASA_HQ").set({
+                "asset_id": "25544",
+                "asset_name": "ISS",
+                "location": "NASA HQ",
+                "passes": passes,
+                "last_updated": datetime.now(timezone.utc).isoformat()
+            })
+    except Exception as e:
+        print(f"❌ N2YO fetch step failed (non-fatal): {e}\n")
 
     # ── Step 4: LLM Risk Assessment Agent ───────────────────────────────────
     print("\n--- 4. LLM Risk Assessment Agent ---")

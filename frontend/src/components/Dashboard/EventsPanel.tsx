@@ -35,6 +35,15 @@ export interface ConjunctionEvent {
   start_time?: string
   note?: string
   class_type?: string
+  // For NOAA Indices
+  name?: string
+  value?: number
+  timestamp?: string
+  description?: string
+  // For Fireballs
+  date?: string
+  energy_kt?: number
+  velocity_km_s?: number
 }
 
 function formatCountdown(tcaString: string): string {
@@ -63,7 +72,7 @@ function EventRow({
 }: {
   event: ConjunctionEvent
   index: number
-  type: 'SAT' | 'NEO' | 'WEATHER'
+  type: 'SAT' | 'NEO' | 'WEATHER' | 'INDEX' | 'FIREBALL'
   userId: string
   isSelected: boolean
   onSelect: (id: string | null) => void
@@ -97,7 +106,11 @@ function EventRow({
               </span>
             </div>
             <span className={`${fontSize.small} font-mono ${textOpacity[theme].faint} tabular-nums`}>
-              {type === 'WEATHER' ? (event.start_time?.slice(11, 16) || 'LIVE') : type === 'NEO' ? event.time_of_closest_approach : `T−${formatCountdown(event.time_of_closest_approach)}`}
+              {type === 'WEATHER' ? (event.start_time?.slice(11, 16) || 'LIVE')
+                : type === 'NEO' ? event.time_of_closest_approach
+                  : type === 'INDEX' ? (event.timestamp?.slice(11, 16) || 'LIVE')
+                    : type === 'FIREBALL' ? (event.date?.slice(0, 10))
+                      : `T−${formatCountdown(event.time_of_closest_approach)}`}
             </span>
           </div>
 
@@ -106,6 +119,10 @@ function EventRow({
               <span className={textOpacity[theme].primary}>{event.type === 'CME' ? 'Coronal Mass Ejection' : 'Solar Flare'} <span className={`${textOpacity[theme].faint} ${fontSize.small}`}>({event.class_type || 'Active'})</span></span>
             ) : type === 'NEO' ? (
               <span className={textOpacity[theme].primary}>{event.asset_name} <span className={`${textOpacity[theme].faint} ${fontSize.small}`}>(NEO)</span></span>
+            ) : type === 'INDEX' ? (
+              <span className={textOpacity[theme].primary}>{event.name} <span className={`${textOpacity[theme].faint} ${fontSize.small}`}>(NOAA Index)</span></span>
+            ) : type === 'FIREBALL' ? (
+              <span className={textOpacity[theme].primary}>Fireball Event <span className={`${textOpacity[theme].faint} ${fontSize.small}`}>({event.date?.slice(0, 10)})</span></span>
             ) : (
               <>
                 {event.asset_name}
@@ -117,31 +134,39 @@ function EventRow({
 
           <div className={`grid grid-cols-3 gap-1 ${fontSize.small} font-mono`}>
             <div>
-              <div className={`${textOpacity[theme].faint} uppercase tracking-wider ${fontSize.small}`}>{type === 'WEATHER' ? 'Type' : 'Dist'}</div>
+              <div className={`${textOpacity[theme].faint} uppercase tracking-wider ${fontSize.small}`}>{type === 'WEATHER' ? 'Type' : type === 'INDEX' ? 'Value' : type === 'FIREBALL' ? 'Energy' : 'Dist'}</div>
               <div className={`${textOpacity[theme].secondary} tabular-nums`}>
                 {type === 'WEATHER'
                   ? (event.type || 'SOLAR')
-                  : type === 'NEO'
-                    ? `${(event.miss_distance_km ? event.miss_distance_km / 1000000 : 0).toFixed(1)}M km`
-                    : `${event.closest_approach_km} km`
+                  : type === 'INDEX'
+                    ? (event.value || 0).toFixed(2)
+                    : type === 'FIREBALL'
+                      ? `${(event.energy_kt || 0).toFixed(1)} kt`
+                      : type === 'NEO'
+                        ? `${(event.miss_distance_km ? event.miss_distance_km / 1000000 : 0).toFixed(1)}M km`
+                        : `${event.closest_approach_km} km`
                 }
               </div>
             </div>
             <div>
-              <div className={`${textOpacity[theme].faint} uppercase tracking-wider ${fontSize.small}`}>{type === 'NEO' ? 'Size' : type === 'WEATHER' ? 'Class' : 'Prob'}</div>
+              <div className={`${textOpacity[theme].faint} uppercase tracking-wider ${fontSize.small}`}>{type === 'NEO' ? 'Size' : type === 'WEATHER' ? 'Class' : type === 'INDEX' ? 'Range' : type === 'FIREBALL' ? 'Vel' : 'Prob'}</div>
               <div className={`tabular-nums ${(rc[event.risk_level] ?? rc.LOW).text}`}>
                 {type === 'NEO'
                   ? `${(event.estimated_diameter_max_km || 0).toFixed(2)} km`
                   : type === 'WEATHER'
                     ? (event.class_type || 'C-CLASS')
-                    : `${probPct}%`
+                    : type === 'INDEX'
+                      ? (event.name === 'Kp-Index' ? '0-9' : 'SFU')
+                      : type === 'FIREBALL'
+                        ? `${(event.velocity_km_s || 0).toFixed(1)} km/s`
+                        : `${probPct}%`
                 }
               </div>
             </div>
             <div>
               <div className={`${textOpacity[theme].faint} uppercase tracking-wider ${fontSize.small}`}>Status</div>
               <div className={`tabular-nums ${event.hedge_status === 'HEDGE' ? accent[theme].text : textOpacity[theme].secondary}`}>
-                {type === 'WEATHER' ? 'MONITORING' : (event.hedge_status ? `$${(event.hedge_amount_usd || 0).toLocaleString()}` : 'PENDING')}
+                {type === 'WEATHER' || type === 'INDEX' || type === 'FIREBALL' ? 'MONITORING' : (event.hedge_status ? `$${(event.hedge_amount_usd || 0).toLocaleString()}` : 'PENDING')}
               </div>
             </div>
           </div>
@@ -213,7 +238,9 @@ export function EventsPanel({
   const [events, setEvents] = useState<ConjunctionEvent[]>([])
   const [neoEvents, setNeoEvents] = useState<ConjunctionEvent[]>([])
   const [weatherEvents, setWeatherEvents] = useState<ConjunctionEvent[]>([])
-  const [activeTab, setActiveTab] = useState<'SAT' | 'NEO' | 'WEATHER'>('SAT')
+  const [noaaIndices, setNoaaIndices] = useState<ConjunctionEvent[]>([])
+  const [fireballEvents, setFireballEvents] = useState<ConjunctionEvent[]>([])
+  const [activeTab, setActiveTab] = useState<'SAT' | 'NEO' | 'WEATHER' | 'INDEX' | 'FIREBALL'>('SAT')
   const [loading, setLoading] = useState(true)
 
   // Clock timer
@@ -228,6 +255,8 @@ export function EventsPanel({
     const q1 = query(collection(db, 'conjunction_events'))
     const q2 = query(collection(db, 'neo_events'))
     const q3 = query(collection(db, 'space_weather_events'))
+    const q4 = query(collection(db, 'noaa_indices'))
+    const q5 = query(collection(db, 'fireball_events'))
 
     const unsubscribe1 = onSnapshot(q1, (snapshot) => {
       const newEvents: ConjunctionEvent[] = []
@@ -285,14 +314,54 @@ export function EventsPanel({
       setWeatherEvents(newWeather)
     })
 
+    const unsubscribe4 = onSnapshot(q4, (snapshot) => {
+      const newIndices: ConjunctionEvent[] = []
+      snapshot.forEach((doc) => {
+        const data = doc.data()
+        newIndices.push({
+          id: doc.id,
+          name: data.name,
+          value: data.value,
+          timestamp: data.timestamp,
+          description: data.description,
+          risk_level: data.risk_level,
+          agent_assessment: data.description
+        } as ConjunctionEvent)
+      })
+      setNoaaIndices(newIndices)
+    })
+
+    const unsubscribe5 = onSnapshot(q5, (snapshot) => {
+      const newFireballs: ConjunctionEvent[] = []
+      snapshot.forEach((doc) => {
+        const data = doc.data()
+        newFireballs.push({
+          id: doc.id,
+          date: data.date,
+          energy_kt: data.energy_kt,
+          velocity_km_s: data.velocity_km_s,
+          risk_level: 'LOW', // Usually low unless high energy
+          agent_assessment: `Energy: ${data.energy_kt} kt`
+        } as ConjunctionEvent)
+      })
+      newFireballs.sort((a, b) => new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime())
+      setFireballEvents(newFireballs)
+    })
+
     return () => {
       unsubscribe1()
       unsubscribe2()
       unsubscribe3()
+      unsubscribe4()
+      unsubscribe5()
     }
   }, [])
 
-  const currentList = activeTab === 'SAT' ? events : activeTab === 'NEO' ? neoEvents : weatherEvents
+  const currentList = activeTab === 'SAT' ? events
+    : activeTab === 'NEO' ? neoEvents
+      : activeTab === 'WEATHER' ? weatherEvents
+        : activeTab === 'INDEX' ? noaaIndices
+          : fireballEvents
   const criticalCount = currentList.filter((e) => e.risk_level === 'CRITICAL').length
 
   if (!userId) return null;
@@ -329,6 +398,18 @@ export function EventsPanel({
             className={`flex-1 py-1 rounded text-center transition-all ${activeTab === 'WEATHER' ? 'bg-black/10 dark:bg-white/10 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 dark:text-white/40 hover:text-slate-700 dark:hover:text-white/60'}`}
           >
             WEATHER
+          </button>
+          <button
+            onClick={() => setActiveTab('INDEX')}
+            className={`flex-1 py-1 rounded text-center transition-all ${activeTab === 'INDEX' ? 'bg-black/10 dark:bg-white/10 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 dark:text-white/40 hover:text-slate-700 dark:hover:text-white/60'}`}
+          >
+            INDICES
+          </button>
+          <button
+            onClick={() => setActiveTab('FIREBALL')}
+            className={`flex-1 py-1 rounded text-center transition-all ${activeTab === 'FIREBALL' ? 'bg-black/10 dark:bg-white/10 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 dark:text-white/40 hover:text-slate-700 dark:hover:text-white/60'}`}
+          >
+            METEORS
           </button>
         </div>
 

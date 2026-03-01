@@ -1,10 +1,12 @@
-import requests
 import os
 import json
 from datetime import datetime, timezone
 from dotenv import load_dotenv
+from utils import get_logger, safe_retry, time_it
+from models import SatelliteModel
 
 load_dotenv()
+logger = get_logger("tle_fetcher")
 
 # Celestrak free API endpoints (no auth required)
 CELESTRAK_ACTIVE_SATS_URL = "https://celestrak.org/NORAD/elements/gp.php?GROUP=active&FORMAT=tle"
@@ -57,9 +59,12 @@ def _stamp_now(satellites):
     return satellites
 
 
+@safe_retry
+@time_it
 def fetch_tle_data(url):
     """Fetches raw TLE data from a Celestrak URL. Returns [] on any failure."""
-    print(f"Fetching TLEs from {url}...")
+    import requests
+    logger.info(f"Fetching TLEs from {url}...")
     try:
         response = requests.get(url, timeout=30)
         response.raise_for_status()
@@ -75,24 +80,25 @@ def fetch_tle_data(url):
 
                 try:
                     sat_id = line1[2:7].strip()
-                    satellites.append(
-                        {
-                            "id": sat_id,
-                            "name": name,
-                            "tle_line1": line1,
-                            "tle_line2": line2,
-                            "last_updated": datetime.now(timezone.utc).isoformat(),
-                        }
-                    )
+                    sat_data = {
+                        "id": sat_id,
+                        "name": name,
+                        "tle_line1": line1,
+                        "tle_line2": line2,
+                        "last_updated": datetime.now(timezone.utc).isoformat(),
+                    }
+                    # Validate with Pydantic
+                    validated_sat = SatelliteModel(**sat_data)
+                    satellites.append(validated_sat.model_dump())
                 except Exception as e:
-                    print(f"  Error parsing TLE for {name}: {e}")
+                    logger.error(f"Error parsing/validating TLE for {name}: {e}")
 
-        print(f"  Successfully parsed {len(satellites)} satellites.")
+        logger.info(f"Successfully parsed {len(satellites)} satellites.")
         return satellites
 
     except Exception as e:
-        print(f"  Failed to fetch TLE data from {url}: {e}")
-        return []
+        logger.error(f"Failed to fetch TLE data from {url}: {e}")
+        raise e  # Let safe_retry handle it
 
 
 def get_all_satellite_data():
@@ -101,8 +107,15 @@ def get_all_satellite_data():
     If both endpoints fail (e.g. SSL/network error) the function returns
     SAMPLE_TLE_DATA so that the pipeline and frontend can still run.
     """
-    active_sats = fetch_tle_data(CELESTRAK_ACTIVE_SATS_URL)
-    debris = fetch_tle_data(CELESTRAK_DEBRIS_URL)
+    try:
+        active_sats = fetch_tle_data(CELESTRAK_ACTIVE_SATS_URL)
+    except Exception:
+        active_sats = []
+
+    try:
+        debris = fetch_tle_data(CELESTRAK_DEBRIS_URL)
+    except Exception:
+        debris = []
 
     combined = active_sats + debris
 
