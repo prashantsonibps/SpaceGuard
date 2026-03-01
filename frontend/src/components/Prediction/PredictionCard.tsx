@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion'
 import type { Market, MarketCategory } from '@/data/markets'
 import { useTheme } from '@/lib/ThemeContext'
-import { textOpacity, fontSize, green } from '@/lib/theme'
+import { textOpacity, fontSize, green, border } from '@/lib/theme'
 import { Zap, Layers, Navigation, Shield, Globe } from 'lucide-react'
 
 // ── Category meta ──────────────────────────────────────────────────────────────
@@ -105,7 +105,7 @@ export function PredictionCard({ market }: { market: Market }) {
   const gr = green[theme]
   const { bg: catBg, iconColor, Icon } = CATEGORY_META[market.category]
 
-  const borderClass = theme === 'dark' ? 'border-white/[0.07]' : 'border-black/[0.08]'
+  const borderClass = border[theme]
   const bgClass     = theme === 'dark' ? 'bg-neutral-900/60'   : 'bg-white/90'
   const hoverClass  = theme === 'dark' ? 'hover:bg-neutral-800/70' : 'hover:bg-white'
 

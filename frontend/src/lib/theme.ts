@@ -165,6 +165,12 @@ export const fontSize = {
   xlarge: 'text-lg',      // 18px - major headings
 } as const
 
+// ── Container / card borders (darker, for panels and cards) ────────────────────
+export const border = {
+  dark: "border-white/[0.08]",
+  light: "border-black/[0.18]",
+} as const;
+
 // ── Panel / canvas backgrounds ────────────────────────────────────────────────
 export const bg = {
   dark: {

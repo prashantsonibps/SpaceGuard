@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { MARKETS } from "@/data/markets";
-import { riskClasses, financialColors, textOpacity, fontSize } from "@/lib/theme";
+import { riskClasses, financialColors, textOpacity, fontSize, border } from "@/lib/theme";
 import { useTheme } from "@/lib/ThemeContext";
 import {
   PredictionCard,
@@ -35,7 +35,7 @@ export function FinancialTerminal({ userId: _userId }: { userId?: string }) {
 
   return (
     <motion.div
-      className="absolute z-40 rounded-xl overflow-hidden backdrop-blur-md border border-black/[0.18] dark:border-white/10 bg-white/80 dark:bg-neutral-900/50"
+      className={`absolute z-40 rounded-xl overflow-hidden backdrop-blur-md border ${border[theme]} bg-white/80 dark:bg-neutral-900/50`}
       style={{ bottom: "1rem", left: "1rem" }}
       initial={{ opacity: 0, y: 10, right: "20rem", height: 44 }}
       animate={
@@ -62,7 +62,7 @@ export function FinancialTerminal({ userId: _userId }: { userId?: string }) {
             transition={{ duration: 0.2, delay: 0.1 }}
           >
             {/* Header */}
-            <div className="flex items-center justify-between px-4 py-2.5 border-b border-black/[0.18] dark:border-white/[0.08] shrink-0">
+            <div className={`flex items-center justify-between px-4 py-2.5 border-b ${border[theme]} shrink-0`}>
               <div className="flex items-center gap-3">
                 <span
                   className={`font-orbitron text-[11px] font-bold ${textOpacity[theme].secondary} tracking-[0.25em]`}
@@ -82,7 +82,7 @@ export function FinancialTerminal({ userId: _userId }: { userId?: string }) {
               </div>
               <button
                 onClick={() => setExpanded(false)}
-                className={`${fontSize.small} font-mono ${textOpacity[theme].caption} border border-black/[0.18] dark:border-white/[0.08] px-2 py-1 rounded
+                className={`${fontSize.small} font-mono ${textOpacity[theme].caption} border ${border[theme]} px-2 py-1 rounded
                   hover:${textOpacity[theme].secondary} hover:border-black/30 dark:hover:border-white/20 transition-colors tracking-widest`}
               >
                 COLLAPSE ↙
@@ -103,7 +103,7 @@ export function FinancialTerminal({ userId: _userId }: { userId?: string }) {
 
       {/* ── Always-visible bottom bar — pinned to bottom ── */}
       <div
-        className="absolute bottom-0 left-0 right-0 px-3 flex items-center justify-between gap-4 border-t border-black/[0.18] dark:border-white/[0.08]"
+        className={`absolute bottom-0 left-0 right-0 px-3 flex items-center justify-between gap-4 border-t ${border[theme]}`}
         style={{ height: 44 }}
       >
         <div className={`flex items-center gap-5 font-mono ${fontSize.small} min-w-0`}>
