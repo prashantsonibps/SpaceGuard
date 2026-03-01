@@ -11,22 +11,25 @@ def initialize_db():
     """Initializes and returns the Firestore client."""
     # Check if Firebase is already initialized to avoid errors if this is called multiple times
     if not firebase_admin._apps:
-        # We read the path from the .env file, or default to checking the root of the backend folder
-        cred_path = os.getenv("FIREBASE_CREDENTIALS_PATH", "serviceAccountKey.json")
-        
-        # Go up one directory from src/ to backend/ where the file should be
-        full_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), cred_path)
-        
-        if not os.path.exists(full_path):
-            raise FileNotFoundError(
-                f"🚨 Firebase credentials not found at {full_path}.\n"
-                f"Please download your service account JSON file, rename it to 'serviceAccountKey.json', "
-                f"and place it inside the 'backend' folder."
-            )
-            
-        cred = credentials.Certificate(full_path)
-        firebase_admin.initialize_app(cred)
-        print("✅ Successfully connected to Firebase Firestore")
+        # Cloud Run sets K_SERVICE - use default credentials (service account attached to Cloud Run)
+        if os.getenv("K_SERVICE"):
+            firebase_admin.initialize_app()
+            print("✅ Successfully connected to Firebase Firestore (Cloud Run default credentials)")
+        else:
+            # Local development - use service account file
+            cred_path = os.getenv("FIREBASE_CREDENTIALS_PATH", "serviceAccountKey.json")
+            full_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), cred_path)
+
+            if not os.path.exists(full_path):
+                raise FileNotFoundError(
+                    f"🚨 Firebase credentials not found at {full_path}.\n"
+                    f"Please download your service account JSON file, rename it to 'serviceAccountKey.json', "
+                    f"and place it inside the 'backend' folder."
+                )
+
+            cred = credentials.Certificate(full_path)
+            firebase_admin.initialize_app(cred)
+            print("✅ Successfully connected to Firebase Firestore")
         
     return firestore.client()
 

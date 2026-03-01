@@ -2,15 +2,17 @@
 
 ### **The First Prediction Market & Risk Engine for the Orbital Economy**
 
-> *"Managing the financial risks of the next trillion-dollar frontier."*
+> _"Managing the financial risks of the next trillion-dollar frontier."_
 
-![SpaceGuard Dashboard](https://media.discordapp.net/attachments/109000000000000000/109000000000000000/spaceguard-demo.png?width=1200) 
-*(Replace with actual screenshot)*
+![SpaceGuard Dashboard](https://media.discordapp.net/attachments/109000000000000000/109000000000000000/spaceguard-demo.png?width=1200)
+_(Replace with actual screenshot)_
 
 ---
 
 ## 🌌 The Problem: The Kessler Syndrome is Unpriced
+
 The space economy is booming ($600B+ today, $1T+ by 2030), but **orbital risk is unmanaged**.
+
 - **25,000+** tracked objects and debris pieces are cluttering Low Earth Orbit (LEO).
 - **Satellite Collisions** are becoming statistically inevitable (e.g., Iridium-33 vs Cosmos-2251).
 - **Launch Delays** cost millions per day in lost revenue and operational burn.
@@ -21,11 +23,13 @@ Currently, insurance is slow, manual, and reactive. **SpaceGuard makes it real-t
 ---
 
 ## 🛰️ What is SpaceGuard?
+
 SpaceGuard is a **B2B Prediction Market & Financial Terminal** that ingests real-time space data to price and hedge orbital risks instantly.
 
 We don't just show you where satellites are; **we calculate the financial probability of disaster.**
 
 ### **Core Modules**
+
 1.  **🌍 Real-Time Orbital Conjunctions**: Uses SGP4 propagation (Skyfield) on live TLE data to detect satellites on collision courses (<10km miss distance).
 2.  **🚀 Launch Delay Prediction**: analyzing pad location, live OpenWeather data, and historical provider reliability to price the risk of T-0 scrubs.
 3.  **☄️ Deep Space & Weather**: Monitoring NASA NeoWs (Asteroids) and DONKI (Space Weather) for external threats.
@@ -34,6 +38,7 @@ We don't just show you where satellites are; **we calculate the financial probab
 ---
 
 ## 💰 The Business Model: "Data as a Hedge"
+
 We are not a consumer app. We are the **Bloomberg Terminal for Space Insurers and Operators**.
 
 1.  **Risk APIs**: Selling high-frequency probability streams to parametric insurance providers.
@@ -43,23 +48,26 @@ We are not a consumer app. We are the **Bloomberg Terminal for Space Insurers an
 ---
 
 ## 🛠️ Tech Stack
-*   **Frontend**: Next.js 14, Tailwind CSS, Framer Motion.
-*   **Visualization**: Three.js / React Three Fiber (R3F) for the 3D Digital Twin globe.
-*   **Backend**: Python (FastAPI/Scripts) for orbital mechanics & data ingestion.
-*   **AI Engine**: **Mistral Large (mistral-large-latest)** for structured financial reasoning and decision making.
-*   **Data**: Firebase Firestore (Real-time sync), CelesTrak (TLEs), NASA NeoWs, OpenWeather, The SpaceDevs.
+
+- **Frontend**: Next.js 14, Tailwind CSS, Framer Motion.
+- **Visualization**: Three.js / React Three Fiber (R3F) for the 3D Digital Twin globe.
+- **Backend**: Python (FastAPI/Scripts) for orbital mechanics & data ingestion.
+- **AI Engine**: **Mistral Large (mistral-large-latest)** for structured financial reasoning and decision making.
+- **Data**: Firebase Firestore (Real-time sync), CelesTrak (TLEs), NASA NeoWs, OpenWeather, The SpaceDevs.
 
 ---
 
 ## 🚀 Quick Start
 
 ### 1. Clone & Install
+
 ```bash
 git clone https://github.com/prashantsonibps/SpaceGuard.git
 cd SpaceGuard
 ```
 
 ### 2. Backend Setup (The Engine)
+
 ```bash
 cd backend
 python3 -m venv venv
@@ -76,14 +84,17 @@ python src/main.py
 ```
 
 ### 3. Frontend Setup (The Dashboard)
+
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
+
 Visit `http://localhost:3000` to see the future of space risk management.
 
 ### 4. Hosting the frontend (e.g. Vercel)
+
 On branch `feat/host-frontend`, the UI uses the inline-expand Financial Terminal and betting flow. To deploy the frontend:
 
 1. Set the backend API URL in your host’s environment:
@@ -95,11 +106,27 @@ Without `NEXT_PUBLIC_API_URL`, the app falls back to `http://localhost:8000` (lo
 
 ---
 
-## 🔮 Future Roadmap
-*   **Blockchain Integration**: Move the "Hedge" button to execute real USDC transactions on Solana/Base.
-*   **Parametric Payouts**: Oracle-based triggers for instant insurance claims upon verified collisions.
-*   **Debris Mapping**: High-fidelity visualization of the 2009 Cosmos collision debris cloud.
+## 🚀 Production Deployment (Google Cloud)
+
+**Live:** https://spaceguard-a0dbc.web.app | **API:** https://spaceguard-api-1040980823268.us-central1.run.app
+
+**Redeploy:**
+```bash
+# Backend
+gcloud run deploy spaceguard-api --source ./backend --region us-central1 --project spaceguard-a0dbc --allow-unauthenticated
+
+# Frontend (set backend URL first)
+NEXT_PUBLIC_API_URL=https://spaceguard-api-1040980823268.us-central1.run.app npm run build --prefix frontend && firebase deploy --only hosting
+```
 
 ---
 
-*Built for the Future of Space.* 🚀
+## 🔮 Future Roadmap
+
+- **Blockchain Integration**: Move the "Hedge" button to execute real USDC transactions on Solana/Base.
+- **Parametric Payouts**: Oracle-based triggers for instant insurance claims upon verified collisions.
+- **Debris Mapping**: High-fidelity visualization of the 2009 Cosmos collision debris cloud.
+
+---
+
+_Built for the Future of Space._ 🚀
