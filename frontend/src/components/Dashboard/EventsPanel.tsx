@@ -417,8 +417,6 @@ export function EventsPanel({
             : activeTab === 'LAUNCH' ? launchEvents.map(e => ({ ...e, _type: 'LAUNCH' as const }))
               : fireballEvents.map(e => ({ ...e, _type: 'FIREBALL' as const }))
 
-  const criticalCount = currentList.filter((e) => e.risk_level === 'CRITICAL').length
-
   if (!userId) return null;
 
   return (
@@ -434,14 +432,6 @@ export function EventsPanel({
           </p>
         </div>
 
-        <div className="text-right h-4">
-          {criticalCount > 0 && (
-            <div className="flex items-center gap-1 justify-end">
-              <div className={`w-1.5 h-1.5 rounded-full ${rc.CRITICAL.dot} animate-pulse`} />
-              <span className={`${fontSize.small} font-mono ${rc.CRITICAL.text}`}>{criticalCount} CRITICAL</span>
-            </div>
-          )}
-        </div>
       </div>
 
       {/* Events list */}
