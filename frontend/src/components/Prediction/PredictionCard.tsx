@@ -34,14 +34,54 @@ export function formatTimeLeft(closeTime: number) {
   return `${Math.floor(h / 24)}d left`
 }
 
-// ── Probability bar ────────────────────────────────────────────────────────────
-function ProbBar({ pct, color }: { pct: number; color: 'green' | 'sky' }) {
-  const filled = Math.max(1, Math.min(20, Math.round(pct / 5)))
-  const cls = color === 'green' ? 'text-green-400' : 'text-sky-400'
+// ── Option row: label | full-width bar | multiplier | percentage button ────────
+function OptionRow({
+  label,
+  pct,
+  mult,
+  color,
+  onClick,
+  disabled,
+}: {
+  label: string
+  pct: number
+  mult: string
+  color: 'green' | 'sky'
+  onClick?: () => void
+  disabled?: boolean
+}) {
+  const barBg = color === 'green' ? 'bg-green-400/20' : 'bg-sky-400/20'
+  const barFill = color === 'green' ? 'bg-green-400' : 'bg-sky-400'
+  const borderCls = color === 'green' ? 'border-green-400' : 'border-sky-400'
+  const textCls = color === 'green' ? 'text-green-400' : 'text-sky-400'
+
   return (
-    <span className={`text-[7.5px] font-mono leading-none ${cls} opacity-80`}>
-      {'█'.repeat(filled)}{'░'.repeat(20 - filled)}
-    </span>
+    <div className="flex items-center gap-2 min-h-[28px]">
+      <span className={`text-sm font-mono font-bold shrink-0 w-10 ${textCls}`}>
+        {label}
+      </span>
+      <div className={`flex-1 min-w-0 h-1.5 rounded-full ${barBg} overflow-hidden`}>
+        <div
+          className={`h-full rounded-full ${barFill} transition-all`}
+          style={{ width: `${Math.max(1, Math.min(100, pct))}%` }}
+        />
+      </div>
+      <span className="text-sm font-mono tabular-nums shrink-0 w-12 text-right opacity-70">
+        {mult}
+      </span>
+      <button
+        type="button"
+        onClick={onClick}
+        disabled={disabled}
+        className={`
+          shrink-0 px-3 py-1 rounded-full text-base font-mono font-bold tabular-nums
+          border ${borderCls} ${textCls}
+          transition-opacity hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed
+        `}
+      >
+        {pct}%
+      </button>
+    </div>
   )
 }
 
@@ -81,7 +121,7 @@ export function PredictionCard({ market }: { market: Market }) {
           <div className={`w-7 h-7 rounded-lg ${catBg} flex items-center justify-center shrink-0 mt-0.5`}>
             <Icon className={`w-3.5 h-3.5 ${iconColor}`} />
           </div>
-          <p className={`text-[11px] font-mono leading-snug ${tp.secondary} flex-1`}>
+          <p className={`text-sm font-mono leading-snug ${tp.secondary} flex-1`}>
             {market.question}
           </p>
         </div>
@@ -91,7 +131,7 @@ export function PredictionCard({ market }: { market: Market }) {
       {isResolved ? (
         <div className="px-3.5 pb-3">
           <span
-            className={`text-[9px] font-mono font-bold tracking-widest ${
+            className={`text-sm font-mono font-bold tracking-widest ${
               market.outcome === 'YES' ? 'text-green-400' : 'text-red-400'
             }`}
           >
@@ -99,50 +139,41 @@ export function PredictionCard({ market }: { market: Market }) {
           </span>
         </div>
       ) : (
-        <div className={`px-3.5 pb-3 space-y-2 ${isClosed ? 'pointer-events-none' : ''}`}>
-          {/* YES */}
-          <div className="space-y-0.5">
-            <div className="flex items-center justify-between">
-              <span className="text-[9px] font-mono font-bold text-green-400">YES</span>
-              <div className="flex items-center gap-2">
-                <span className={`text-[9px] font-mono ${tp.faint}`}>{yesMult}</span>
-                <span className="text-[9px] font-mono font-bold text-green-400 tabular-nums w-[3ch] text-right">{yesP}%</span>
-              </div>
-            </div>
-            <ProbBar pct={yesP} color="green" />
-          </div>
-
-          {/* NO */}
-          <div className="space-y-0.5">
-            <div className="flex items-center justify-between">
-              <span className="text-[9px] font-mono font-bold text-sky-400">NO</span>
-              <div className="flex items-center gap-2">
-                <span className={`text-[9px] font-mono ${tp.faint}`}>{noMult}</span>
-                <span className="text-[9px] font-mono font-bold text-sky-400 tabular-nums w-[3ch] text-right">{noP}%</span>
-              </div>
-            </div>
-            <ProbBar pct={noP} color="sky" />
-          </div>
+        <div className={`px-3.5 pb-3 space-y-3 ${isClosed ? 'pointer-events-none' : ''}`}>
+          <OptionRow
+            label="YES"
+            pct={yesP}
+            mult={yesMult}
+            color="green"
+            disabled={isClosed}
+          />
+          <OptionRow
+            label="NO"
+            pct={noP}
+            mult={noMult}
+            color="sky"
+            disabled={isClosed}
+          />
         </div>
       )}
 
       {/* Footer */}
-      <div className={`flex items-center justify-between px-3.5 py-2 border-t ${borderClass}`}>
-        <span className={`text-[9px] font-mono ${tp.faint}`}>
+      <div className={`flex items-center justify-between px-3.5 py-2.5 border-t ${borderClass}`}>
+        <span className={`text-sm font-mono ${tp.faint}`}>
           {formatVol(market.totalVolume)} vol
         </span>
         {timeLeft ? (
-          <span className={`text-[9px] font-mono ${tp.faint}`}>{timeLeft}</span>
+          <span className={`text-sm font-mono ${tp.faint}`}>{timeLeft}</span>
         ) : isResolved ? (
           <span
-            className={`text-[9px] font-mono font-bold tracking-widest ${
+            className={`text-sm font-mono font-bold tracking-widest ${
               market.outcome === 'YES' ? 'text-green-400/70' : 'text-red-400/70'
             }`}
           >
             SETTLED
           </span>
         ) : (
-          <span className={`text-[9px] font-mono ${tp.faint}`}>CLOSED</span>
+          <span className={`text-sm font-mono ${tp.faint}`}>CLOSED</span>
         )}
       </div>
     </motion.div>
