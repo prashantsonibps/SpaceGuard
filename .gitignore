@@ -18,6 +18,9 @@ out/
 .next/
 .vercel
 
+# TypeScript build cache
+*.tsbuildinfo
+
 # Misc
 .DS_Store
 *.pem
@@ -52,6 +55,13 @@ __pycache__/
 venv/
 env/
 ENV/
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Firebase
+.firebase/
 
 # Logs
 logs/
