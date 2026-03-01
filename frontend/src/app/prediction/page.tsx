@@ -51,7 +51,7 @@ export default function PredictionPage() {
   return (
     <div
       className={`w-screen h-screen flex flex-col overflow-hidden ${
-        theme === 'dark' ? 'bg-[#020817]' : 'bg-zinc-50'
+        theme === 'dark' ? 'bg-black' : 'bg-zinc-50'
       }`}
     >
       {/* Top bar — inline (not overlay) */}

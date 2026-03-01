@@ -38,7 +38,7 @@ export function SortControls({ sortBy, onSort, markets }: SortControlsProps) {
               className={`
                 px-2 py-0.5 text-[9px] font-mono rounded border transition-colors
                 ${sortBy === key
-                  ? `${ac.bgDim} border-sky-300/40 ${ac.text}`
+                  ? `${ac.bgDim} ${ac.borderDim} ${ac.text}`
                   : sortBtnInactive
                 }
               `}

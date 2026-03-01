@@ -99,7 +99,7 @@ export function CategorySidebar({ markets, selectedCategory, onSelectCategory, u
             <p className={`text-[8px] font-mono tracking-widest ${tp.faint}`}>OPEN POSITIONS</p>
             {DEMO_PORTFOLIO.positions.map(pos => (
               <div key={pos.id} className="flex justify-between text-[9px] font-mono">
-                <span className={tp.muted}>{pos.id} <span className="text-sky-400/70">{pos.side}</span></span>
+                <span className={tp.muted}>{pos.id} {pos.side}</span>
                 <span className={`${ac.text} tabular-nums`}>{pos.shares} sh</span>
               </div>
             ))}
