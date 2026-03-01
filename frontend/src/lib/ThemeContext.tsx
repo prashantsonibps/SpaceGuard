@@ -15,7 +15,6 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     const saved = localStorage.getItem('sg-theme') as Theme | null
     if (saved && saved !== 'dark') {
       setTheme(saved)
-      document.documentElement.classList.toggle('dark', saved === 'dark')
     }
   }, [])
 
