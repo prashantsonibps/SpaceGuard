@@ -33,12 +33,6 @@ export function BettingModal({ isOpen, onClose, eventId, eventName, eventType, u
     return () => setMounted(false)
   }, [])
 
-  useEffect(() => {
-    if (isOpen) {
-      console.log('[BettingModal] opened', { eventId, eventName, eventType, userId })
-    }
-  }, [isOpen])
-
   const handleBet = async () => {
     setLoading(true)
     setError(null)

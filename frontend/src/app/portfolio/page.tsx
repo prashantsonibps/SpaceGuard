@@ -25,8 +25,8 @@ export default function PortfolioPage() {
                 await api.initUser(USER_ID)
                 const data = await api.getUserPortfolio(USER_ID)
                 if (mounted) setPortfolio(data)
-            } catch (e) {
-                console.error("Failed to load portfolio", e)
+            } catch {
+                // Failed to load portfolio
             }
         }
         init()

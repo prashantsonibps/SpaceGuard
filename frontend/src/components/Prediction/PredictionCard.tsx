@@ -188,8 +188,6 @@ export function PredictionCard({ market }: { market: Market }) {
             color="green"
             disabled={isClosed}
             onClick={() => {
-              console.log('[PredictionCard] YES % clicked', { id: market.id, yesP })
-              console.log('[PredictionCard] setModalOpen', true)
               setSelectedOutcome('YES')
               setModalOpen(true)
             }}
@@ -201,8 +199,6 @@ export function PredictionCard({ market }: { market: Market }) {
             color="sky"
             disabled={isClosed}
             onClick={() => {
-              console.log('[PredictionCard] NO % clicked', { id: market.id, noP })
-              console.log('[PredictionCard] setModalOpen', true)
               setSelectedOutcome('NO')
               setModalOpen(true)
             }}
@@ -218,7 +214,6 @@ export function PredictionCard({ market }: { market: Market }) {
         eventType="conjunction"
         userId="demo-user"
         onBetPlaced={() => {
-          console.log('[PredictionCard] bet placed for', market.id)
           setModalOpen(false)
         }}
       />

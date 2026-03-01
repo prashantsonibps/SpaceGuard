@@ -94,22 +94,17 @@ function EventRow({
   const rowRef = useRef<HTMLDivElement>(null)
 
   const speakAssessment = async (text: string) => {
-    console.log('[TTS] speakAssessment called, isSpeaking:', isSpeaking)
     if (isSpeaking) {
       audioRef.current?.pause()
       setIsSpeaking(false)
       return
     }
     const key = process.env.NEXT_PUBLIC_ELEVENLABS_API_KEY
-    console.log('[TTS] API key present:', !!key, '| key value:', key ? key.slice(0, 8) + '...' : 'MISSING')
-    console.log('[TTS] text to speak:', text)
     if (!key) {
-      console.error('[TTS] No API key — set NEXT_PUBLIC_ELEVENLABS_API_KEY in .env.local and restart npm run dev')
       return
     }
     setIsSpeaking(true)
     try {
-      console.log('[TTS] Fetching from ElevenLabs...')
       const res = await fetch(
         'https://api.elevenlabs.io/v1/text-to-speech/21m00Tcm4TlvDq8ikWAM',
         {
@@ -122,24 +117,18 @@ function EventRow({
           }),
         }
       )
-      console.log('[TTS] Response status:', res.status, res.statusText)
       if (!res.ok) {
-        const errText = await res.text()
-        console.error('[TTS] ElevenLabs error response:', errText)
         setIsSpeaking(false)
         return
       }
       const blob = await res.blob()
-      console.log('[TTS] Got blob, size:', blob.size, 'type:', blob.type)
       const url = URL.createObjectURL(blob)
       const audio = new Audio(url)
       audioRef.current = audio
-      audio.onended = () => { console.log('[TTS] Playback ended'); setIsSpeaking(false) }
-      audio.onerror = (e) => { console.error('[TTS] Audio playback error:', e); setIsSpeaking(false) }
-      console.log('[TTS] Starting playback...')
+      audio.onended = () => setIsSpeaking(false)
+      audio.onerror = () => setIsSpeaking(false)
       audio.play()
-    } catch (err) {
-      console.error('[TTS] Caught exception:', err)
+    } catch {
       setIsSpeaking(false)
     }
   }

@@ -32,7 +32,7 @@ export default function HomePage() {
     setUserId(storedUserId)
 
     // Initialize user in backend
-    api.initUser(storedUserId).catch(console.error)
+    api.initUser(storedUserId).catch(() => {})
   }, [])
 
   return (
