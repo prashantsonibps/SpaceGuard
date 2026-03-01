@@ -5,6 +5,9 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
+import weave
+from dotenv import load_dotenv
+
 # ---------------------------------------------------------------------------
 # Path setup — allow running from project root or from backend/
 # ---------------------------------------------------------------------------
@@ -12,10 +15,30 @@ _src_dir = Path(__file__).resolve().parent
 if str(_src_dir) not in sys.path:
     sys.path.insert(0, str(_src_dir))
 
-from dotenv import load_dotenv
 _backend_dir = _src_dir.parent
 load_dotenv(_backend_dir / ".env")
 load_dotenv()
+
+
+def _init_weave_if_configured() -> None:
+    """Initialize Weave tracing if a WANDB_API_KEY is available.
+
+    This keeps the ingestion pipeline robust: if W&B is misconfigured or
+    unavailable, the orbital physics and database writes still run normally.
+    """
+    project = "spaceguard-orbital-risk"
+    api_key = (os.getenv("WANDB_API_KEY") or "").strip()
+    if not api_key:
+        print("ℹ Weave/W&B tracing disabled (WANDB_API_KEY not set).")
+        return
+    try:
+        weave.init(project)
+        print(f"✅ Weave tracing initialized for project '{project}'.")
+    except Exception as exc:
+        print(f"⚠ Weave init failed (non-fatal): {exc}")
+
+
+_init_weave_if_configured()
 
 from tle_fetcher import get_all_satellite_data
 from launch_fetcher import fetch_upcoming_launches
@@ -38,6 +61,7 @@ except ImportError:
 
 # ---------------------------------------------------------------------------
 
+@weave.op()
 def run_pipeline():
     print("========================================")
     print("🚀 Starting SpaceGuard Ingestion Pipeline")

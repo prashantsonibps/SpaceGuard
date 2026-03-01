@@ -1,6 +1,9 @@
 import os
 import json
 from pathlib import Path
+from typing import Any, Dict
+
+import weave
 from mistralai import Mistral
 from dotenv import load_dotenv
 
@@ -13,7 +16,7 @@ load_dotenv()  # also cwd
 MISTRAL_MODEL = "mistral-large-latest"
 
 
-def get_mistral_client():
+def get_mistral_client() -> Mistral:
     api_key = (os.getenv("MISTRAL_API_KEY") or "").strip()
     if not api_key:
         raise ValueError(
@@ -22,10 +25,14 @@ def get_mistral_client():
     return Mistral(api_key=api_key)
 
 
-def analyze_risk_and_hedge(event_data):
+@weave.op()
+def analyze_risk_and_hedge(event_data: Dict[str, Any]) -> Dict[str, Any]:
     """
-    Sends the conjunction or delay event to Mistral to assess financial risk
-    and decide whether to execute a hedge (e.g., buy insurance).
+    Call the Mistral AI financial risk agent for a given space event.
+
+    The input is a conjunction, asteroid, or launch-delay event document, and the
+    output is a normalized JSON decision containing the reasoning, action, hedge
+    amount in USD, and hedge type to be stored alongside the event in Firebase.
     """
     client = get_mistral_client()
 

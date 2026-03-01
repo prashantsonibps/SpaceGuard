@@ -1,16 +1,18 @@
 import os
 import threading
 import time
+from datetime import datetime
+from enum import Enum
+from typing import Optional, List
+
+import weave
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-from typing import Optional, List
-from enum import Enum
-import uuid
-from datetime import datetime
-from .db import initialize_db
 from google.cloud import firestore
+from pydantic import BaseModel
 from contextlib import asynccontextmanager
+
+from .db import initialize_db
 from .main import run_pipeline
 from .amm_bot import start_amm_bot
 
@@ -24,18 +26,42 @@ def pipeline_loop():
         # Wait 5 minutes between runs
         time.sleep(300)
 
+def _init_weave_if_configured() -> None:
+    """Initialize Weave tracing for the API process if WANDB_API_KEY is set."""
+    project = "spaceguard-orbital-risk"
+    api_key = (os.getenv("WANDB_API_KEY") or "").strip()
+    if not api_key:
+        print("ℹ Weave/W&B tracing disabled for API (WANDB_API_KEY not set).")
+        return
+    try:
+        weave.init(project)
+        print(f"✅ Weave tracing initialized for API project '{project}'.")
+    except Exception as exc:
+        print(f"⚠ Weave init failed in API (non-fatal): {exc}")
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    """
+    FastAPI lifespan context used as the parent Weave trace for the live backend.
+
+    This is where the ingestion pipeline and AMM bot are started; nested Weave
+    ops from the orbital physics engine and Mistral agent will appear beneath
+    this context in the Weights & Biases dashboard.
+    """
+    _init_weave_if_configured()
+
     print("Starting background data ingestion pipeline...")
     thread = threading.Thread(target=pipeline_loop, daemon=True)
     thread.start()
-    
+
     print("Starting AMM Liquidity Bot...")
     amm_thread = threading.Thread(target=start_amm_bot, daemon=True)
     amm_thread.start()
-    
+
     yield
     print("Shutting down API...")
+
 
 app = FastAPI(title="SpaceGuard Betting API", lifespan=lifespan)
 

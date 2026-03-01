@@ -1,3 +1,3 @@
 #!/bin/bash
 cd frontend
-npm run build && npm start -- -p 3007
+npm run build && npx serve@latest out -l 3008

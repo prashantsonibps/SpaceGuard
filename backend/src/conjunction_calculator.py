@@ -1,11 +1,23 @@
 from skyfield.api import load, wgs84, EarthSatellite
 import numpy as np
 from datetime import timedelta
+from typing import Any, Dict, List
 
-def calculate_conjunctions(satellites_data, max_distance_km=10.0, time_window_hours=24):
+import weave
+
+
+@weave.op()
+def calculate_conjunctions(
+    satellites_data: List[Dict[str, Any]],
+    max_distance_km: float = 10.0,
+    time_window_hours: int = 24,
+):
     """
     Predicts close approaches between satellites using Skyfield orbital mechanics.
-    This is actual math/physics predicting future states based on current TLEs.
+
+    This function ingests a list of satellite TLE dictionaries, propagates their
+    orbits over a sliding time window, and returns a list of potential conjunction
+    events with miss distances, collision probabilities, and qualitative risk tiers.
     """
     print(f"Loading ephemeris data for {len(satellites_data)} objects...")
     ts = load.timescale()
