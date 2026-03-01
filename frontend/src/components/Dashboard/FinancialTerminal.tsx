@@ -140,8 +140,7 @@ export function FinancialTerminal() {
 
   return (
     <motion.div
-      className="absolute z-40 rounded-xl overflow-hidden backdrop-blur-md
-                 bg-black/85 border border-white/10"
+      className="absolute z-40 rounded-xl overflow-hidden backdrop-blur-md border border-white/10 bg-neutral-900/50"
       style={{ bottom: '1rem', left: '1rem' }}
       initial={{ opacity: 0, y: 10, right: '20rem', height: 44 }}
       animate={
