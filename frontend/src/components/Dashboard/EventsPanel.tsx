@@ -90,7 +90,7 @@ function EventRow({
   const rc = riskClasses[theme]
   const [isBettingOpen, setIsBettingOpen] = useState(false)
 
-  const probPct = event.collision_probability ? (event.collision_probability * 100).toFixed(4) : '0.00'
+  const probPct = event.collision_probability ? parseFloat((event.collision_probability * 100).toFixed(4)) : 0
 
   return (
     <>
