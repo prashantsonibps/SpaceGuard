@@ -13,6 +13,7 @@
     "@react-three/fiber": "^8.17.0",
     "@react-three/postprocessing": "^2.16.0",
     "clsx": "^2.1.1",
+    "firebase": "^12.10.0",
     "framer-motion": "^11.11.0",
     "lucide-react": "^0.575.0",
     "next": "^14.2.0",

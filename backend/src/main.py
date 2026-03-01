@@ -65,7 +65,7 @@ def run_pipeline():
     save_conjunctions(db, conjunctions)
     
     print("\n--- 4. LLM Risk Assessment Agent ---")
-    # Evaluate critical conjunctions with Mistral
+    # Evaluate critical conjunctions with Gemini
     critical_events = [c for c in conjunctions if c['risk_level'] in ['HIGH', 'CRITICAL']]
     for event in critical_events:
         print(f"\nAnalyzing Event for: {event['asset_name']}")
@@ -87,7 +87,7 @@ def run_pipeline():
             
         except Exception as e:
             print(f"  ❌ Agent analysis failed: {e}")
-            print("  (Make sure your MISTRAL_API_KEY is set in .env)")
+            print("  (Make sure your GEMINI_API_KEY is set in .env)")
     
     print("\n--- Pipeline Summary ---")
     print(f"High-Risk Conjunctions Evaluated: {len(critical_events)}")
