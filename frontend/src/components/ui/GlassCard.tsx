@@ -2,6 +2,8 @@
 
 import { ReactNode, CSSProperties } from 'react'
 import { motion } from 'framer-motion'
+import { bg } from '@/lib/theme'
+import { useTheme } from '@/lib/ThemeContext'
 
 interface GlassCardProps {
   children: ReactNode
@@ -11,10 +13,8 @@ interface GlassCardProps {
 }
 
 export function GlassCard({ children, className = '', animate = true, style }: GlassCardProps) {
-  const base = `
-    bg-white/5 backdrop-blur-md border border-white/10
-    rounded-xl overflow-hidden
-  `
+  const { theme } = useTheme()
+  const base = `${bg[theme].glass} rounded-xl overflow-hidden`
 
   if (!animate) {
     return <div className={`${base} ${className}`} style={style}>{children}</div>

@@ -7,24 +7,30 @@ import * as THREE from 'three'
 import { positionOnSphere, sampleOrbit } from '@/lib/orbital'
 import { db } from '@/lib/firebase'
 import { collection, onSnapshot, query } from 'firebase/firestore'
-import { ConjunctionEvent, RiskLevel } from '@/components/Dashboard/EventsPanel'
+import { ConjunctionEvent } from '@/components/Dashboard/EventsPanel'
+import { globeColors } from '@/lib/theme'
 
 const VIZ_SCALE = 0.98
-const DOT_SIZE = 0.004
+const DOT_SIZE = 0.006
 
-const RISK_COLORS: Record<string, string> = {
-  CRITICAL: '#ef4444',
-  HIGH:     '#f97316',
-  MEDIUM:   '#eab308',
-  LOW:      '#4ade80',
-}
+export function SatelliteMarkers({
+  selectedEventId,
+  theme,
+}: {
+  selectedEventId?: string | null
+  theme: 'dark' | 'light'
+}) {
+  const colors = globeColors[theme]
 
-// In a full production app, we would parse TLEs in the frontend to propagate the exact orbit.
-// For the 3D visualization, we will generate placeholder satellites and highlight the real ones
-// from the database if they are involved in conjunctions.
-export function SatelliteMarkers() {
+  const probToColor = (prob: number): string => {
+    if (prob >= 0.1)   return colors.prob10
+    if (prob >= 0.01)  return colors.prob1
+    if (prob >= 0.001) return colors.prob01
+    return colors.probDefault
+  }
+
   const [events, setEvents] = useState<ConjunctionEvent[]>([])
-  
+
   // Create 500 background "dots" to simulate the satellite cloud
   const [backgroundSats] = useState(() => {
     const sats = []
@@ -77,12 +83,19 @@ export function SatelliteMarkers() {
     })
   })
 
-  // We want to specifically render and highlight the satellites involved in conjunctions
-  const activeSatellites = new Map<string, RiskLevel>()
-  events.forEach(evt => {
-    activeSatellites.set(evt.asset_id, evt.risk_level)
-    activeSatellites.set(evt.secondary_id, evt.risk_level)
+  // Build a map of all active satellites with their probability color
+  const allActiveSats = new Map<string, string>()
+  events.forEach((evt) => {
+    const color = probToColor(evt.collision_probability ?? 0)
+    allActiveSats.set(evt.asset_id, color)
+    allActiveSats.set(evt.secondary_id, color)
   })
+
+  // Only show orbit lines for the selected event
+  const selectedEvent = selectedEventId ? events.find((e) => e.id === selectedEventId) : null
+  const selectedSatIds = new Set(
+    selectedEvent ? [selectedEvent.asset_id, selectedEvent.secondary_id] : []
+  )
 
   return (
     <group>
@@ -95,17 +108,18 @@ export function SatelliteMarkers() {
           }}
           args={[DOT_SIZE, 8, 8]}
         >
-          <meshBasicMaterial color="#ffffff" transparent opacity={0.4} />
+          <meshBasicMaterial color={colors.bgSatColor} transparent opacity={colors.bgSatOpacity} />
         </Sphere>
       ))}
 
-      {/* High-Risk Satellites (Rendered dynamically based on DB) */}
-      {Array.from(activeSatellites.entries()).map(([id, risk], i) => (
+      {/* Colored dots always visible; orbit lines only for selected event */}
+      {Array.from(allActiveSats.entries()).map(([id, color], i) => (
         <ActiveSatelliteMarker
           key={id}
           id={id}
-          risk={risk}
+          color={color}
           index={i}
+          showLine={selectedSatIds.has(id)}
         />
       ))}
     </group>
@@ -114,15 +128,15 @@ export function SatelliteMarkers() {
 
 function ActiveSatelliteMarker({
   id,
-  risk,
+  color,
   index,
+  showLine,
 }: {
   id: string
-  risk: RiskLevel
+  color: string
   index: number
+  showLine: boolean
 }) {
-  // Position them statically for the demo or give them a fixed orbit path
-  // so they stand out in the 3D globe.
   const alt = 450 + index * 10
   const inclination = 51.6
   const raan = index * 45
@@ -136,15 +150,17 @@ function ActiveSatelliteMarker({
 
   return (
     <group>
-      <Line
-        points={points}
-        color={RISK_COLORS[risk] || '#ffffff'}
-        transparent
-        opacity={0.3}
-        lineWidth={1}
-      />
+      {showLine && (
+        <Line
+          points={points}
+          color={color}
+          transparent
+          opacity={0.35}
+          lineWidth={1.5}
+        />
+      )}
       <Sphere position={[x, y, z]} args={[DOT_SIZE * 3, 16, 16]}>
-        <meshBasicMaterial color={RISK_COLORS[risk] || '#ffffff'} />
+        <meshBasicMaterial color={color} />
       </Sphere>
     </group>
   )

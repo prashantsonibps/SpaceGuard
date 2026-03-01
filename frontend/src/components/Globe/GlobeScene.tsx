@@ -1,15 +1,17 @@
 'use client'
 
-import { Suspense, useRef, useMemo, useState } from 'react'
+import { Suspense, useRef, useMemo, useState, useEffect } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
 import { Bloom, EffectComposer } from '@react-three/postprocessing'
 import * as THREE from 'three'
 import { Earth } from './Earth'
 import { SatelliteMarkers } from './SatelliteMarkers'
+import { globeColors } from '@/lib/theme'
+import { useTheme } from '@/lib/ThemeContext'
 
 // Custom star field — anchored to camera (skybox behaviour), full control over size/color.
-function SkyStars() {
+function SkyStars({ theme }: { theme: 'dark' | 'light' }) {
   const groupRef = useRef<THREE.Group>(null)
   const { camera } = useThree()
 
@@ -35,26 +37,51 @@ function SkyStars() {
         <bufferGeometry>
           <bufferAttribute attach="attributes-position" args={[positions, 3]} />
         </bufferGeometry>
-        <pointsMaterial size={0.18} color="#555555" sizeAttenuation />
+        <pointsMaterial size={0.18} color={globeColors[theme].stars} sizeAttenuation />
       </points>
     </group>
   )
 }
 
-function SceneContent() {
+function AnimatedBackground({ targetHex }: { targetHex: string }) {
+  const { scene } = useThree()
+  const current = useRef(new THREE.Color(targetHex))
+  const target  = useRef(new THREE.Color(targetHex))
+
+  useEffect(() => { target.current.set(targetHex) }, [targetHex])
+
+  useFrame(() => {
+    current.current.lerp(target.current, 0.6)
+    scene.background = current.current
+  })
+
+  return null
+}
+
+function SceneContent({
+  selectedEventId,
+  theme,
+}: {
+  selectedEventId?: string | null
+  theme: 'dark' | 'light'
+}) {
+  const canvas = globeColors[theme].canvas
   return (
     <>
+      {/* Smoothly lerp the WebGL clear color on theme change */}
+      <AnimatedBackground targetHex={canvas} />
+
       {/* Lighting — neutral white for black/white dotted aesthetic */}
       <ambientLight intensity={0.4} />
       <directionalLight position={[5, 3, 5]} intensity={1.4} color="#ffffff" />
 
       {/* Star field — anchored to camera, no depth spread */}
-      <SkyStars />
+      <SkyStars theme={theme} />
 
       {/* Earth + satellites */}
       <Suspense fallback={null}>
-        <Earth autoRotate={false} />
-        <SatelliteMarkers />
+        <Earth autoRotate={false} theme={theme} />
+        <SatelliteMarkers selectedEventId={selectedEventId} theme={theme} />
       </Suspense>
 
       {/* Camera controls — damping disabled for instant response */}
@@ -78,7 +105,8 @@ function SceneContent() {
   )
 }
 
-export function GlobeScene() {
+export function GlobeScene({ selectedEventId }: { selectedEventId?: string | null }) {
+  const { theme } = useTheme()
   const [visible, setVisible] = useState(false)
 
   return (
@@ -92,11 +120,11 @@ export function GlobeScene() {
     >
       <Canvas
         camera={{ position: [3.2, 2.0, 0.4], fov: 50 }}
-        style={{ background: '#000000' }}
+        style={{ background: globeColors[theme].canvas }}
         gl={{ antialias: true, alpha: false }}
         onCreated={() => setVisible(true)}
       >
-        <SceneContent />
+        <SceneContent selectedEventId={selectedEventId} theme={theme} />
       </Canvas>
     </div>
   )

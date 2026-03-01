@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import './globals.css'
+import { ThemeProvider } from '@/lib/ThemeContext'
 
 export const metadata: Metadata = {
   title: 'SpaceGuard — Satellite Collision Risk Intelligence',
@@ -13,9 +14,11 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
-      <body style={{ background: '#020817', overflow: 'hidden', margin: 0 }}>
-        {children}
+    <html lang="en" className="dark">
+      <body style={{ overflow: 'hidden', margin: 0 }}>
+        <ThemeProvider>
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   )

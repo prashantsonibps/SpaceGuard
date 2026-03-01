@@ -16,32 +16,39 @@ const GlobeScene = dynamic(
 
 export default function HomePage() {
   const [userId, setUserId] = useState<string | null>(null)
+  const [selectedEventId, setSelectedEventId] = useState<string | null>(null)
 
   useEffect(() => {
     // Check if user ID exists in localStorage
     let storedUserId = localStorage.getItem('spaceguard_user_id')
-    
+
     if (!storedUserId) {
       storedUserId = uuidv4()
       localStorage.setItem('spaceguard_user_id', storedUserId)
     }
-    
+
     setUserId(storedUserId)
-    
+
     // Initialize user in backend
     api.initUser(storedUserId).catch(console.error)
   }, [])
 
   return (
-    <div className="relative w-screen h-screen overflow-hidden bg-black">
+    <div className="relative w-screen h-screen overflow-hidden bg-slate-50 dark:bg-black">
       {/* Full-screen globe */}
       <div className="absolute inset-0">
-        <GlobeScene />
+        <GlobeScene selectedEventId={selectedEventId} />
       </div>
 
       {/* Overlay UI */}
       <TopBar />
-      {userId && <EventsPanel userId={userId} />}
+      {userId && (
+        <EventsPanel
+          userId={userId}
+          selectedEventId={selectedEventId}
+          onSelectEvent={setSelectedEventId}
+        />
+      )}
       <FinancialTerminal userId={userId ?? undefined} />
     </div>
   )

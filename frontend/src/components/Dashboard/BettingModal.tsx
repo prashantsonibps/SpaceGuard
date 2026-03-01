@@ -4,6 +4,8 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { GlassCard } from '@/components/ui/GlassCard'
 import { api } from '@/lib/api'
+import { accent, riskClasses, textOpacity } from '@/lib/theme'
+import { useTheme } from '@/lib/ThemeContext'
 
 interface BettingModalProps {
   isOpen: boolean
@@ -16,6 +18,7 @@ interface BettingModalProps {
 }
 
 export function BettingModal({ isOpen, onClose, eventId, eventName, eventType, userId, onBetPlaced }: BettingModalProps) {
+  const { theme } = useTheme()
   const [amount, setAmount] = useState<number>(100)
   const [outcome, setOutcome] = useState<string>('YES')
   const [loading, setLoading] = useState(false)
@@ -38,23 +41,23 @@ export function BettingModal({ isOpen, onClose, eventId, eventName, eventType, u
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 dark:bg-black/50 backdrop-blur-sm">
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
           >
             <GlassCard className="w-80 p-6">
-              <h2 className="text-lg font-bold text-white mb-4">Place Wager</h2>
-              <p className="text-sm text-white/60 mb-4">Event: {eventName}</p>
-              
+              <h2 className={`text-lg font-bold ${textOpacity[theme].primary} mb-4`}>Place Wager</h2>
+              <p className={`text-sm ${textOpacity[theme].secondary} mb-4`}>Event: {eventName}</p>
+
               <div className="space-y-4">
                 <div>
-                  <label className="block text-xs text-white/40 mb-1">Outcome Prediction</label>
-                  <select 
-                    value={outcome} 
+                  <label className={`block text-xs ${textOpacity[theme].muted} mb-1`}>Outcome Prediction</label>
+                  <select
+                    value={outcome}
                     onChange={(e) => setOutcome(e.target.value)}
-                    className="w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-white text-sm"
+                    className={`w-full bg-black/5 dark:bg-white/5 border border-black/20 dark:border-white/10 rounded px-3 py-2 ${textOpacity[theme].primary} text-sm`}
                   >
                     <option value="YES">YES (Collision / Success)</option>
                     <option value="NO">NO (Miss / Failure)</option>
@@ -62,31 +65,31 @@ export function BettingModal({ isOpen, onClose, eventId, eventName, eventType, u
                 </div>
 
                 <div>
-                  <label className="block text-xs text-white/40 mb-1">Wager Amount ($)</label>
+                  <label className={`block text-xs ${textOpacity[theme].muted} mb-1`}>Wager Amount ($)</label>
                   <input
                     type="number"
                     value={amount}
                     onChange={(e) => setAmount(Number(e.target.value))}
-                    className="w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-white text-sm"
+                    className={`w-full bg-black/5 dark:bg-white/5 border border-black/20 dark:border-white/10 rounded px-3 py-2 ${textOpacity[theme].primary} text-sm`}
                     min="1"
                   />
                 </div>
 
                 {error && (
-                  <div className="text-red-400 text-xs">{error}</div>
+                  <div className={`${riskClasses[theme].CRITICAL.text} text-xs`}>{error}</div>
                 )}
 
                 <div className="flex gap-2 pt-2">
                   <button
                     onClick={onClose}
-                    className="flex-1 py-2 text-xs text-white/60 hover:bg-white/5 rounded transition-colors"
+                    className={`flex-1 py-2 text-xs ${textOpacity[theme].secondary} hover:bg-black/5 dark:hover:bg-white/5 rounded transition-colors`}
                   >
                     Cancel
                   </button>
                   <button
                     onClick={handleBet}
                     disabled={loading}
-                    className="flex-1 py-2 text-xs bg-sky-500 hover:bg-sky-400 text-white rounded transition-colors disabled:opacity-50"
+                    className={`flex-1 py-2 text-xs ${accent[theme].bg} ${accent[theme].bgHover} text-white rounded transition-colors disabled:opacity-50`}
                   >
                     {loading ? 'Placing...' : 'Confirm Bet'}
                   </button>
