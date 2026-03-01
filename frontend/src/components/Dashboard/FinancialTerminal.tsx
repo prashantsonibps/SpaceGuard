@@ -2,16 +2,13 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { GlassCard } from '@/components/ui/GlassCard'
 import { db } from '@/lib/firebase'
 import { collection, onSnapshot, query } from 'firebase/firestore'
 import { ConjunctionEvent } from '@/components/Dashboard/EventsPanel'
 import { api, Bet } from '@/lib/api'
 
-// 1. Initial State Definition
-const STARTING_PORTFOLIO_VALUE = 10000 // $10k Demo USD for new users
+const STARTING_PORTFOLIO_VALUE = 10000
 
-// 2. Formatters
 const formatCurrency = (val: number) => {
   if (val >= 1000000) return `$${(val / 1000000).toFixed(1)}M`
   if (val >= 1000) return `$${(val / 1000).toFixed(1)}k`
@@ -53,322 +50,302 @@ function ExposureBar({ label, value, max, risk }: { label: string; value: number
   )
 }
 
-// ── Collapsed strip (always visible) ─────────────────────────────────────────
-function CollapsedBar({ 
-  onExpand, 
-  portfolioValue, 
-  totalWagered, 
-  activeLines 
-}: { 
-  onExpand: () => void; 
-  portfolioValue: number;
-  totalWagered: number;
-  activeLines: string[] 
-}) {
-  return (
-    <GlassCard className="absolute z-40 p-2" style={{ bottom: '1.5rem', left: '1.5rem', right: '1.5rem' }}>
-      <div className="flex items-center gap-4 px-2">
-        <div className="flex items-center gap-3 shrink-0">
-          <div className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
-          <span className="text-[10px] font-mono font-bold tracking-widest text-white/50">
-            BALANCE
-          </span>
-          <span className="text-sm font-mono font-bold text-white">
-            {formatCurrency(portfolioValue)}
-          </span>
-        </div>
+// Demo data shown when no userId / Firebase unavailable
+const demoAgentMessages = [
+  '▶ Analyzing conjunction event EVT-001: ISS × Debris-2847',
+  '▶ Miss distance: 1.2 km — BELOW collision avoidance threshold (5 km)',
+  '▶ Computing portfolio exposure: $850M in ISS-adjacent contracts',
+  '▶ Hedge recommendation: SpaceCraft liability put at $45M notional',
+  '▶ Executing hedge via W&B Weave trace a3f7b2...',
+  '✓ Hedge executed. Audit trail logged to Weave.',
+  '▶ Monitoring EVT-002: Starlink-1492 × COSMOS-2251 DEB',
+  '▶ TCA in 8h 51m · probability 67.2% · $320M exposure',
+  '▶ Evaluating hedge instruments for EVT-002...',
+  '▶ Satellite insurance call selected · $18.2M notional · 1.5x leverage',
+]
 
-        <div className="h-4 w-px bg-white/10 shrink-0" />
-
-        <div className="flex items-center gap-3 shrink-0">
-          <span className="text-[10px] font-mono tracking-widest text-white/40">
-            WAGERED
-          </span>
-          <span className="text-sm font-mono text-white/70">
-            {formatCurrency(totalWagered)}
-          </span>
-        </div>
-
-        <div className="h-4 w-px bg-white/10 shrink-0" />
-
-        {/* Latest agent line */}
-        {activeLines.length > 0 && (
-          <div className="flex-1 min-w-0 hidden lg:block">
-            <span
-              className={`text-[10px] font-mono truncate block ${
-                activeLines[activeLines.length - 1].includes('✅') ? 'text-green-400' : 'text-sky-400'
-              }`}
-            >
-              {activeLines[activeLines.length - 1]}
-            </span>
-          </div>
-        )}
-
-        {/* Expand button */}
-        <button
-          onClick={onExpand}
-          className="shrink-0 px-2.5 py-1 rounded text-[9px] font-mono tracking-widest
-            text-white/40 border border-white/10 hover:border-white/25 hover:text-white/60
-            transition-colors"
-        >
-          EXPAND ↗
-        </button>
-      </div>
-    </GlassCard>
-  )
-}
-
-// ── Full-screen expanded overlay ──────────────────────────────────────────────
-function ExpandedOverlay({ 
-  onClose, 
-  events, 
-  betHistory,
-  portfolioValue,
-  totalWagered,
-  logLines
-}: { 
-  onClose: () => void; 
-  events: ConjunctionEvent[];
-  betHistory: Bet[];
-  portfolioValue: number;
-  totalWagered: number;
-  logLines: string[];
-}) {
-  const logRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    if (logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight
-  }, [logLines])
-
-  // Fake static var value for demo 
-  const varValue = portfolioValue * 0.05
-
-  return (
-    <motion.div
-      className="fixed inset-8 z-50 bg-[#020817]/95 backdrop-blur-sm flex flex-col rounded-lg border border-white/10"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: 20 }}
-      transition={{ duration: 0.2 }}
-    >
-      {/* Top bar */}
-      <div className="flex items-center justify-between px-6 py-3 border-b border-white/8 shrink-0">
-        <div className="flex items-center gap-4">
-          <span className="font-orbitron text-xs font-bold text-white/70 tracking-[0.25em]">
-            FINANCIAL TERMINAL
-          </span>
-          <span className="text-[10px] font-mono text-white/25">Live USD Balance & Wagers</span>
-        </div>
-        <button
-          onClick={onClose}
-          className="text-[10px] font-mono text-white/35 border border-white/10 px-2.5 py-1 rounded
-            hover:text-white/60 hover:border-white/25 transition-colors tracking-widest"
-        >
-          COLLAPSE ↙
-        </button>
-      </div>
-
-      <div className="flex-1 overflow-y-auto px-6 py-5 space-y-8">
-        {/* Key metrics row */}
-        <div className="grid grid-cols-4 gap-4">
-          {[
-            { label: 'USER BALANCE', value: formatCurrency(portfolioValue), color: 'text-orange-400' },
-            { label: 'TOTAL WAGERED', value: formatCurrency(totalWagered), color: 'text-green-400' },
-            { label: 'VAR (95% 1-DAY)', value: formatCurrency(varValue), color: 'text-yellow-400' },
-            { label: 'ACTIVE BETS', value: betHistory.filter(b => b.status === 'PENDING').length.toString(), color: 'text-white/80' },
-          ].map((m) => (
-            <div key={m.label} className="border border-white/8 rounded px-4 py-3 bg-white/[0.01]">
-              <div className="text-[9px] font-mono text-white/30 tracking-widest mb-1">{m.label}</div>
-              <div className={`text-xl font-mono font-bold ${m.color}`}>{m.value}</div>
-            </div>
-          ))}
-        </div>
-
-        <div className="grid grid-cols-2 gap-8">
-          {/* Exposure by event (ASCII bars) */}
-          <div>
-            <div className="text-[9px] font-mono text-white/25 tracking-widest mb-3 uppercase">
-              Portfolio Exposure by Event
-            </div>
-            <div className="space-y-1.5 bg-black/20 p-4 rounded border border-white/5 h-48 overflow-y-auto">
-              {events.length === 0 ? (
-                <div className="text-white/30 text-xs font-mono">No active exposures.</div>
-              ) : (
-                events.map(e => (
-                  <ExposureBar 
-                    key={e.id}
-                    label={e.asset_id} 
-                    value={betHistory.filter(b => b.event_id === e.id && b.status === 'PENDING').reduce((sum, b) => sum + b.amount, 0)} 
-                    max={1000} 
-                    risk={e.risk_level} 
-                  />
-                ))
-              )}
-            </div>
-          </div>
-
-          {/* AI reasoning log */}
-          <div>
-            <div className="text-[9px] font-mono text-white/25 tracking-widest mb-3 uppercase">
-              Mistral / Gemini AI Agent Log
-            </div>
-            <div
-              ref={logRef}
-              className="border border-white/8 bg-black/20 rounded px-3 py-3 h-48 overflow-y-auto space-y-1.5"
-            >
-              {logLines.map((line, i) => (
-                <motion.div
-                  key={i}
-                  className={`text-[10px] font-mono ${
-                    line.includes('✅') ? 'text-green-400' : 'text-sky-400'
-                  }`}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  {line}
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Bet history table */}
-        <div>
-          <div className="text-[9px] font-mono text-white/25 tracking-widest mb-3 uppercase">
-            User Bet History
-          </div>
-          <div className="border border-white/8 rounded overflow-hidden">
-            {/* Table header */}
-            <div className="grid grid-cols-[8rem_8rem_1fr_5rem_5rem] gap-3 px-3 py-1.5 border-b border-white/8
-              text-[9px] font-mono text-white/25 tracking-widest uppercase bg-white/[0.02]">
-              <span>Time</span>
-              <span>Event Type</span>
-              <span>Prediction</span>
-              <span>Amount</span>
-              <span>Status</span>
-            </div>
-            {betHistory.map((h) => (
-              <div
-                key={h.id}
-                className="grid grid-cols-[8rem_8rem_1fr_5rem_5rem] gap-3 px-3 py-2
-                  border-b border-white/5 last:border-0 text-[10px] font-mono
-                  hover:bg-white/[0.02] transition-colors"
-              >
-                <span className="text-white/30 tabular-nums">{new Date(h.created_at).toLocaleString()}</span>
-                <span className="text-white/40 truncate">{h.event_type}</span>
-                <span className="text-white/60 truncate">{h.outcome}</span>
-                <span className="text-white/60 tabular-nums">{formatCurrency(h.amount)}</span>
-                <span className={statusStyle[h.status] || 'text-white'}>{h.status}</span>
-              </div>
-            ))}
-            {betHistory.length === 0 && (
-              <div className="px-3 py-4 text-center text-xs font-mono text-white/30">
-                No bets placed yet.
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    </motion.div>
-  )
-}
+const demoBets: Bet[] = [
+  { id: 'B-0891', user_id: 'demo', event_id: 'evt-001', event_type: 'Collision', outcome: 'Miss > 5km', amount: 250, status: 'WON', created_at: new Date(Date.now() - 3600000).toISOString(), payout: 450 },
+  { id: 'B-0890', user_id: 'demo', event_id: 'evt-002', event_type: 'Debris', outcome: 'Impact prob > 50%', amount: 100, status: 'LOST', created_at: new Date(Date.now() - 7200000).toISOString(), payout: 0 },
+  { id: 'B-0889', user_id: 'demo', event_id: 'evt-003', event_type: 'Conjunction', outcome: 'TCA within 2 hours', amount: 500, status: 'PENDING', created_at: new Date(Date.now() - 1800000).toISOString(), payout: 0 },
+]
 
 // ── Main export ───────────────────────────────────────────────────────────────
 export function FinancialTerminal({ userId }: { userId?: string }) {
   const [expanded, setExpanded] = useState(false)
   const [events, setEvents] = useState<ConjunctionEvent[]>([])
-  
-  // Financial State
   const [portfolioValue, setPortfolioValue] = useState(STARTING_PORTFOLIO_VALUE)
-  const [betHistory, setBetHistory] = useState<Bet[]>([])
+  const [betHistory, setBetHistory] = useState<Bet[]>(demoBets)
   const [logLines, setLogLines] = useState<string[]>(['▶ Financial Terminal Initialized'])
+  const [windowH, setWindowH] = useState<number>(0)
+  const logRef = useRef<HTMLDivElement>(null)
 
-  // Listen to Firestore events to build the terminal data
+  useEffect(() => {
+    setWindowH(window.innerHeight)
+    const onResize = () => setWindowH(window.innerHeight)
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
+
+  // Typewriter demo log when no live userId
+  useEffect(() => {
+    if (userId) return
+    let idx = 1
+    const timer = setInterval(() => {
+      if (idx < demoAgentMessages.length) {
+        setLogLines(prev => [...prev, demoAgentMessages[idx]])
+        idx++
+      }
+    }, 1800)
+    return () => clearInterval(timer)
+  }, [userId])
+
+  // Live Firestore conjunction events
   useEffect(() => {
     const q = query(collection(db, 'conjunction_events'))
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const newEvents: ConjunctionEvent[] = []
-      let newLogLines: string[] = []
-      
+      const newLogLines: string[] = []
       snapshot.forEach((doc) => {
         const data = { id: doc.id, ...doc.data() } as ConjunctionEvent
         newEvents.push(data)
-        
-        // Auto-generate log lines for AI Agent actions
         if (data.agent_assessment) {
           newLogLines.push(`▶ AI Assessment (${data.asset_name}): ${data.agent_assessment}`)
           if (data.hedge_status === 'HEDGE') {
             newLogLines.push(`▶ Recommended Action: Buy ${data.hedge_type} for ${formatCurrency(data.hedge_amount_usd || 0)}`)
           } else {
-            newLogLines.push(`✅ Action: IGNORE (No hedge required)`)
+            newLogLines.push(`✓ Action: IGNORE (No hedge required)`)
           }
         }
       })
-      
-      // Update UI state
-      setEvents(newEvents)
+      if (newEvents.length > 0) setEvents(newEvents)
       if (newLogLines.length > 0) {
-        setLogLines(prev => {
-          // Keep last 50 lines to prevent memory leak
-          const combined = [...prev, ...newLogLines]
-          return Array.from(new Set(combined)).slice(-50)
-        })
+        setLogLines(prev => Array.from(new Set([...prev, ...newLogLines])).slice(-50))
       }
-    })
+    }, () => { /* ignore firebase errors in demo mode */ })
     return () => unsubscribe()
   }, [])
 
-  // Poll for user data
+  // Poll user balance + bet history
   useEffect(() => {
-    if (!userId) return;
-
+    if (!userId) return
     const fetchUserData = async () => {
-        try {
-            const user = await api.getUser(userId);
-            setPortfolioValue(user.balance);
-            
-            const bets = await api.getUserBets(userId);
-            setBetHistory(bets);
-        } catch (e) {
-            console.error("Failed to fetch user data", e);
-        }
+      try {
+        const user = await api.getUser(userId)
+        setPortfolioValue(user.balance)
+        const bets = await api.getUserBets(userId)
+        setBetHistory(bets)
+      } catch (e) {
+        console.error('Failed to fetch user data', e)
+      }
     }
+    fetchUserData()
+    const interval = setInterval(fetchUserData, 5000)
+    return () => clearInterval(interval)
+  }, [userId])
 
-    fetchUserData();
-    const interval = setInterval(fetchUserData, 5000); // Poll every 5 seconds
-    return () => clearInterval(interval);
-  }, [userId]);
+  useEffect(() => {
+    if (logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight
+  }, [logLines])
 
-  // Calculate dynamic totals
-  const totalWagered = betHistory.filter(b => b.status === 'PENDING').reduce((sum, h) => {
-    return sum + h.amount
-  }, 0)
-
-  if (!userId) return null;
+  const totalWagered = betHistory.filter(b => b.status === 'PENDING').reduce((sum, h) => sum + h.amount, 0)
+  const varValue = portfolioValue * 0.05
+  const activeBets = betHistory.filter(b => b.status === 'PENDING').length
+  const expandedH = windowH ? windowH - 80 : 600
 
   return (
-    <>
-      {!expanded && (
-        <CollapsedBar 
-          onExpand={() => setExpanded(true)} 
-          portfolioValue={portfolioValue}
-          totalWagered={totalWagered}
-          activeLines={logLines} 
-        />
-      )}
+    <motion.div
+      className="absolute z-40 rounded-xl overflow-hidden backdrop-blur-md border border-white/10 bg-neutral-900/50"
+      style={{ bottom: '1rem', left: '1rem' }}
+      initial={{ opacity: 0, y: 10, right: '20rem', height: 44 }}
+      animate={
+        expanded
+          ? { opacity: 1, y: 0, right: '1rem', height: expandedH }
+          : { opacity: 1, y: 0, right: '20rem', height: 44 }
+      }
+      transition={{
+        opacity: { duration: 0.4, ease: 'easeOut' },
+        y: { duration: 0.4, ease: 'easeOut' },
+        right: { duration: 0.45, ease: [0.4, 0, 0.2, 1] },
+        height: { duration: 0.45, ease: [0.4, 0, 0.2, 1] },
+      }}
+    >
+      {/* ── Expandable region — absolutely inset above the bar ── */}
       <AnimatePresence>
         {expanded && (
-          <ExpandedOverlay 
-            onClose={() => setExpanded(false)} 
-            events={events}
-            betHistory={betHistory}
-            portfolioValue={portfolioValue}
-            totalWagered={totalWagered}
-            logLines={logLines}
-          />
+          <motion.div
+            className="absolute inset-0 flex flex-col overflow-hidden"
+            style={{ bottom: 44 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2, delay: 0.1 }}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between px-4 py-2.5 border-b border-white/[0.08] shrink-0">
+              <div className="flex items-center gap-3">
+                <span className="font-orbitron text-[11px] font-bold text-white/70 tracking-[0.25em]">FINANCIAL TERMINAL</span>
+                <div className="flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse shrink-0" />
+                  <span className="text-[9px] font-mono text-white/25">W&B Weave · Live Audit</span>
+                </div>
+              </div>
+              <button
+                onClick={() => setExpanded(false)}
+                className="text-[9px] font-mono text-white/30 border border-white/[0.08] px-2 py-1 rounded
+                  hover:text-white/55 hover:border-white/20 transition-colors tracking-widest"
+              >
+                COLLAPSE ↙
+              </button>
+            </div>
+
+            {/* Metrics strip — horizontal band with vertical dividers */}
+            <div className="flex items-stretch border-b border-white/[0.06] shrink-0">
+              {[
+                { label: 'USER BALANCE', value: formatCurrency(portfolioValue), sub: 'Demo USD wallet', color: 'text-orange-400' },
+                { label: 'TOTAL WAGERED', value: formatCurrency(totalWagered), sub: 'Active bets only', color: 'text-green-400' },
+                { label: 'VALUE AT RISK 95%', value: formatCurrency(varValue), sub: '1-day horizon', color: 'text-yellow-400' },
+                { label: 'ACTIVE BETS', value: activeBets.toString(), sub: `${betHistory.length} total placed`, color: 'text-white/70' },
+              ].map((m, i) => (
+                <div key={m.label} className={`flex-1 px-5 py-3 ${i > 0 ? 'border-l border-white/[0.06]' : ''}`}>
+                  <div className="text-[8px] font-mono text-white/25 tracking-widest mb-1.5">{m.label}</div>
+                  <div className={`text-xl font-mono font-bold tabular-nums ${m.color}`}>{m.value}</div>
+                  <div className="text-[8px] font-mono text-white/20 mt-1">{m.sub}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* 3-column main grid */}
+            <div className="flex-1 overflow-hidden grid grid-cols-[16rem_1fr_22rem] gap-4 px-4 pb-4 pt-3">
+
+              {/* Col 1 — Exposure bars */}
+              <div className="flex flex-col min-h-0">
+                <div className="flex items-center gap-2 mb-3 shrink-0">
+                  <div className="w-0.5 h-3 rounded-full bg-orange-500/50" />
+                  <span className="text-[9px] font-mono text-white/30 tracking-widest uppercase">Exposure by Event</span>
+                </div>
+                <div className="space-y-3 flex-1 overflow-y-auto">
+                  {events.length === 0 ? (
+                    <div className="text-[10px] font-mono text-white/20">No active events.</div>
+                  ) : events.map(e => (
+                    <ExposureBar
+                      key={e.id}
+                      label={e.asset_id}
+                      value={betHistory.filter(b => b.event_id === e.id && b.status === 'PENDING').reduce((sum, b) => sum + b.amount, 0)}
+                      max={Math.max(1000, totalWagered)}
+                      risk={e.risk_level}
+                    />
+                  ))}
+                </div>
+                <div className="mt-auto pt-3 border-t border-white/[0.06] shrink-0">
+                  <div className="flex justify-between items-baseline font-mono">
+                    <span className="text-[8px] text-white/20 tracking-widest uppercase">Total Wagered</span>
+                    <span className="text-[13px] text-orange-400 font-bold tabular-nums">{formatCurrency(totalWagered)}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Col 2 — Bet history table */}
+              <div className="flex flex-col min-h-0">
+                <div className="flex items-center gap-2 mb-3 shrink-0">
+                  <div className="w-0.5 h-3 rounded-full bg-sky-500/50" />
+                  <span className="text-[9px] font-mono text-white/30 tracking-widest uppercase">Bet History · Weave Audit Trail</span>
+                </div>
+                <div className="border border-white/[0.08] rounded-lg overflow-hidden flex flex-col min-h-0 flex-1">
+                  <div className="grid grid-cols-[3rem_4.5rem_1fr_4.5rem_5rem] gap-2 px-3 py-2 border-b border-white/[0.08]
+                    text-[9px] font-mono text-white/20 tracking-widest uppercase bg-white/[0.02] shrink-0">
+                    <span>ID</span><span>TIME</span><span>PREDICTION</span>
+                    <span>AMOUNT</span><span>STATUS</span>
+                  </div>
+                  <div className="overflow-y-auto flex-1">
+                    {betHistory.length === 0 ? (
+                      <div className="px-3 py-4 text-center text-xs font-mono text-white/30">No bets placed yet.</div>
+                    ) : betHistory.map((h) => (
+                      <div
+                        key={h.id}
+                        className="grid grid-cols-[3rem_4.5rem_1fr_4.5rem_5rem] gap-2 px-3 py-2.5
+                          border-b border-white/[0.06] last:border-0 text-[10px] font-mono hover:bg-white/[0.02] transition-colors"
+                      >
+                        <span className="text-white/30 tabular-nums truncate">{h.id.slice(-4)}</span>
+                        <span className="text-white/25 tabular-nums">{new Date(h.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                        <span className="text-white/60 truncate">{h.outcome}</span>
+                        <span className="text-white/45 tabular-nums">{formatCurrency(h.amount)}</span>
+                        <span className={`font-medium ${statusStyle[h.status] ?? 'text-white'}`}>{h.status}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Col 3 — Agent reasoning log */}
+              <div className="flex flex-col min-h-0">
+                <div className="flex items-center gap-2 mb-3 shrink-0">
+                  <div className="w-0.5 h-3 rounded-full bg-purple-500/50" />
+                  <span className="text-[9px] font-mono text-white/30 tracking-widest uppercase">AI Agent Reasoning</span>
+                </div>
+                <div
+                  ref={logRef}
+                  className="border border-white/[0.08] rounded-lg px-3 py-2.5 flex-1 overflow-y-auto space-y-2 bg-white/[0.02]"
+                >
+                  {logLines.map((line, i) => (
+                    <motion.div
+                      key={i}
+                      className={`text-[10px] font-mono leading-relaxed ${
+                        line.startsWith('✓') || line.includes('✅') ? 'text-green-400'
+                        : line.startsWith('▶') || line.includes('Executing') || line.includes('executing') ? 'text-sky-400'
+                        : 'text-white/35'
+                      }`}
+                      initial={{ opacity: 0, x: -4 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      {line}
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+
+            </div>
+          </motion.div>
         )}
       </AnimatePresence>
-    </>
+
+      {/* ── Always-visible bottom bar — pinned to bottom ── */}
+      <div className="absolute bottom-0 left-0 right-0 px-3 flex items-center justify-between gap-4 border-t border-white/[0.08]"
+           style={{ height: 44 }}>
+        <div className="flex items-center gap-5 font-mono text-[10px] min-w-0">
+          <span className="text-white/35 shrink-0 font-orbitron tracking-widest text-[9px]">FINANCIAL</span>
+          <span className="text-white/40">
+            Balance <span className="text-orange-400 font-medium">{formatCurrency(portfolioValue)}</span>
+          </span>
+          <span className="text-white/40">
+            Wagered <span className="text-green-400">{formatCurrency(totalWagered)}</span>
+          </span>
+          <span className="text-white/40">
+            VaR <span className="text-yellow-400">{formatCurrency(varValue)}</span>
+          </span>
+          <span className="text-white/40">
+            Bets <span className="text-white/70">{activeBets}</span>
+          </span>
+        </div>
+
+        <AnimatePresence>
+          {!expanded && (
+            <motion.button
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
+              onClick={() => setExpanded(true)}
+              className="shrink-0 px-2.5 py-1 rounded text-[9px] font-mono tracking-widest
+                text-white/40 border border-white/[0.08] hover:border-white/25 hover:text-white/60
+                transition-colors"
+            >
+              EXPAND ↗
+            </motion.button>
+          )}
+        </AnimatePresence>
+      </div>
+    </motion.div>
   )
 }
