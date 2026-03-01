@@ -6,32 +6,25 @@ import { GlassCard } from '@/components/ui/GlassCard'
 import { db } from '@/lib/firebase'
 import { collection, onSnapshot, query } from 'firebase/firestore'
 import { ConjunctionEvent } from '@/components/Dashboard/EventsPanel'
+import { api, Bet } from '@/lib/api'
 
 // 1. Initial State Definition
-const STARTING_PORTFOLIO_VALUE = 10000000 // $10M Demo USD
-
-interface HedgeRecord {
-  id: string
-  timestamp: string
-  instrument: string
-  notional: string
-  status: 'EXECUTED' | 'PENDING' | 'MONITORING'
-  pnl: string
-  weaveId: string
-  event?: string
-}
+const STARTING_PORTFOLIO_VALUE = 10000 // $10k Demo USD for new users
 
 // 2. Formatters
 const formatCurrency = (val: number) => {
   if (val >= 1000000) return `$${(val / 1000000).toFixed(1)}M`
   if (val >= 1000) return `$${(val / 1000).toFixed(1)}k`
-  return `$${val}`
+  return `$${val.toFixed(2)}`
 }
 
 const statusStyle: Record<string, string> = {
   EXECUTED: 'text-green-400',
+  WON: 'text-green-400',
+  LOST: 'text-red-400',
   PENDING: 'text-yellow-400',
   MONITORING: 'text-sky-400',
+  CANCELLED: 'text-white/40',
 }
 
 function ExposureBar({ label, value, max, risk }: { label: string; value: number; max: number; risk: string }) {
@@ -55,12 +48,12 @@ function ExposureBar({ label, value, max, risk }: { label: string; value: number
 function CollapsedBar({ 
   onExpand, 
   portfolioValue, 
-  totalHedged, 
+  totalWagered, 
   activeLines 
 }: { 
   onExpand: () => void; 
   portfolioValue: number;
-  totalHedged: number;
+  totalWagered: number;
   activeLines: string[] 
 }) {
   return (
@@ -69,7 +62,7 @@ function CollapsedBar({
         <div className="flex items-center gap-3 shrink-0">
           <div className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
           <span className="text-[10px] font-mono font-bold tracking-widest text-white/50">
-            PORTFOLIO
+            BALANCE
           </span>
           <span className="text-sm font-mono font-bold text-white">
             {formatCurrency(portfolioValue)}
@@ -80,10 +73,10 @@ function CollapsedBar({
 
         <div className="flex items-center gap-3 shrink-0">
           <span className="text-[10px] font-mono tracking-widest text-white/40">
-            HEDGED
+            WAGERED
           </span>
           <span className="text-sm font-mono text-white/70">
-            {formatCurrency(totalHedged)}
+            {formatCurrency(totalWagered)}
           </span>
         </div>
 
@@ -120,16 +113,16 @@ function CollapsedBar({
 function ExpandedOverlay({ 
   onClose, 
   events, 
-  hedgeHistory,
+  betHistory,
   portfolioValue,
-  totalHedged,
+  totalWagered,
   logLines
 }: { 
   onClose: () => void; 
   events: ConjunctionEvent[];
-  hedgeHistory: HedgeRecord[];
+  betHistory: Bet[];
   portfolioValue: number;
-  totalHedged: number;
+  totalWagered: number;
   logLines: string[];
 }) {
   const logRef = useRef<HTMLDivElement>(null)
@@ -155,7 +148,7 @@ function ExpandedOverlay({
           <span className="font-orbitron text-xs font-bold text-white/70 tracking-[0.25em]">
             FINANCIAL TERMINAL
           </span>
-          <span className="text-[10px] font-mono text-white/25">Live USD Balance & Hedges</span>
+          <span className="text-[10px] font-mono text-white/25">Live USD Balance & Wagers</span>
         </div>
         <button
           onClick={onClose}
@@ -170,10 +163,10 @@ function ExpandedOverlay({
         {/* Key metrics row */}
         <div className="grid grid-cols-4 gap-4">
           {[
-            { label: 'PORTFOLIO VALUE', value: formatCurrency(portfolioValue), color: 'text-orange-400' },
-            { label: 'TOTAL HEDGED', value: formatCurrency(totalHedged), color: 'text-green-400' },
+            { label: 'USER BALANCE', value: formatCurrency(portfolioValue), color: 'text-orange-400' },
+            { label: 'TOTAL WAGERED', value: formatCurrency(totalWagered), color: 'text-green-400' },
             { label: 'VAR (95% 1-DAY)', value: formatCurrency(varValue), color: 'text-yellow-400' },
-            { label: 'ACTIVE POSITIONS', value: hedgeHistory.length.toString(), color: 'text-white/80' },
+            { label: 'ACTIVE BETS', value: betHistory.filter(b => b.status === 'PENDING').length.toString(), color: 'text-white/80' },
           ].map((m) => (
             <div key={m.label} className="border border-white/8 rounded px-4 py-3 bg-white/[0.01]">
               <div className="text-[9px] font-mono text-white/30 tracking-widest mb-1">{m.label}</div>
@@ -196,8 +189,8 @@ function ExpandedOverlay({
                   <ExposureBar 
                     key={e.id}
                     label={e.asset_id} 
-                    value={e.hedge_amount_usd || 100000} // Mock exposure based on hedge amount
-                    max={500000} 
+                    value={betHistory.filter(b => b.event_id === e.id && b.status === 'PENDING').reduce((sum, b) => sum + b.amount, 0)} 
+                    max={1000} 
                     risk={e.risk_level} 
                   />
                 ))
@@ -231,38 +224,38 @@ function ExpandedOverlay({
           </div>
         </div>
 
-        {/* Hedge history table */}
+        {/* Bet history table */}
         <div>
           <div className="text-[9px] font-mono text-white/25 tracking-widest mb-3 uppercase">
-            Hedge History
+            User Bet History
           </div>
           <div className="border border-white/8 rounded overflow-hidden">
             {/* Table header */}
-            <div className="grid grid-cols-[5rem_6rem_1fr_5rem_5rem] gap-3 px-3 py-1.5 border-b border-white/8
+            <div className="grid grid-cols-[8rem_8rem_1fr_5rem_5rem] gap-3 px-3 py-1.5 border-b border-white/8
               text-[9px] font-mono text-white/25 tracking-widest uppercase bg-white/[0.02]">
               <span>Time</span>
-              <span>Asset</span>
-              <span>Instrument</span>
+              <span>Event Type</span>
+              <span>Prediction</span>
               <span>Amount</span>
               <span>Status</span>
             </div>
-            {hedgeHistory.map((h) => (
+            {betHistory.map((h) => (
               <div
                 key={h.id}
-                className="grid grid-cols-[5rem_6rem_1fr_5rem_5rem] gap-3 px-3 py-2
+                className="grid grid-cols-[8rem_8rem_1fr_5rem_5rem] gap-3 px-3 py-2
                   border-b border-white/5 last:border-0 text-[10px] font-mono
                   hover:bg-white/[0.02] transition-colors"
               >
-                <span className="text-white/30 tabular-nums">{h.timestamp}</span>
-                <span className="text-white/40 truncate">{h.event}</span>
-                <span className="text-white/60 truncate">{h.instrument}</span>
-                <span className="text-white/60 tabular-nums">{h.notional}</span>
-                <span className={statusStyle[h.status]}>{h.status}</span>
+                <span className="text-white/30 tabular-nums">{new Date(h.created_at).toLocaleString()}</span>
+                <span className="text-white/40 truncate">{h.event_type}</span>
+                <span className="text-white/60 truncate">{h.outcome}</span>
+                <span className="text-white/60 tabular-nums">{formatCurrency(h.amount)}</span>
+                <span className={statusStyle[h.status] || 'text-white'}>{h.status}</span>
               </div>
             ))}
-            {hedgeHistory.length === 0 && (
+            {betHistory.length === 0 && (
               <div className="px-3 py-4 text-center text-xs font-mono text-white/30">
-                No hedges executed yet.
+                No bets placed yet.
               </div>
             )}
           </div>
@@ -273,13 +266,13 @@ function ExpandedOverlay({
 }
 
 // ── Main export ───────────────────────────────────────────────────────────────
-export function FinancialTerminal() {
+export function FinancialTerminal({ userId }: { userId?: string }) {
   const [expanded, setExpanded] = useState(false)
   const [events, setEvents] = useState<ConjunctionEvent[]>([])
   
   // Financial State
   const [portfolioValue, setPortfolioValue] = useState(STARTING_PORTFOLIO_VALUE)
-  const [hedgeHistory, setHedgeHistory] = useState<HedgeRecord[]>([])
+  const [betHistory, setBetHistory] = useState<Bet[]>([])
   const [logLines, setLogLines] = useState<string[]>(['▶ Financial Terminal Initialized'])
 
   // Listen to Firestore events to build the terminal data
@@ -317,10 +310,33 @@ export function FinancialTerminal() {
     return () => unsubscribe()
   }, [])
 
+  // Poll for user data
+  useEffect(() => {
+    if (!userId) return;
+
+    const fetchUserData = async () => {
+        try {
+            const user = await api.getUser(userId);
+            setPortfolioValue(user.balance);
+            
+            const bets = await api.getUserBets(userId);
+            setBetHistory(bets);
+        } catch (e) {
+            console.error("Failed to fetch user data", e);
+        }
+    }
+
+    fetchUserData();
+    const interval = setInterval(fetchUserData, 5000); // Poll every 5 seconds
+    return () => clearInterval(interval);
+  }, [userId]);
+
   // Calculate dynamic totals
-  const totalHedged = hedgeHistory.reduce((sum, h) => {
-    return sum + Number(h.notional.replace(/[^0-9.-]+/g,""))
+  const totalWagered = betHistory.filter(b => b.status === 'PENDING').reduce((sum, h) => {
+    return sum + h.amount
   }, 0)
+
+  if (!userId) return null;
 
   return (
     <>
@@ -328,7 +344,7 @@ export function FinancialTerminal() {
         <CollapsedBar 
           onExpand={() => setExpanded(true)} 
           portfolioValue={portfolioValue}
-          totalHedged={totalHedged}
+          totalWagered={totalWagered}
           activeLines={logLines} 
         />
       )}
@@ -337,9 +353,9 @@ export function FinancialTerminal() {
           <ExpandedOverlay 
             onClose={() => setExpanded(false)} 
             events={events}
-            hedgeHistory={hedgeHistory}
+            betHistory={betHistory}
             portfolioValue={portfolioValue}
-            totalHedged={totalHedged}
+            totalWagered={totalWagered}
             logLines={logLines}
           />
         )}

@@ -1,10 +1,10 @@
 'use client'
 
-import { useRef, useEffect, useState } from 'react'
+import { useRef, useEffect, useState, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
-import { Sphere } from '@react-three/drei'
+import { Sphere, Line } from '@react-three/drei'
 import * as THREE from 'three'
-import { positionOnSphere } from '@/lib/orbital'
+import { positionOnSphere, sampleOrbit } from '@/lib/orbital'
 import { db } from '@/lib/firebase'
 import { collection, onSnapshot, query } from 'firebase/firestore'
 import { ConjunctionEvent, RiskLevel } from '@/components/Dashboard/EventsPanel'
@@ -100,22 +100,52 @@ export function SatelliteMarkers() {
       ))}
 
       {/* High-Risk Satellites (Rendered dynamically based on DB) */}
-      {Array.from(activeSatellites.entries()).map(([id, risk], i) => {
-        // Position them statically for the demo or give them a fixed orbit path
-        // so they stand out in the 3D globe.
-        const alt = 450 + (i * 10)
-        const [x, y, z] = positionOnSphere(alt, 51.6, i * 45, 0, 0, VIZ_SCALE)
-        
-        return (
-          <Sphere
-            key={`risk-${id}`}
-            position={[x, y, z]}
-            args={[DOT_SIZE * 3, 16, 16]}
-          >
-            <meshBasicMaterial color={RISK_COLORS[risk] || '#ffffff'} />
-          </Sphere>
-        )
-      })}
+      {Array.from(activeSatellites.entries()).map(([id, risk], i) => (
+        <ActiveSatelliteMarker
+          key={id}
+          id={id}
+          risk={risk}
+          index={i}
+        />
+      ))}
+    </group>
+  )
+}
+
+function ActiveSatelliteMarker({
+  id,
+  risk,
+  index,
+}: {
+  id: string
+  risk: RiskLevel
+  index: number
+}) {
+  // Position them statically for the demo or give them a fixed orbit path
+  // so they stand out in the 3D globe.
+  const alt = 450 + index * 10
+  const inclination = 51.6
+  const raan = index * 45
+
+  const points = useMemo(
+    () => sampleOrbit(alt, inclination, raan, 128, 0, VIZ_SCALE),
+    [alt, inclination, raan]
+  )
+
+  const [x, y, z] = positionOnSphere(alt, inclination, raan, 0, 0, VIZ_SCALE)
+
+  return (
+    <group>
+      <Line
+        points={points}
+        color={RISK_COLORS[risk] || '#ffffff'}
+        transparent
+        opacity={0.3}
+        lineWidth={1}
+      />
+      <Sphere position={[x, y, z]} args={[DOT_SIZE * 3, 16, 16]}>
+        <meshBasicMaterial color={RISK_COLORS[risk] || '#ffffff'} />
+      </Sphere>
     </group>
   )
 }

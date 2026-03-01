@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { GlassCard } from '@/components/ui/GlassCard'
 import { db } from '@/lib/firebase'
 import { collection, onSnapshot, query, orderBy } from 'firebase/firestore'
+import { BettingModal } from './BettingModal'
 
 // Update the type to match our new Firestore schema
 export type RiskLevel = 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW'
@@ -62,96 +63,121 @@ const riskDot: Record<RiskLevel, string> = {
   LOW: 'bg-green-500',
 }
 
-function EventRow({ event, index }: { event: ConjunctionEvent; index: number }) {
+function EventRow({ event, index, userId }: { event: ConjunctionEvent; index: number; userId: string }) {
   const [expanded, setExpanded] = useState(false)
+  const [isBettingOpen, setIsBettingOpen] = useState(false)
 
   // Format probability to a percentage
   const probPct = (event.collision_probability * 100).toFixed(4)
 
   return (
-    <motion.div
-      className={`border-l-2 ${riskBorder[event.risk_level] || riskBorder.LOW} border-b border-white/5 last:border-b-0`}
-      initial={{ opacity: 0, x: 12 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ delay: index * 0.08 + 0.2 }}
-    >
-      <button
-        className="w-full text-left px-3 py-2.5 hover:bg-white/[0.03] transition-colors"
-        onClick={() => setExpanded(!expanded)}
+    <>
+      <motion.div
+        className={`border-l-2 ${riskBorder[event.risk_level] || riskBorder.LOW} border-b border-white/5 last:border-b-0`}
+        initial={{ opacity: 0, x: 12 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ delay: index * 0.08 + 0.2 }}
       >
-        {/* Row 1: risk label + event id + countdown */}
-        <div className="flex items-center justify-between mb-1.5">
-          <div className="flex items-center gap-1.5">
-            <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${riskDot[event.risk_level] || riskDot.LOW} ${event.risk_level === 'CRITICAL' ? 'animate-pulse' : ''}`} />
-            <span className={`text-[10px] font-mono font-bold tracking-widest ${riskText[event.risk_level] || riskText.LOW}`}>
-              {event.risk_level || "UNKNOWN"}
+        <button
+          className="w-full text-left px-3 py-2.5 hover:bg-white/[0.03] transition-colors"
+          onClick={() => setExpanded(!expanded)}
+        >
+          {/* Row 1: risk label + event id + countdown */}
+          <div className="flex items-center justify-between mb-1.5">
+            <div className="flex items-center gap-1.5">
+              <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${riskDot[event.risk_level] || riskDot.LOW} ${event.risk_level === 'CRITICAL' ? 'animate-pulse' : ''}`} />
+              <span className={`text-[10px] font-mono font-bold tracking-widest ${riskText[event.risk_level] || riskText.LOW}`}>
+                {event.risk_level || "UNKNOWN"}
+              </span>
+              <span className="text-[10px] font-mono text-white/25 ml-1 truncate max-w-[80px]">{event.asset_id}</span>
+            </div>
+            <span className="text-[10px] font-mono text-white/35 tabular-nums">
+              T−{formatCountdown(event.time_of_closest_approach)}
             </span>
-            <span className="text-[10px] font-mono text-white/25 ml-1 truncate max-w-[80px]">{event.asset_id}</span>
           </div>
-          <span className="text-[10px] font-mono text-white/35 tabular-nums">
-            T−{formatCountdown(event.time_of_closest_approach)}
-          </span>
-        </div>
 
-        {/* Row 2: satellite names */}
-        <div className="font-mono text-[11px] text-white/75 leading-snug mb-2 truncate">
-          {event.asset_name}
-          <span className="text-white/30 mx-1.5">×</span>
-          <span className="text-white/45">{event.secondary_name}</span>
-        </div>
+          {/* Row 2: satellite names */}
+          <div className="font-mono text-[11px] text-white/75 leading-snug mb-2 truncate">
+            {event.asset_name}
+            <span className="text-white/30 mx-1.5">×</span>
+            <span className="text-white/45">{event.secondary_name}</span>
+          </div>
 
-        {/* Row 3: key stats */}
-        <div className="grid grid-cols-3 gap-1 text-[10px] font-mono">
-          <div>
-            <div className="text-white/25 uppercase tracking-wider text-[9px]">Dist</div>
-            <div className="text-white/60 tabular-nums">{event.closest_approach_km} km</div>
-          </div>
-          <div>
-            <div className="text-white/25 uppercase tracking-wider text-[9px]">Prob</div>
-            <div className={`tabular-nums ${riskText[event.risk_level] || riskText.LOW}`}>{probPct}%</div>
-          </div>
-          <div>
-            <div className="text-white/25 uppercase tracking-wider text-[9px]">Agent Hedge</div>
-            <div className={`tabular-nums ${event.hedge_status === 'HEDGE' ? 'text-sky-400' : 'text-white/60'}`}>
-              {event.hedge_status ? `$${(event.hedge_amount_usd || 0).toLocaleString()}` : 'PENDING'}
+          {/* Row 3: key stats */}
+          <div className="grid grid-cols-3 gap-1 text-[10px] font-mono">
+            <div>
+              <div className="text-white/25 uppercase tracking-wider text-[9px]">Dist</div>
+              <div className="text-white/60 tabular-nums">{event.closest_approach_km} km</div>
+            </div>
+            <div>
+              <div className="text-white/25 uppercase tracking-wider text-[9px]">Prob</div>
+              <div className={`tabular-nums ${riskText[event.risk_level] || riskText.LOW}`}>{probPct}%</div>
+            </div>
+            <div>
+              <div className="text-white/25 uppercase tracking-wider text-[9px]">Agent Hedge</div>
+              <div className={`tabular-nums ${event.hedge_status === 'HEDGE' ? 'text-sky-400' : 'text-white/60'}`}>
+                {event.hedge_status ? `$${(event.hedge_amount_usd || 0).toLocaleString()}` : 'PENDING'}
+              </div>
             </div>
           </div>
-        </div>
-      </button>
+        </button>
 
-      <AnimatePresence>
-        {expanded && (
-          <motion.div
-            className="px-3 pb-3 ml-0"
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.18 }}
-          >
-            {/* Mistral Agent Reasoning */}
-            <div className="text-[10px] font-mono text-white/60 bg-white/[0.04] border border-sky-500/30 rounded px-2 py-1.5 mb-2 leading-relaxed">
-              <span className="text-sky-400 font-bold block mb-1">🤖 Mistral AI Assessment:</span>
-              {event.agent_assessment || "Awaiting AI evaluation..."}
-            </div>
+        <AnimatePresence>
+          {expanded && (
+            <motion.div
+              className="px-3 pb-3 ml-0"
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.18 }}
+            >
+              {/* Mistral Agent Reasoning */}
+              <div className="text-[10px] font-mono text-white/60 bg-white/[0.04] border border-sky-500/30 rounded px-2 py-1.5 mb-2 leading-relaxed">
+                <span className="text-sky-400 font-bold block mb-1">🤖 Mistral AI Assessment:</span>
+                {event.agent_assessment || "Awaiting AI evaluation..."}
+              </div>
 
-            {/* Actions */}
-            <div className="flex gap-2 mt-2">
-              <button
-                disabled={event.hedge_status !== 'HEDGE'}
-                className={`flex-1 py-1 rounded text-[10px] font-mono border transition-colors
-                  ${event.hedge_status === 'HEDGE' ? 'text-sky-400 border-sky-400/30 bg-sky-400/10 hover:bg-sky-400/20 cursor-pointer' : 'text-white/20 border-white/10 bg-transparent cursor-not-allowed'}`}
-              >
-                {event.hedge_status === 'HEDGE' ? 'APPROVE HEDGE' : 'NO ACTION REQ.'}
-              </button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </motion.div>
+              {/* Actions */}
+              <div className="flex gap-2 mt-2">
+                <button
+                  disabled={event.hedge_status !== 'HEDGE'}
+                  className={`flex-1 py-1 rounded text-[10px] font-mono border transition-colors
+                    ${event.hedge_status === 'HEDGE' ? 'text-sky-400 border-sky-400/30 bg-sky-400/10 hover:bg-sky-400/20 cursor-pointer' : 'text-white/20 border-white/10 bg-transparent cursor-not-allowed'}`}
+                >
+                  {event.hedge_status === 'HEDGE' ? 'APPROVE HEDGE' : 'NO ACTION REQ.'}
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsBettingOpen(true);
+                  }}
+                  className="flex-1 py-1 rounded text-[10px] font-mono border border-purple-400/30 bg-purple-400/10 text-purple-400 hover:bg-purple-400/20 transition-colors"
+                >
+                  PLACE WAGER
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
+
+      <BettingModal 
+        isOpen={isBettingOpen} 
+        onClose={() => setIsBettingOpen(false)}
+        eventId={event.id}
+        eventName={`${event.asset_name} vs ${event.secondary_name}`}
+        eventType="conjunction"
+        userId={userId}
+        onBetPlaced={() => {
+           // Maybe trigger a refresh or toast
+           console.log("Bet placed!");
+        }}
+      />
+    </>
   )
 }
 
-export function EventsPanel() {
+export function EventsPanel({ userId }: { userId?: string }) {
   const [time, setTime] = useState<Date | null>(null)
   const [events, setEvents] = useState<ConjunctionEvent[]>([])
   const [loading, setLoading] = useState(true)
@@ -188,6 +214,8 @@ export function EventsPanel() {
 
   const criticalCount = events.filter((e) => e.risk_level === 'CRITICAL').length
   const highCount = events.filter((e) => e.risk_level === 'HIGH').length
+
+  if (!userId) return null; // Or some loading state
 
   return (
     <GlassCard className="absolute right-4 top-16 bottom-4 w-72 flex flex-col z-40">
@@ -230,7 +258,7 @@ export function EventsPanel() {
           </div>
         ) : (
           events.map((event, i) => (
-            <EventRow key={event.id} event={event} index={i} />
+            <EventRow key={event.id} event={event} index={i} userId={userId} />
           ))
         )}
       </div>

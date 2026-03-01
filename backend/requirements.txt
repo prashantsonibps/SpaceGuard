@@ -56,4 +56,5 @@ skyfield==1.54
 typing-inspection==0.4.2
 typing_extensions==4.15.0
 urllib3==2.6.3
-zipp==3.23.0
+uvicorn==0.34.0
+fastapi==0.115.11

@@ -12,6 +12,7 @@
     "@react-three/drei": "^9.114.0",
     "@react-three/fiber": "^8.17.0",
     "@react-three/postprocessing": "^2.16.0",
+    "@types/uuid": "^10.0.0",
     "clsx": "^2.1.1",
     "firebase": "^12.10.0",
     "framer-motion": "^11.11.0",
@@ -22,7 +23,8 @@
     "react-dom": "^18.3.0",
     "tailwind-merge": "^3.5.0",
     "three": "^0.169.0",
-    "three-stdlib": "^2.29.0"
+    "three-stdlib": "^2.29.0",
+    "uuid": "^13.0.0"
   },
   "devDependencies": {
     "@types/node": "^20",
