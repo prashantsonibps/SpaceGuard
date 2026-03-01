@@ -34,6 +34,13 @@ export function formatTimeLeft(closeTime: number) {
   return `${Math.floor(h / 24)}d left`
 }
 
+// ── Layout constants: icon + gap = label + rowGap so title aligns with bar ──────
+const CARD_PADDING = 'p-3'           // 12px
+const ICON_SIZE = 'w-7'              // 28px
+const LABEL_WIDTH = 'w-9'            // 36px — YES/NO labels
+const HEADER_GAP = 'gap-4'           // 16px — between icon and title
+const ROW_GAP = 'gap-2'              // 8px — between label and bar
+
 // ── Option row: label | full-width bar | multiplier | percentage button ────────
 function OptionRow({
   label,
@@ -54,12 +61,12 @@ function OptionRow({
   const gr = green[theme]
   const barBg = color === 'green' ? gr.bgMuted : 'bg-sky-400/20'
   const barFill = color === 'green' ? gr.bg : 'bg-sky-400'
-  const borderCls = color === 'green' ? gr.border : 'border-sky-400'
+  const borderCls = color === 'green' ? gr.borderButton : 'border-2 border-sky-400/60'
   const textCls = color === 'green' ? gr.text : 'text-sky-400'
 
   return (
-    <div className="flex items-center gap-2 min-h-[28px]">
-      <span className={`${fontSize.base} font-mono font-bold shrink-0 w-10 ${textCls}`}>
+    <div className={`flex items-center ${ROW_GAP} min-h-[28px]`}>
+      <span className={`${fontSize.base} font-mono font-bold shrink-0 ${LABEL_WIDTH} ${textCls}`}>
         {label}
       </span>
       <div className={`flex-1 min-w-0 h-1.5 rounded-full ${barBg} overflow-hidden`}>
@@ -77,7 +84,7 @@ function OptionRow({
         disabled={disabled}
         className={`
           shrink-0 px-3 py-1 rounded-full ${fontSize.base} font-mono font-bold tabular-nums
-          border ${borderCls} ${textCls}
+          ${borderCls} ${textCls}
           transition-opacity hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed
         `}
       >
@@ -119,9 +126,9 @@ export function PredictionCard({ market }: { market: Market }) {
       `}
     >
       {/* Header: icon + question */}
-      <div className="p-3.5 pb-2.5">
-        <div className="flex items-center gap-5">
-          <div className={`w-7 h-7 rounded-lg ${catBg} flex items-center justify-center shrink-0`}>
+      <div className={`${CARD_PADDING} pb-2.5`}>
+        <div className={`flex items-center ${HEADER_GAP}`}>
+          <div className={`${ICON_SIZE} h-7 rounded-lg ${catBg} flex items-center justify-center shrink-0`}>
             <Icon className={`w-3.5 h-3.5 ${iconColor}`} />
           </div>
           <p className={`${fontSize.base} font-mono leading-snug ${tp.secondary} flex-1`}>
@@ -132,7 +139,7 @@ export function PredictionCard({ market }: { market: Market }) {
 
       {/* YES / NO rows */}
       {isResolved ? (
-        <div className="px-3.5 pb-3">
+        <div className={`${CARD_PADDING} pb-3`}>
           <span
             className={`${fontSize.base} font-mono font-bold tracking-widest ${
               market.outcome === 'YES' ? gr.text : 'text-red-400'
@@ -142,7 +149,7 @@ export function PredictionCard({ market }: { market: Market }) {
           </span>
         </div>
       ) : (
-        <div className={`px-3.5 pb-3 space-y-3 ${isClosed ? 'pointer-events-none' : ''}`}>
+        <div className={`${CARD_PADDING} pb-3 space-y-3 ${isClosed ? 'pointer-events-none' : ''}`}>
           <OptionRow
             label="YES"
             pct={yesP}
@@ -161,7 +168,7 @@ export function PredictionCard({ market }: { market: Market }) {
       )}
 
       {/* Footer */}
-      <div className={`flex items-center justify-between px-3.5 py-2.5 border-t ${borderClass}`}>
+      <div className={`flex items-center justify-between ${CARD_PADDING} py-2.5 border-t ${borderClass}`}>
         <span className={`${fontSize.base} font-mono ${tp.faint}`}>
           {formatVol(market.totalVolume)} vol
         </span>

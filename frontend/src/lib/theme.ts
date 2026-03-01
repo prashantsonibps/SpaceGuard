@@ -224,6 +224,7 @@ export const green = {
     textMuted: 'text-green-400/80',
     bg: 'bg-green-400',
     border: 'border-green-400',
+    borderButton: 'border-2 border-green-400/60',
     bgMuted: 'bg-green-400/20',
   },
   light: {
@@ -231,6 +232,7 @@ export const green = {
     textMuted: 'text-[#49dd7f]/80',
     bg: 'bg-[#49dd7f]',
     border: 'border-[#49dd7f]',
+    borderButton: 'border-2 border-[#49dd7f]/60',
     bgMuted: 'bg-[#49dd7f]/20',
   },
 } as const
