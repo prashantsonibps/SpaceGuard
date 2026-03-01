@@ -226,10 +226,12 @@ export function EventsPanel({
   userId,
   selectedEventId,
   onSelectEvent,
+  activeTab,
 }: {
   userId?: string
   selectedEventId: string | null
   onSelectEvent: (id: string | null) => void
+  activeTab: 'TRENDING' | 'SAT' | 'NEO' | 'WEATHER' | 'INDEX' | 'FIREBALL'
 }) {
   const { theme } = useTheme()
   const rc = riskClasses[theme]
@@ -240,7 +242,6 @@ export function EventsPanel({
   const [weatherEvents, setWeatherEvents] = useState<ConjunctionEvent[]>([])
   const [noaaIndices, setNoaaIndices] = useState<ConjunctionEvent[]>([])
   const [fireballEvents, setFireballEvents] = useState<ConjunctionEvent[]>([])
-  const [activeTab, setActiveTab] = useState<'SAT' | 'NEO' | 'WEATHER' | 'INDEX' | 'FIREBALL'>('SAT')
   const [loading, setLoading] = useState(true)
 
   // Clock timer
@@ -357,11 +358,34 @@ export function EventsPanel({
     }
   }, [])
 
-  const currentList = activeTab === 'SAT' ? events
-    : activeTab === 'NEO' ? neoEvents
-      : activeTab === 'WEATHER' ? weatherEvents
-        : activeTab === 'INDEX' ? noaaIndices
-          : fireballEvents
+  const getTrendingEvents = () => {
+    const allEvents = [
+      ...events.map(e => ({ ...e, _type: 'SAT' as const })),
+      ...neoEvents.map(e => ({ ...e, _type: 'NEO' as const })),
+      ...weatherEvents.map(e => ({ ...e, _type: 'WEATHER' as const })),
+      ...noaaIndices.map(e => ({ ...e, _type: 'INDEX' as const })),
+      ...fireballEvents.map(e => ({ ...e, _type: 'FIREBALL' as const }))
+    ]
+
+    const riskWeight = { 'CRITICAL': 4, 'HIGH': 3, 'MEDIUM': 2, 'LOW': 1, 'UNKNOWN': 0 }
+
+    return allEvents
+      .sort((a, b) => {
+        const weightA = riskWeight[a.risk_level] || 0
+        const weightB = riskWeight[b.risk_level] || 0
+        if (weightA !== weightB) return weightB - weightA
+        return 0
+      })
+      .slice(0, 20)
+  }
+
+  const currentList = activeTab === 'TRENDING' ? getTrendingEvents()
+    : activeTab === 'SAT' ? events.map(e => ({ ...e, _type: 'SAT' as const }))
+      : activeTab === 'NEO' ? neoEvents.map(e => ({ ...e, _type: 'NEO' as const }))
+        : activeTab === 'WEATHER' ? weatherEvents.map(e => ({ ...e, _type: 'WEATHER' as const }))
+          : activeTab === 'INDEX' ? noaaIndices.map(e => ({ ...e, _type: 'INDEX' as const }))
+            : fireballEvents.map(e => ({ ...e, _type: 'FIREBALL' as const }))
+
   const criticalCount = currentList.filter((e) => e.risk_level === 'CRITICAL').length
 
   if (!userId) return null;
@@ -377,40 +401,6 @@ export function EventsPanel({
           <p className={`${fontSize.small} font-mono ${textOpacity[theme].faint} tabular-nums`}>
             {time ? time.toISOString().slice(11, 19) : '––:––:––'} UTC
           </p>
-        </div>
-
-        {/* Tabs */}
-        <div className={`flex gap-1 bg-black/5 dark:bg-white/5 p-0.5 rounded ${fontSize.small} font-mono mb-2`}>
-          <button
-            onClick={() => setActiveTab('SAT')}
-            className={`flex-1 py-1 rounded text-center transition-all ${activeTab === 'SAT' ? 'bg-black/10 dark:bg-white/10 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 dark:text-white/40 hover:text-slate-700 dark:hover:text-white/60'}`}
-          >
-            SATELLITES
-          </button>
-          <button
-            onClick={() => setActiveTab('NEO')}
-            className={`flex-1 py-1 rounded text-center transition-all ${activeTab === 'NEO' ? 'bg-black/10 dark:bg-white/10 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 dark:text-white/40 hover:text-slate-700 dark:hover:text-white/60'}`}
-          >
-            ASTEROIDS
-          </button>
-          <button
-            onClick={() => setActiveTab('WEATHER')}
-            className={`flex-1 py-1 rounded text-center transition-all ${activeTab === 'WEATHER' ? 'bg-black/10 dark:bg-white/10 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 dark:text-white/40 hover:text-slate-700 dark:hover:text-white/60'}`}
-          >
-            WEATHER
-          </button>
-          <button
-            onClick={() => setActiveTab('INDEX')}
-            className={`flex-1 py-1 rounded text-center transition-all ${activeTab === 'INDEX' ? 'bg-black/10 dark:bg-white/10 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 dark:text-white/40 hover:text-slate-700 dark:hover:text-white/60'}`}
-          >
-            INDICES
-          </button>
-          <button
-            onClick={() => setActiveTab('FIREBALL')}
-            className={`flex-1 py-1 rounded text-center transition-all ${activeTab === 'FIREBALL' ? 'bg-black/10 dark:bg-white/10 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 dark:text-white/40 hover:text-slate-700 dark:hover:text-white/60'}`}
-          >
-            METEORS
-          </button>
         </div>
 
         <div className="text-right h-4">
@@ -440,7 +430,7 @@ export function EventsPanel({
               key={event.id}
               event={event}
               index={i}
-              type={activeTab}
+              type={(event as any)._type || activeTab}
               userId={userId}
               isSelected={selectedEventId === event.id}
               onSelect={onSelectEvent}

@@ -4,6 +4,7 @@ import dynamic from 'next/dynamic'
 import { useEffect, useState } from 'react'
 import { v4 as uuidv4 } from 'uuid'
 import { TopBar } from '@/components/Dashboard/TopBar'
+import { CategoryNav, type TabType } from '@/components/Dashboard/CategoryNav'
 import { EventsPanel } from '@/components/Dashboard/EventsPanel'
 import { FinancialTerminal } from '@/components/Dashboard/FinancialTerminal'
 import { api } from '@/lib/api'
@@ -17,6 +18,7 @@ const GlobeScene = dynamic(
 export default function HomePage() {
   const [userId, setUserId] = useState<string | null>(null)
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null)
+  const [activeTab, setActiveTab] = useState<TabType>('TRENDING')
 
   useEffect(() => {
     // Check if user ID exists in localStorage
@@ -42,11 +44,13 @@ export default function HomePage() {
 
       {/* Overlay UI */}
       <TopBar />
+      <CategoryNav activeTab={activeTab} onTabChange={setActiveTab} />
       {userId && (
         <EventsPanel
           userId={userId}
           selectedEventId={selectedEventId}
           onSelectEvent={setSelectedEventId}
+          activeTab={activeTab}
         />
       )}
       <FinancialTerminal userId={userId ?? undefined} />
