@@ -191,4 +191,69 @@ export const MARKETS: Market[] = [
       [6, 14], [12, 13], [16, 12], [20, 12], [24, 12],
     ]),
   },
+  {
+    id: 'MKT-009',
+    question: 'Will OneWeb-412 receive a Space-Track conjunction warning with TCA < 72h?',
+    category: 'COLLISION',
+    riskLevel: 'HIGH',
+    yesPrice: 41,
+    volume24h: 44_700,
+    totalVolume: 95_100,
+    closeTime: now + 36 * 3600_000,
+    status: 'LIVE',
+    linkedEventId: 'evt-ow412',
+    details:
+      'OneWeb-412 is traversing the Iridium orbital shell at 628 km. Cross-track dispersion from a recent engine anomaly has widened its uncertainty ellipsoid significantly. Space-Track CDM issuance is expected if the nominal TCA falls within 72h. Market resolves YES on any CDM issued.',
+    priceHistory: makeHistory(24, 22, [
+      [4, 26], [8, 31], [14, 37], [20, 40], [24, 41],
+    ]),
+  },
+  {
+    id: 'MKT-010',
+    question: 'Will the Breeze-M upper stage (NORAD 26891) show new tumbling signatures within 14 days?',
+    category: 'DEBRIS',
+    riskLevel: 'MEDIUM',
+    yesPrice: 19,
+    volume24h: 11_200,
+    totalVolume: 28_900,
+    closeTime: now + 13 * 24 * 3600_000,
+    status: 'LIVE',
+    details:
+      'The Breeze-M upper stage from a 2001 GTO insertion is in a 490×21,000 km eccentric orbit. LeoLabs and ExoAnalytic radar light-curves show intermittent spin-rate changes. A confirmed tumbling increase (≥5° rotation/sec) reported by Space-Track within 14 days resolves this market YES.',
+    priceHistory: makeHistory(24, 16, [
+      [6, 18], [12, 20], [16, 19], [20, 18], [24, 19],
+    ]),
+  },
+  {
+    id: 'MKT-011',
+    question: 'Will LEO satellite insurance premiums increase >5% in Q2 2026 (Lloyd\'s benchmark)?',
+    category: 'HEDGE',
+    riskLevel: 'MEDIUM',
+    yesPrice: 52,
+    volume24h: 33_800,
+    totalVolume: 88_200,
+    closeTime: now + 45 * 24 * 3600_000,
+    status: 'LIVE',
+    details:
+      'Increased conjunction frequency and two uncontrolled re-entries in Q1 have prompted Lloyd\'s of London satellite underwriters to review LEO hull & liability rates. The SpaceGuard risk index has risen 18% YTD. Market resolves YES if the Lloyd\'s LEO Premium Index (published April 30) shows a Q/Q increase ≥5%.',
+    priceHistory: makeHistory(24, 38, [
+      [4, 40], [8, 44], [14, 49], [20, 51], [24, 52],
+    ]),
+  },
+  {
+    id: 'MKT-012',
+    question: 'Will asteroid 2023 DW be upgraded to Torino Scale ≥2 within 30 days?',
+    category: 'NEO',
+    riskLevel: 'LOW',
+    yesPrice: 8,
+    volume24h: 18_300,
+    totalVolume: 45_600,
+    closeTime: now + 28 * 24 * 3600_000,
+    status: 'LIVE',
+    details:
+      'Asteroid 2023 DW (diameter ~50 m) has an impact probability of 1-in-625 for a 2046 encounter — currently the only Torino Scale 1 object tracked by JPL CNEOS. Additional radar observations from Goldstone and Arecibo are scheduled this month. A Torino upgrade to ≥2 requires IP above 1% and energy >10 MT. Market resolves YES on any official JPL Torino Scale revision.',
+    priceHistory: makeHistory(24, 10, [
+      [6, 9], [12, 8], [16, 8], [22, 8], [24, 8],
+    ]),
+  },
 ]

@@ -4,6 +4,7 @@ import type { Market, PricePoint } from '@/data/markets'
 
 interface PriceChartProps {
   market: Market
+  height?: number
 }
 
 const PAD_LEFT = 36
@@ -11,7 +12,7 @@ const PAD_BOTTOM = 18
 const PAD_TOP = 8
 const PAD_RIGHT = 8
 const VIEW_W = 400
-const VIEW_H = 80
+const VIEW_H = 96
 
 function toX(i: number, total: number): number {
   const drawW = VIEW_W - PAD_LEFT - PAD_RIGHT
@@ -37,7 +38,7 @@ function buildAreaPath(points: PricePoint[]): string {
   return `${line} L${lastX},${baseY} L${firstX},${baseY} Z`
 }
 
-export function PriceChart({ market }: PriceChartProps) {
+export function PriceChart({ market, height = 96 }: PriceChartProps) {
   const { priceHistory, yesPrice, status, id } = market
   if (!priceHistory.length) return null
 
@@ -65,7 +66,7 @@ export function PriceChart({ market }: PriceChartProps) {
       viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
       preserveAspectRatio="none"
       className="w-full"
-      style={{ height: 80 }}
+      style={{ height }}
     >
       <defs>
         <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">

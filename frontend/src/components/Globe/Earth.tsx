@@ -109,10 +109,21 @@ interface EarthProps {
   theme: 'dark' | 'light'
 }
 
+const LERP = 0.6
+
 export function Earth({ autoRotate = true, theme }: EarthProps) {
-  const groupRef = useRef<THREE.Group>(null)
-  const geometry = useMemo(() => createDottedSphereGeometry(), [])
-  const texture  = useLoader(THREE.TextureLoader, '/black_white_map.webp')
+  const groupRef    = useRef<THREE.Group>(null)
+  const innerRef    = useRef<THREE.MeshBasicMaterial>(null)
+  const geometry    = useMemo(() => createDottedSphereGeometry(), [])
+  const texture     = useLoader(THREE.TextureLoader, '/black_white_map.webp')
+
+  // Current lerped colors (live) and target colors (set on theme change)
+  const landCur   = useRef(new THREE.Color(globeColors[theme].earthLand))
+  const oceanCur  = useRef(new THREE.Color(globeColors[theme].earthOcean))
+  const innerCur  = useRef(new THREE.Color(globeColors[theme].earthInner))
+  const landTgt   = useRef(new THREE.Color(globeColors[theme].earthLand))
+  const oceanTgt  = useRef(new THREE.Color(globeColors[theme].earthOcean))
+  const innerTgt  = useRef(new THREE.Color(globeColors[theme].earthInner))
 
   const material = useMemo(
     () =>
@@ -120,8 +131,8 @@ export function Earth({ autoRotate = true, theme }: EarthProps) {
         uniforms: {
           tex:        { value: texture },
           dotSize:    { value: 0.012 },
-          landColor:  { value: new THREE.Color(globeColors[theme].earthLand) },
-          oceanColor: { value: new THREE.Color(globeColors[theme].earthOcean) },
+          landColor:  { value: landCur.current.clone() },
+          oceanColor: { value: oceanCur.current.clone() },
         },
         vertexShader,
         fragmentShader,
@@ -129,16 +140,25 @@ export function Earth({ autoRotate = true, theme }: EarthProps) {
         polygonOffsetFactor: -1,
         polygonOffsetUnits: -1,
       }),
-    [texture] // only recreate when texture changes
+    [texture]
   )
 
-  // Update material colors reactively when theme changes
+  // On theme change, update targets only — useFrame lerps toward them
   useEffect(() => {
-    material.uniforms.landColor.value.set(globeColors[theme].earthLand)
-    material.uniforms.oceanColor.value.set(globeColors[theme].earthOcean)
-  }, [theme, material])
+    landTgt.current.set(globeColors[theme].earthLand)
+    oceanTgt.current.set(globeColors[theme].earthOcean)
+    innerTgt.current.set(globeColors[theme].earthInner)
+  }, [theme])
 
   useFrame(() => {
+    landCur.current.lerp(landTgt.current, LERP)
+    oceanCur.current.lerp(oceanTgt.current, LERP)
+    innerCur.current.lerp(innerTgt.current, LERP)
+
+    material.uniforms.landColor.value.copy(landCur.current)
+    material.uniforms.oceanColor.value.copy(oceanCur.current)
+    if (innerRef.current) innerRef.current.color.copy(innerCur.current)
+
     if (groupRef.current && autoRotate) {
       groupRef.current.rotation.y += 0.001
     }
@@ -146,10 +166,10 @@ export function Earth({ autoRotate = true, theme }: EarthProps) {
 
   return (
     <group ref={groupRef} rotation={[0, Math.PI, 0]}>
-      {/* Inner sphere — color adapts to theme */}
+      {/* Inner sphere — lerped color */}
       <mesh>
         <sphereGeometry args={[RADIUS - 0.001, 72, 36]} />
-        <meshBasicMaterial color={globeColors[theme].earthInner} />
+        <meshBasicMaterial ref={innerRef} color={globeColors[theme].earthInner} />
       </mesh>
 
       {/* 10 000 plane quads — only land quads are visible (minSize = 0) */}

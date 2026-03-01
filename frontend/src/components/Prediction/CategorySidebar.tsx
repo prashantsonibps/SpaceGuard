@@ -16,11 +16,11 @@ interface CategorySidebarProps {
 
 const CATEGORIES: { key: CategoryFilter; label: string }[] = [
   { key: 'ALL', label: 'ALL MARKETS' },
-  { key: 'COLLISION', label: 'COLLISION' },
-  { key: 'DEBRIS', label: 'DEBRIS' },
-  { key: 'MANEUVER', label: 'MANEUVER' },
-  { key: 'HEDGE', label: 'HEDGE' },
-  { key: 'NEO', label: 'NEO' },
+  { key: 'COLLISION', label: '💥 COLLISION' },
+  { key: 'DEBRIS', label: '🪨 DEBRIS' },
+  { key: 'MANEUVER', label: '🛸 MANEUVER' },
+  { key: 'HEDGE', label: '💹 HEDGE' },
+  { key: 'NEO', label: '☄️ NEO' },
 ]
 
 // Placeholder portfolio for demo
@@ -81,31 +81,27 @@ export function CategorySidebar({ markets, selectedCategory, onSelectCategory, u
       {/* Portfolio section */}
       <div>
         <p className={`text-[8px] font-mono tracking-widest ${tp.muted} mb-2 px-1`}>PORTFOLIO</p>
-        {userId ? (
-          <GlassCard animate={false} className="p-2 flex flex-col gap-2">
-            <div className="flex justify-between text-[9px] font-mono">
-              <span className={tp.muted}>BALANCE</span>
-              <span className="text-orange-300 tabular-nums">${DEMO_PORTFOLIO.balance.toLocaleString()}</span>
-            </div>
-            <div className="flex justify-between text-[9px] font-mono">
-              <span className={tp.muted}>P&amp;L</span>
-              <span className={`tabular-nums ${DEMO_PORTFOLIO.pnl >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                {DEMO_PORTFOLIO.pnl >= 0 ? '+' : ''}${DEMO_PORTFOLIO.pnl.toFixed(2)}
-              </span>
-            </div>
-            <div className="border-t border-white/10 pt-1.5 flex flex-col gap-1">
-              <p className={`text-[7px] font-mono tracking-widest ${tp.faint}`}>OPEN POSITIONS</p>
-              {DEMO_PORTFOLIO.positions.map(pos => (
-                <div key={pos.id} className="flex justify-between text-[8px] font-mono">
-                  <span className={tp.muted}>{pos.id} {pos.side}</span>
-                  <span className={`${ac.text} tabular-nums`}>{pos.shares} sh</span>
-                </div>
-              ))}
-            </div>
-          </GlassCard>
-        ) : (
-          <p className={`text-[8px] font-mono ${tp.faint} px-1`}>Connect to view</p>
-        )}
+        <GlassCard animate={false} className="p-2 flex flex-col gap-2">
+          <div className="flex justify-between text-[10px] font-mono">
+            <span className={tp.muted}>BALANCE</span>
+            <span className="text-orange-300 tabular-nums font-semibold">${DEMO_PORTFOLIO.balance.toLocaleString()}</span>
+          </div>
+          <div className="flex justify-between text-[10px] font-mono">
+            <span className={tp.muted}>P&amp;L</span>
+            <span className={`tabular-nums font-semibold ${DEMO_PORTFOLIO.pnl >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+              {DEMO_PORTFOLIO.pnl >= 0 ? '+' : ''}${DEMO_PORTFOLIO.pnl.toFixed(2)}
+            </span>
+          </div>
+          <div className="border-t border-white/10 pt-1.5 flex flex-col gap-1.5">
+            <p className={`text-[8px] font-mono tracking-widest ${tp.faint}`}>OPEN POSITIONS</p>
+            {DEMO_PORTFOLIO.positions.map(pos => (
+              <div key={pos.id} className="flex justify-between text-[9px] font-mono">
+                <span className={tp.muted}>{pos.id} <span className="text-sky-400/70">{pos.side}</span></span>
+                <span className={`${ac.text} tabular-nums`}>{pos.shares} sh</span>
+              </div>
+            ))}
+          </div>
+        </GlassCard>
       </div>
 
       {/* Spacer */}

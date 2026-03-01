@@ -154,7 +154,7 @@ function EventRow({
                 <button
                   disabled={event.hedge_status !== 'HEDGE'}
                   className={`flex-1 py-1 rounded text-[10px] font-mono border transition-colors
-                    ${event.hedge_status === 'HEDGE' ? `${accent[theme].text} border-sky-300/30 ${accent[theme].bgDim} ${accent[theme].bgDimHover} cursor-pointer` : 'text-slate-400 dark:text-white/20 border-black/10 dark:border-white/10 bg-transparent cursor-not-allowed'}`}
+                    ${event.hedge_status === 'HEDGE' ? `${accent[theme].text} border-sky-300/30 ${accent[theme].bgDim} ${accent[theme].bgDimHover} cursor-pointer` : 'text-slate-400 dark:text-white/20 border-black/20 dark:border-white/10 bg-transparent cursor-not-allowed'}`}
                 >
                   {event.hedge_status === 'HEDGE' ? 'APPROVE HEDGE' : 'NO ACTION REQ.'}
                 </button>
@@ -267,7 +267,7 @@ export function EventsPanel({
   return (
     <GlassCard className="absolute right-4 top-16 bottom-4 w-72 flex flex-col z-40 !bg-white/80 dark:!bg-neutral-900/50">
       {/* Header */}
-      <div className="px-3 py-2.5 border-b border-black/10 dark:border-white/10 shrink-0">
+      <div className="px-3 py-2.5 border-b border-black/20 dark:border-white/10 shrink-0">
         <div className="flex items-center justify-between mb-2">
           <h2 className={`font-orbitron text-[11px] font-bold ${textOpacity[theme].primary} tracking-[0.2em]`}>
             RISK MONITOR
@@ -330,7 +330,7 @@ export function EventsPanel({
       </div>
 
       {/* Footer */}
-      <div className="px-3 py-1.5 border-t border-black/10 dark:border-white/10 shrink-0">
+      <div className="px-3 py-1.5 border-t border-black/20 dark:border-white/10 shrink-0">
         <div className={`text-[9px] font-mono ${accent[theme].text} opacity-80 text-center tracking-wider flex justify-center items-center gap-1.5`}>
           <div className={`w-1.5 h-1.5 rounded-full ${accent[theme].dot} animate-pulse`} />
           GEMINI AI AGENT ACTIVE

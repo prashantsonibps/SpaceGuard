@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { GlassCard } from '@/components/ui/GlassCard'
 import { accent, textOpacity } from '@/lib/theme'
 import { useTheme } from '@/lib/ThemeContext'
@@ -10,19 +10,28 @@ import type { Market } from '@/data/markets'
 interface BuyPanelProps {
   market: Market
   userId: string | null
+  defaultSide?: 'YES' | 'NO'
 }
 
 const QUICK_AMOUNTS = [25, 50, 100, 250]
 
-export function BuyPanel({ market, userId }: BuyPanelProps) {
+export function BuyPanel({ market, userId, defaultSide }: BuyPanelProps) {
   const { theme } = useTheme()
   const ac = accent[theme]
   const tp = textOpacity[theme]
 
-  const [side, setSide] = useState<'YES' | 'NO'>('YES')
+  const [side, setSide] = useState<'YES' | 'NO'>(defaultSide ?? 'YES')
   const [amount, setAmount] = useState(100)
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [errorMsg, setErrorMsg] = useState('')
+
+  useEffect(() => {
+    if (defaultSide) setSide(defaultSide)
+  }, [defaultSide])
+
+  const borderDim = theme === 'dark' ? 'border-white/10' : 'border-black/[0.2]'
+  const bgInput = theme === 'dark' ? 'bg-white/5' : 'bg-black/[0.04]'
+  const divider = theme === 'dark' ? 'border-white/10' : 'border-black/[0.18]'
 
   const isDisabled = market.status !== 'LIVE' || userId === null
   const price = side === 'YES' ? market.yesPrice : 100 - market.yesPrice
@@ -52,8 +61,9 @@ export function BuyPanel({ market, userId }: BuyPanelProps) {
   }
 
   const toggleBase = `flex-1 py-1.5 text-[10px] font-mono border rounded transition-colors flex flex-col items-center gap-0.5`
-  const activeStyle = `${ac.bgDim} border-sky-300/40 ${ac.text}`
-  const inactiveStyle = `bg-transparent border-white/10 ${tp.muted} hover:${tp.secondary}`
+  const activeYes = `${ac.bgDim} border-sky-300/40 ${ac.text}`
+  const activeNo = `bg-red-400/10 border-red-400/40 text-red-400`
+  const inactive = `bg-transparent ${borderDim} ${tp.muted}`
 
   return (
     <GlassCard animate={false} className="p-3 flex flex-col gap-2">
@@ -62,7 +72,7 @@ export function BuyPanel({ market, userId }: BuyPanelProps) {
         <button
           onClick={() => setSide('YES')}
           disabled={isDisabled}
-          className={`${toggleBase} ${side === 'YES' ? activeStyle : inactiveStyle} ${isDisabled ? 'opacity-30 cursor-not-allowed' : ''}`}
+          className={`${toggleBase} ${side === 'YES' ? activeYes : inactive} ${isDisabled ? 'opacity-30 cursor-not-allowed' : ''}`}
         >
           <span className="font-bold">YES</span>
           <span className="text-[8px] opacity-70">{market.yesPrice}¢</span>
@@ -70,7 +80,7 @@ export function BuyPanel({ market, userId }: BuyPanelProps) {
         <button
           onClick={() => setSide('NO')}
           disabled={isDisabled}
-          className={`${toggleBase} ${side === 'NO' ? 'bg-red-400/10 border-red-400/40 text-red-400' : inactiveStyle} ${isDisabled ? 'opacity-30 cursor-not-allowed' : ''}`}
+          className={`${toggleBase} ${side === 'NO' ? activeNo : inactive} ${isDisabled ? 'opacity-30 cursor-not-allowed' : ''}`}
         >
           <span className="font-bold">NO</span>
           <span className="text-[8px] opacity-70">{100 - market.yesPrice}¢</span>
@@ -80,7 +90,7 @@ export function BuyPanel({ market, userId }: BuyPanelProps) {
       {/* Amount input */}
       <div>
         <div className={`text-[8px] font-mono ${tp.muted} tracking-widest mb-1`}>AMOUNT (USD)</div>
-        <div className={`flex items-center gap-1 bg-white/5 border border-white/10 rounded px-2 py-1 ${isDisabled ? 'opacity-30' : ''}`}>
+        <div className={`flex items-center gap-1 ${bgInput} border ${borderDim} rounded px-2 py-1 ${isDisabled ? 'opacity-30' : ''}`}>
           <span className={`text-[10px] font-mono ${tp.tertiary}`}>$</span>
           <input
             type="number"
@@ -88,7 +98,7 @@ export function BuyPanel({ market, userId }: BuyPanelProps) {
             value={amount}
             onChange={e => setAmount(Math.max(1, Number(e.target.value)))}
             disabled={isDisabled}
-            className="flex-1 bg-transparent text-[11px] font-mono text-white/90 outline-none w-0 tabular-nums"
+            className={`flex-1 bg-transparent text-[11px] font-mono ${tp.primary} outline-none w-0 tabular-nums`}
           />
         </div>
 
@@ -99,7 +109,7 @@ export function BuyPanel({ market, userId }: BuyPanelProps) {
               key={a}
               onClick={() => setAmount(a)}
               disabled={isDisabled}
-              className={`flex-1 py-0.5 text-[9px] font-mono rounded border border-white/10 ${tp.muted} hover:${tp.secondary} hover:border-white/20 transition-colors ${isDisabled ? 'opacity-30 cursor-not-allowed' : ''}`}
+              className={`flex-1 py-0.5 text-[9px] font-mono rounded border ${borderDim} ${tp.muted} transition-colors ${isDisabled ? 'opacity-30 cursor-not-allowed' : ''}`}
             >
               {a}
             </button>
@@ -107,7 +117,7 @@ export function BuyPanel({ market, userId }: BuyPanelProps) {
           <button
             onClick={() => setAmount(1000)}
             disabled={isDisabled}
-            className={`flex-1 py-0.5 text-[9px] font-mono rounded border border-white/10 ${tp.muted} hover:${tp.secondary} hover:border-white/20 transition-colors ${isDisabled ? 'opacity-30 cursor-not-allowed' : ''}`}
+            className={`flex-1 py-0.5 text-[9px] font-mono rounded border ${borderDim} ${tp.muted} transition-colors ${isDisabled ? 'opacity-30 cursor-not-allowed' : ''}`}
           >
             MAX
           </button>
@@ -115,7 +125,7 @@ export function BuyPanel({ market, userId }: BuyPanelProps) {
       </div>
 
       {/* Divider */}
-      <div className="border-t border-white/10" />
+      <div className={`border-t ${divider}`} />
 
       {/* Metrics */}
       <div className="space-y-1">
@@ -132,7 +142,7 @@ export function BuyPanel({ market, userId }: BuyPanelProps) {
       </div>
 
       {/* Divider */}
-      <div className="border-t border-white/10" />
+      <div className={`border-t ${divider}`} />
 
       {/* Confirm button */}
       <button
@@ -142,7 +152,7 @@ export function BuyPanel({ market, userId }: BuyPanelProps) {
           w-full py-2 text-[10px] font-mono font-bold tracking-widest rounded border
           transition-colors
           ${isDisabled
-            ? 'opacity-30 cursor-not-allowed border-white/10 text-white/40'
+            ? `opacity-30 cursor-not-allowed ${borderDim} ${tp.faint}`
             : status === 'success'
             ? 'border-green-400/40 bg-green-400/10 text-green-400'
             : status === 'error'

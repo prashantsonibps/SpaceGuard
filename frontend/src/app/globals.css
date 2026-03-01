@@ -15,6 +15,7 @@
 
 * {
   box-sizing: border-box;
+  transition: color 180ms ease, background-color 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
 }
 
 html,

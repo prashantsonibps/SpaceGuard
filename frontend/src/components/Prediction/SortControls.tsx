@@ -19,36 +19,53 @@ export function SortControls({ sortBy, onSort, markets }: SortControlsProps) {
   const ac = accent[theme]
   const tp = textOpacity[theme]
   const liveCount = markets.filter(m => m.status === 'LIVE').length
+  const borderB = theme === 'dark' ? 'border-white/10' : 'border-black/[0.2]'
+  const borderFaint = theme === 'dark' ? 'border-white/5' : 'border-black/[0.12]'
+  const sortBtnInactive = theme === 'dark'
+    ? `border-white/10 ${tp.muted} hover:border-white/20`
+    : `border-black/[0.2] ${tp.muted} hover:border-black/30`
 
   return (
-    <div className={`h-10 flex items-center px-4 gap-3 border-b border-white/10`}>
-      <span className={`text-[9px] font-mono ${tp.muted} tracking-widest shrink-0`}>SORT:</span>
-      <div className="flex items-center gap-1.5">
-        {SORT_KEYS.map(key => (
-          <button
-            key={key}
-            onClick={() => onSort(key)}
-            className={`
-              px-2 py-0.5 text-[9px] font-mono rounded border transition-colors
-              ${sortBy === key
-                ? `${ac.bgDim} border-sky-300/40 ${ac.text}`
-                : `border-white/10 ${tp.muted} hover:${tp.secondary} hover:border-white/20`
-              }
-            `}
-          >
-            {key}{sortBy === key ? '▼' : ''}
-          </button>
-        ))}
+    <div className={`border-b ${borderB}`}>
+      {/* Sort controls row */}
+      <div className={`h-10 flex items-center px-4 gap-3 border-b ${borderFaint}`}>
+        <span className={`text-[9px] font-mono ${tp.muted} tracking-widest shrink-0`}>SORT:</span>
+        <div className="flex items-center gap-1.5">
+          {SORT_KEYS.map(key => (
+            <button
+              key={key}
+              onClick={() => onSort(key)}
+              className={`
+                px-2 py-0.5 text-[9px] font-mono rounded border transition-colors
+                ${sortBy === key
+                  ? `${ac.bgDim} border-sky-300/40 ${ac.text}`
+                  : sortBtnInactive
+                }
+              `}
+            >
+              {key}{sortBy === key ? '▼' : ''}
+            </button>
+          ))}
+        </div>
+
+        <div className="ml-auto flex items-center gap-2">
+          <span className={`text-[9px] font-mono ${tp.muted}`}>
+            {markets.length} MARKETS
+          </span>
+          <span className={`text-[9px] font-mono ${tp.faint}`}>·</span>
+          <span className="text-[9px] font-mono text-green-400">
+            {liveCount} LIVE
+          </span>
+        </div>
       </div>
 
-      <div className="ml-auto flex items-center gap-2">
-        <span className={`text-[9px] font-mono ${tp.muted}`}>
-          {markets.length} MARKETS
-        </span>
-        <span className={`text-[9px] font-mono ${tp.faint}`}>·</span>
-        <span className={`text-[9px] font-mono text-green-400`}>
-          {liveCount} LIVE
-        </span>
+      {/* Column headers row */}
+      <div className="flex items-center px-4 py-1.5 gap-3">
+        <span className={`flex-1 text-[8px] font-mono tracking-widest ${tp.faint}`}>MARKET</span>
+        <span className={`w-44 text-center text-[8px] font-mono tracking-widest ${tp.faint}`}>PROBABILITY</span>
+        <span className={`w-16 text-right text-[8px] font-mono tracking-widest ${tp.faint}`}>VOL</span>
+        <span className={`w-16 text-right text-[8px] font-mono tracking-widest ${tp.faint}`}>CLOSES</span>
+        <span className={`w-16 text-right text-[8px] font-mono tracking-widest ${tp.faint}`}>STATUS</span>
       </div>
     </div>
   )

@@ -57,7 +57,7 @@ export function BettingModal({ isOpen, onClose, eventId, eventName, eventType, u
                   <select
                     value={outcome}
                     onChange={(e) => setOutcome(e.target.value)}
-                    className={`w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded px-3 py-2 ${textOpacity[theme].primary} text-sm`}
+                    className={`w-full bg-black/5 dark:bg-white/5 border border-black/20 dark:border-white/10 rounded px-3 py-2 ${textOpacity[theme].primary} text-sm`}
                   >
                     <option value="YES">YES (Collision / Success)</option>
                     <option value="NO">NO (Miss / Failure)</option>
@@ -70,7 +70,7 @@ export function BettingModal({ isOpen, onClose, eventId, eventName, eventType, u
                     type="number"
                     value={amount}
                     onChange={(e) => setAmount(Number(e.target.value))}
-                    className={`w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded px-3 py-2 ${textOpacity[theme].primary} text-sm`}
+                    className={`w-full bg-black/5 dark:bg-white/5 border border-black/20 dark:border-white/10 rounded px-3 py-2 ${textOpacity[theme].primary} text-sm`}
                     min="1"
                   />
                 </div>

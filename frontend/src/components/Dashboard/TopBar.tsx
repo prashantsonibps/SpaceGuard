@@ -45,7 +45,7 @@ export function TopBar({ variant = 'overlay' }: TopBarProps) {
   return (
     <motion.div
       className={`${positionClass} h-12 flex items-center px-6 gap-6
-        bg-white/70 dark:bg-black/40 backdrop-blur-md border-b border-black/10 dark:border-white/10`}
+        bg-white/70 dark:bg-black/40 backdrop-blur-md border-b border-black/20 dark:border-white/10`}
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}

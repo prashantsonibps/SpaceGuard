@@ -57,10 +57,23 @@ export default function PredictionPage() {
       {/* Top bar — inline (not overlay) */}
       <TopBar variant="inline" />
 
+      {/* Stats banner */}
+      <div className={`flex items-center gap-3 px-4 py-1.5 border-b text-[9px] font-mono tracking-widest shrink-0 ${
+        theme === 'dark' ? 'border-white/10 text-white/40' : 'border-black/20 text-slate-500'
+      }`}>
+        <span>847 TRACKED</span>
+        <span className="opacity-40">·</span>
+        <span>12 MARKETS</span>
+        <span className="opacity-40">·</span>
+        <span>$1.2M 24H VOL</span>
+        <span className="opacity-40">·</span>
+        <span className="text-green-400/80">9 LIVE</span>
+      </div>
+
       {/* Body */}
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar */}
-        <div className="w-[200px] shrink-0">
+        <div className="w-[256px] shrink-0">
           <CategorySidebar
             markets={MARKETS}
             selectedCategory={selectedCategory}

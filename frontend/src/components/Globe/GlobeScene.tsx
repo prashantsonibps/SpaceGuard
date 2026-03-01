@@ -1,6 +1,6 @@
 'use client'
 
-import { Suspense, useRef, useMemo, useState } from 'react'
+import { Suspense, useRef, useMemo, useState, useEffect } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
 import { Bloom, EffectComposer } from '@react-three/postprocessing'
@@ -43,6 +43,21 @@ function SkyStars({ theme }: { theme: 'dark' | 'light' }) {
   )
 }
 
+function AnimatedBackground({ targetHex }: { targetHex: string }) {
+  const { scene } = useThree()
+  const current = useRef(new THREE.Color(targetHex))
+  const target  = useRef(new THREE.Color(targetHex))
+
+  useEffect(() => { target.current.set(targetHex) }, [targetHex])
+
+  useFrame(() => {
+    current.current.lerp(target.current, 0.6)
+    scene.background = current.current
+  })
+
+  return null
+}
+
 function SceneContent({
   selectedEventId,
   theme,
@@ -50,8 +65,12 @@ function SceneContent({
   selectedEventId?: string | null
   theme: 'dark' | 'light'
 }) {
+  const canvas = globeColors[theme].canvas
   return (
     <>
+      {/* Smoothly lerp the WebGL clear color on theme change */}
+      <AnimatedBackground targetHex={canvas} />
+
       {/* Lighting — neutral white for black/white dotted aesthetic */}
       <ambientLight intensity={0.4} />
       <directionalLight position={[5, 3, 5]} intensity={1.4} color="#ffffff" />

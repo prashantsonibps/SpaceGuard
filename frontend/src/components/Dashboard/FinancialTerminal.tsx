@@ -151,7 +151,7 @@ export function FinancialTerminal({ userId }: { userId?: string }) {
 
   return (
     <motion.div
-      className="absolute z-40 rounded-xl overflow-hidden backdrop-blur-md border border-black/[0.08] dark:border-white/10 bg-white/80 dark:bg-neutral-900/50"
+      className="absolute z-40 rounded-xl overflow-hidden backdrop-blur-md border border-black/[0.18] dark:border-white/10 bg-white/80 dark:bg-neutral-900/50"
       style={{ bottom: '1rem', left: '1rem' }}
       initial={{ opacity: 0, y: 10, right: '20rem', height: 44 }}
       animate={
@@ -178,7 +178,7 @@ export function FinancialTerminal({ userId }: { userId?: string }) {
             transition={{ duration: 0.2, delay: 0.1 }}
           >
             {/* Header */}
-            <div className="flex items-center justify-between px-4 py-2.5 border-b border-black/[0.08] dark:border-white/[0.08] shrink-0">
+            <div className="flex items-center justify-between px-4 py-2.5 border-b border-black/[0.18] dark:border-white/[0.08] shrink-0">
               <div className="flex items-center gap-3">
                 <span className={`font-orbitron text-[11px] font-bold ${textOpacity[theme].secondary} tracking-[0.25em]`}>FINANCIAL TERMINAL</span>
                 <div className="flex items-center gap-1.5">
@@ -188,22 +188,22 @@ export function FinancialTerminal({ userId }: { userId?: string }) {
               </div>
               <button
                 onClick={() => setExpanded(false)}
-                className={`text-[9px] font-mono ${textOpacity[theme].caption} border border-black/[0.08] dark:border-white/[0.08] px-2 py-1 rounded
-                  hover:${textOpacity[theme].secondary} hover:border-black/20 dark:hover:border-white/20 transition-colors tracking-widest`}
+                className={`text-[9px] font-mono ${textOpacity[theme].caption} border border-black/[0.18] dark:border-white/[0.08] px-2 py-1 rounded
+                  hover:${textOpacity[theme].secondary} hover:border-black/30 dark:hover:border-white/20 transition-colors tracking-widest`}
               >
                 COLLAPSE ↙
               </button>
             </div>
 
             {/* Metrics strip — horizontal band with vertical dividers */}
-            <div className="flex items-stretch border-b border-black/[0.06] dark:border-white/[0.06] shrink-0">
+            <div className="flex items-stretch border-b border-black/[0.14] dark:border-white/[0.06] shrink-0">
               {[
                 { label: 'USER BALANCE', value: formatCurrency(portfolioValue), sub: 'Demo USD wallet', color: financialColors[theme].balance },
                 { label: 'TOTAL WAGERED', value: formatCurrency(totalWagered), sub: 'Active bets only', color: financialColors[theme].wagered },
                 { label: 'VALUE AT RISK 95%', value: formatCurrency(varValue), sub: '1-day horizon', color: financialColors[theme].var },
                 { label: 'ACTIVE BETS', value: activeBets.toString(), sub: `${betHistory.length} total placed`, color: textOpacity[theme].secondary },
               ].map((m, i) => (
-                <div key={m.label} className={`flex-1 px-5 py-3 ${i > 0 ? 'border-l border-black/[0.06] dark:border-white/[0.06]' : ''}`}>
+                <div key={m.label} className={`flex-1 px-5 py-3 ${i > 0 ? 'border-l border-black/[0.14] dark:border-white/[0.06]' : ''}`}>
                   <div className={`text-[8px] font-mono ${textOpacity[theme].caption} tracking-widest mb-1.5`}>{m.label}</div>
                   <div className={`text-xl font-mono font-bold tabular-nums ${m.color}`}>{m.value}</div>
                   <div className={`text-[8px] font-mono ${textOpacity[theme].caption} mt-1`}>{m.sub}</div>
@@ -233,7 +233,7 @@ export function FinancialTerminal({ userId }: { userId?: string }) {
                     />
                   ))}
                 </div>
-                <div className="mt-auto pt-3 border-t border-black/[0.06] dark:border-white/[0.06] shrink-0">
+                <div className="mt-auto pt-3 border-t border-black/[0.14] dark:border-white/[0.06] shrink-0">
                   <div className="flex justify-between items-baseline font-mono">
                     <span className={`text-[8px] ${textOpacity[theme].caption} tracking-widest uppercase`}>Total Wagered</span>
                     <span className={`text-[13px] ${financialColors[theme].balance} font-bold tabular-nums`}>{formatCurrency(totalWagered)}</span>
@@ -247,8 +247,8 @@ export function FinancialTerminal({ userId }: { userId?: string }) {
                   <div className="w-0.5 h-3 rounded-full bg-sky-400/50" />
                   <span className={`text-[9px] font-mono ${textOpacity[theme].caption} tracking-widest uppercase`}>Bet History · Weave Audit Trail</span>
                 </div>
-                <div className="border border-black/[0.08] dark:border-white/[0.08] rounded-lg overflow-hidden flex flex-col min-h-0 flex-1">
-                  <div className="grid grid-cols-[3rem_4.5rem_1fr_4.5rem_5rem] gap-2 px-3 py-2 border-b border-black/[0.08] dark:border-white/[0.08]
+                <div className="border border-black/[0.18] dark:border-white/[0.08] rounded-lg overflow-hidden flex flex-col min-h-0 flex-1">
+                  <div className="grid grid-cols-[3rem_4.5rem_1fr_4.5rem_5rem] gap-2 px-3 py-2 border-b border-black/[0.18] dark:border-white/[0.08]
                     text-[9px] font-mono tracking-widest uppercase bg-black/[0.02] dark:bg-white/[0.02] shrink-0">
                     <span className={textOpacity[theme].caption}>ID</span>
                     <span className={textOpacity[theme].caption}>TIME</span>
@@ -263,7 +263,7 @@ export function FinancialTerminal({ userId }: { userId?: string }) {
                       <div
                         key={h.id}
                         className="grid grid-cols-[3rem_4.5rem_1fr_4.5rem_5rem] gap-2 px-3 py-2.5
-                          border-b border-black/[0.06] dark:border-white/[0.06] last:border-0 text-[10px] font-mono hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors"
+                          border-b border-black/[0.14] dark:border-white/[0.06] last:border-0 text-[10px] font-mono hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors"
                       >
                         <span className={`${textOpacity[theme].faint} tabular-nums truncate`}>{h.id.slice(-4)}</span>
                         <span className={`${textOpacity[theme].caption} tabular-nums`}>{new Date(h.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
@@ -284,7 +284,7 @@ export function FinancialTerminal({ userId }: { userId?: string }) {
                 </div>
                 <div
                   ref={logRef}
-                  className="border border-black/[0.08] dark:border-white/[0.08] rounded-lg px-3 py-2.5 flex-1 overflow-y-auto space-y-2 bg-black/[0.02] dark:bg-white/[0.02]"
+                  className="border border-black/[0.18] dark:border-white/[0.08] rounded-lg px-3 py-2.5 flex-1 overflow-y-auto space-y-2 bg-black/[0.02] dark:bg-white/[0.02]"
                 >
                   {logLines.map((line, i) => (
                     <motion.div
@@ -310,7 +310,7 @@ export function FinancialTerminal({ userId }: { userId?: string }) {
       </AnimatePresence>
 
       {/* ── Always-visible bottom bar — pinned to bottom ── */}
-      <div className="absolute bottom-0 left-0 right-0 px-3 flex items-center justify-between gap-4 border-t border-black/[0.08] dark:border-white/[0.08]"
+      <div className="absolute bottom-0 left-0 right-0 px-3 flex items-center justify-between gap-4 border-t border-black/[0.18] dark:border-white/[0.08]"
            style={{ height: 44 }}>
         <div className="flex items-center gap-5 font-mono text-[10px] min-w-0">
           <span className={`${textOpacity[theme].faint} shrink-0 font-orbitron tracking-widest text-[9px]`}>FINANCIAL</span>
@@ -337,7 +337,7 @@ export function FinancialTerminal({ userId }: { userId?: string }) {
               transition={{ duration: 0.15 }}
               onClick={() => setExpanded(true)}
               className={`shrink-0 px-2.5 py-1 rounded text-[9px] font-mono tracking-widest
-                ${textOpacity[theme].muted} border border-black/[0.08] dark:border-white/[0.08] hover:border-black/25 dark:hover:border-white/25 hover:${textOpacity[theme].secondary}
+                ${textOpacity[theme].muted} border border-black/[0.18] dark:border-white/[0.08] hover:border-black/25 dark:hover:border-white/25 hover:${textOpacity[theme].secondary}
                 transition-colors`}
             >
               EXPAND ↗

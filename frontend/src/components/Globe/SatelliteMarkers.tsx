@@ -108,7 +108,7 @@ export function SatelliteMarkers({
           }}
           args={[DOT_SIZE, 8, 8]}
         >
-          <meshBasicMaterial color="#ffffff" transparent opacity={colors.bgSatOpacity} />
+          <meshBasicMaterial color={colors.bgSatColor} transparent opacity={colors.bgSatOpacity} />
         </Sphere>
       ))}
 
