@@ -4,8 +4,7 @@
 
 > _"Managing the financial risks of the next trillion-dollar frontier."_
 
-![SpaceGuard Dashboard](https://media.discordapp.net/attachments/109000000000000000/109000000000000000/spaceguard-demo.png?width=1200)
-_(Replace with actual screenshot)_
+## Try it out at https://spaceguard-a0dbc.web.app/ 
 
 ---
 
