@@ -82,6 +82,7 @@ const statusStyle: Record<string, string> = {
 
 function ExposureBar({ label, value, max, risk }: { label: string; value: number; max: number; risk: string }) {
   const pct = Math.round((value / max) * 20)
+  const percent = Math.round((value / max) * 100)
   const riskColor: Record<string, string> = {
     CRITICAL: 'text-red-400',
     HIGH: 'text-orange-400',
@@ -89,10 +90,18 @@ function ExposureBar({ label, value, max, risk }: { label: string; value: number
     LOW: 'text-green-500',
   }
   return (
-    <div className="flex items-center gap-3 font-mono text-[10px]">
-      <span className="text-white/30 w-16 shrink-0">{label}</span>
-      <span className={`${riskColor[risk]} shrink-0`}>{'█'.repeat(pct)}{'░'.repeat(20 - pct)}</span>
-      <span className="text-white/50 tabular-nums shrink-0">${value}M</span>
+    <div className="space-y-1">
+      <div className="flex items-center justify-between font-mono">
+        <div className="flex items-center gap-2">
+          <span className="text-white/45 text-[10px]">{label}</span>
+          <span className={`text-[8px] font-bold tracking-wider ${riskColor[risk]}`}>{risk}</span>
+        </div>
+        <span className="text-white/45 text-[10px] tabular-nums">${value}M</span>
+      </div>
+      <div className={`text-[9px] font-mono leading-none ${riskColor[risk]} opacity-70`}>
+        {'█'.repeat(pct)}{'░'.repeat(20 - pct)}
+        <span className="text-white/20 ml-1.5 text-[8px]">{percent}%</span>
+      </div>
     </div>
   )
 }
@@ -132,16 +141,22 @@ export function FinancialTerminal() {
   return (
     <motion.div
       className="absolute z-40 rounded-xl overflow-hidden backdrop-blur-md
-                 bg-[#020817]/85 border border-sky-400/10"
+                 bg-black/85 border border-white/10"
       style={{ bottom: '1rem', left: '1rem' }}
+      initial={{ opacity: 0, y: 10, right: '20rem', height: 44 }}
       animate={
         expanded
-          ? { right: '1rem', height: expandedH }
-          : { right: '20rem', height: 44 }
+          ? { opacity: 1, y: 0, right: '1rem', height: expandedH }
+          : { opacity: 1, y: 0, right: '20rem', height: 44 }
       }
-      transition={{ duration: 0.45, ease: [0.4, 0, 0.2, 1] }}
+      transition={{
+        opacity: { duration: 0.4, ease: 'easeOut' },
+        y: { duration: 0.4, ease: 'easeOut' },
+        right: { duration: 0.45, ease: [0.4, 0, 0.2, 1] },
+        height: { duration: 0.45, ease: [0.4, 0, 0.2, 1] },
+      }}
     >
-      {/* ── Expandable region — absolutely inset above the bar, never in flex flow ── */}
+      {/* ── Expandable region — absolutely inset above the bar ── */}
       <AnimatePresence>
         {expanded && (
           <motion.div
@@ -153,106 +168,129 @@ export function FinancialTerminal() {
             transition={{ duration: 0.2, delay: 0.1 }}
           >
             {/* Header */}
-            <div className="flex items-center justify-between px-4 py-2 border-b border-sky-400/[0.08] shrink-0">
+            <div className="flex items-center justify-between px-4 py-2.5 border-b border-white/[0.08] shrink-0">
               <div className="flex items-center gap-3">
-                <span className="font-orbitron text-[10px] font-bold text-white/60 tracking-[0.25em]">FINANCIAL TERMINAL</span>
-                <span className="text-[9px] font-mono text-white/25">W&B Weave · Live</span>
+                <span className="font-orbitron text-[11px] font-bold text-white/70 tracking-[0.25em]">FINANCIAL TERMINAL</span>
+                <div className="flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse shrink-0" />
+                  <span className="text-[9px] font-mono text-white/25">W&B Weave · Live Audit</span>
+                </div>
               </div>
               <button
                 onClick={() => setExpanded(false)}
-                className="text-[9px] font-mono text-white/30 border border-sky-400/[0.08] px-2 py-1 rounded
-                  hover:text-white/55 hover:border-sky-400/20 transition-colors tracking-widest"
+                className="text-[9px] font-mono text-white/30 border border-white/[0.08] px-2 py-1 rounded
+                  hover:text-white/55 hover:border-white/20 transition-colors tracking-widest"
               >
                 COLLAPSE ↙
               </button>
             </div>
 
-            {/* Metrics row */}
-            <div className="flex gap-3 px-4 py-3 shrink-0">
+            {/* Metrics strip — horizontal band with vertical dividers */}
+            <div className="flex items-stretch border-b border-white/[0.06] shrink-0">
               {[
-                { label: 'PORTFOLIO', value: '$2.4B', color: 'text-orange-400' },
-                { label: 'HEDGED', value: '$72.3M', color: 'text-green-400' },
-                { label: 'VAR 95%', value: '$124M', color: 'text-yellow-400' },
-                { label: 'POSITIONS', value: '7', color: 'text-white/70' },
-              ].map((m) => (
-                <div key={m.label} className="border border-sky-400/[0.08] rounded px-3 py-1.5 bg-white/[0.02]">
-                  <div className="text-[9px] font-mono text-white/25 tracking-widest mb-0.5">{m.label}</div>
-                  <div className={`text-base font-mono font-bold ${m.color}`}>{m.value}</div>
+                { label: 'PORTFOLIO VALUE', value: '$2.4B', sub: 'Space assets under mgmt', color: 'text-orange-400' },
+                { label: 'TOTAL HEDGED', value: '$72.3M', sub: '3.0% coverage ratio', color: 'text-green-400' },
+                { label: 'VALUE AT RISK 95%', value: '$124M', sub: '1-day horizon', color: 'text-yellow-400' },
+                { label: 'OPEN POSITIONS', value: '7', sub: '2 critical · 1 pending', color: 'text-white/70' },
+              ].map((m, i) => (
+                <div key={m.label} className={`flex-1 px-5 py-3 ${i > 0 ? 'border-l border-white/[0.06]' : ''}`}>
+                  <div className="text-[8px] font-mono text-white/25 tracking-widest mb-1.5">{m.label}</div>
+                  <div className={`text-xl font-mono font-bold tabular-nums ${m.color}`}>{m.value}</div>
+                  <div className="text-[8px] font-mono text-white/20 mt-1">{m.sub}</div>
                 </div>
               ))}
             </div>
 
-            {/* 3-column grid */}
-            <div className="flex-1 overflow-hidden px-4 pb-3">
-              <div className="grid grid-cols-[11rem_1fr_11rem] gap-4 h-full">
+            {/* 3-column main grid */}
+            <div className="flex-1 overflow-hidden grid grid-cols-[16rem_1fr_22rem] gap-4 px-4 pb-4 pt-3">
 
-                {/* Col 1 — Exposure bars */}
-                <div className="flex flex-col min-h-0">
-                  <div className="text-[9px] font-mono text-white/20 tracking-widest mb-2 uppercase shrink-0">Exposure by Event</div>
-                  <div className="space-y-1.5">
-                    <ExposureBar label="EVT-001" value={850} max={850} risk="CRITICAL" />
-                    <ExposureBar label="EVT-002" value={320} max={850} risk="HIGH" />
-                    <ExposureBar label="EVT-003" value={180} max={850} risk="MEDIUM" />
-                    <ExposureBar label="EVT-004" value={45}  max={850} risk="LOW" />
-                    <ExposureBar label="EVT-005" value={12}  max={850} risk="LOW" />
+              {/* Col 1 — Exposure bars */}
+              <div className="flex flex-col min-h-0">
+                <div className="flex items-center gap-2 mb-3 shrink-0">
+                  <div className="w-0.5 h-3 rounded-full bg-orange-500/50" />
+                  <span className="text-[9px] font-mono text-white/30 tracking-widest uppercase">Exposure by Event</span>
+                </div>
+                <div className="space-y-3">
+                  <ExposureBar label="EVT-001" value={850} max={850} risk="CRITICAL" />
+                  <ExposureBar label="EVT-002" value={320} max={850} risk="HIGH" />
+                  <ExposureBar label="EVT-003" value={180} max={850} risk="MEDIUM" />
+                  <ExposureBar label="EVT-004" value={45}  max={850} risk="LOW" />
+                  <ExposureBar label="EVT-005" value={12}  max={850} risk="LOW" />
+                </div>
+                <div className="mt-auto pt-3 border-t border-white/[0.06] shrink-0">
+                  <div className="flex justify-between items-baseline font-mono">
+                    <span className="text-[8px] text-white/20 tracking-widest uppercase">Total Exposure</span>
+                    <span className="text-[13px] text-orange-400 font-bold tabular-nums">$1,407M</span>
                   </div>
                 </div>
+              </div>
 
-                {/* Col 2 — Hedge history */}
-                <div className="flex flex-col min-h-0">
-                  <div className="text-[9px] font-mono text-white/20 tracking-widest mb-2 uppercase shrink-0">Hedge History · Weave Audit</div>
-                  <div className="border border-sky-400/[0.08] rounded overflow-hidden flex flex-col min-h-0">
-                    <div className="grid grid-cols-[4rem_1fr_4rem_5rem] gap-2 px-3 py-1 border-b border-sky-400/[0.08]
-                      text-[9px] font-mono text-white/20 tracking-widest uppercase bg-white/[0.02] shrink-0">
-                      <span>Time</span><span>Instrument</span>
-                      <span>P&L</span><span>Status</span>
-                    </div>
-                    <div className="overflow-y-auto flex-1">
-                      {hedgeHistory.map((h) => (
-                        <div
-                          key={h.id}
-                          className="grid grid-cols-[4rem_1fr_4rem_5rem] gap-2 px-3 py-1.5
-                            border-b border-sky-400/[0.06] last:border-0 text-[10px] font-mono hover:bg-white/[0.02] transition-colors"
-                        >
-                          <span className="text-white/25 tabular-nums">{h.timestamp}</span>
-                          <span className="text-white/55 truncate">{h.instrument}</span>
-                          <span className={h.pnl.startsWith('+') ? 'text-green-400' : 'text-white/25'}>{h.pnl}</span>
-                          <span className={statusStyle[h.status]}>{h.status}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+              {/* Col 2 — Hedge history table */}
+              <div className="flex flex-col min-h-0">
+                <div className="flex items-center gap-2 mb-3 shrink-0">
+                  <div className="w-0.5 h-3 rounded-full bg-sky-500/50" />
+                  <span className="text-[9px] font-mono text-white/30 tracking-widest uppercase">Hedge History · Weave Audit Trail</span>
                 </div>
-
-                {/* Col 3 — Agent log */}
-                <div className="flex flex-col min-h-0">
-                  <div className="text-[9px] font-mono text-white/20 tracking-widest mb-2 uppercase shrink-0">AI Agent Reasoning</div>
-                  <div
-                    ref={logRef}
-                    className="border border-sky-400/[0.08] rounded px-3 py-2 flex-1 overflow-y-auto space-y-0.5 bg-white/[0.02]"
-                  >
-                    {displayedLines.map((line, i) => (
-                      <motion.div
-                        key={i}
-                        className={`text-[9px] font-mono ${line.startsWith('✓') ? 'text-green-400' : 'text-white/30'}`}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ duration: 0.3 }}
+                <div className="border border-white/[0.08] rounded-lg overflow-hidden flex flex-col min-h-0 flex-1">
+                  <div className="grid grid-cols-[3rem_4.5rem_1fr_5.5rem_4rem_6rem] gap-2 px-3 py-2 border-b border-white/[0.08]
+                    text-[9px] font-mono text-white/20 tracking-widest uppercase bg-white/[0.02] shrink-0">
+                    <span>ID</span><span>TIME</span><span>INSTRUMENT</span>
+                    <span>NOTIONAL</span><span>P&L</span><span>STATUS</span>
+                  </div>
+                  <div className="overflow-y-auto flex-1">
+                    {hedgeHistory.map((h) => (
+                      <div
+                        key={h.id}
+                        className="grid grid-cols-[3rem_4.5rem_1fr_5.5rem_4rem_6rem] gap-2 px-3 py-2.5
+                          border-b border-white/[0.06] last:border-0 text-[10px] font-mono hover:bg-white/[0.02] transition-colors"
                       >
-                        {line}
-                      </motion.div>
+                        <span className="text-white/30 tabular-nums">{h.id}</span>
+                        <span className="text-white/25 tabular-nums">{h.timestamp}</span>
+                        <span className="text-white/60 truncate">{h.instrument}</span>
+                        <span className="text-white/45 tabular-nums">{h.notional}</span>
+                        <span className={h.pnl.startsWith('+') ? 'text-green-400 font-medium' : 'text-white/25'}>{h.pnl}</span>
+                        <span className={`font-medium ${statusStyle[h.status]}`}>{h.status}</span>
+                      </div>
                     ))}
                   </div>
                 </div>
-
               </div>
+
+              {/* Col 3 — Agent reasoning log */}
+              <div className="flex flex-col min-h-0">
+                <div className="flex items-center gap-2 mb-3 shrink-0">
+                  <div className="w-0.5 h-3 rounded-full bg-purple-500/50" />
+                  <span className="text-[9px] font-mono text-white/30 tracking-widest uppercase">AI Agent Reasoning</span>
+                </div>
+                <div
+                  ref={logRef}
+                  className="border border-white/[0.08] rounded-lg px-3 py-2.5 flex-1 overflow-y-auto space-y-2 bg-white/[0.02]"
+                >
+                  {displayedLines.map((line, i) => (
+                    <motion.div
+                      key={i}
+                      className={`text-[10px] font-mono leading-relaxed ${
+                        line.startsWith('✓') ? 'text-green-400'
+                        : line.includes('Executing') || line.includes('executing') ? 'text-sky-400'
+                        : 'text-white/35'
+                      }`}
+                      initial={{ opacity: 0, x: -4 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      {line}
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* ── Always-visible bottom bar — pinned to bottom, outside flex flow ── */}
-      <div className="absolute bottom-0 left-0 right-0 px-3 flex items-center justify-between gap-4 border-t border-sky-400/[0.08]"
+      {/* ── Always-visible bottom bar — pinned to bottom ── */}
+      <div className="absolute bottom-0 left-0 right-0 px-3 flex items-center justify-between gap-4 border-t border-white/[0.08]"
            style={{ height: 44 }}>
         <div className="flex items-center gap-5 font-mono text-[10px] min-w-0">
           <span className="text-white/35 shrink-0 font-orbitron tracking-widest text-[9px]">FINANCIAL</span>
@@ -279,7 +317,7 @@ export function FinancialTerminal() {
               transition={{ duration: 0.15 }}
               onClick={() => setExpanded(true)}
               className="shrink-0 px-2.5 py-1 rounded text-[9px] font-mono tracking-widest
-                text-white/40 border border-sky-400/[0.08] hover:border-sky-400/25 hover:text-white/60
+                text-white/40 border border-white/[0.08] hover:border-white/25 hover:text-white/60
                 transition-colors"
             >
               EXPAND ↗
