@@ -11,6 +11,51 @@ logger = get_logger("tle_fetcher")
 # Celestrak free API endpoints (no auth required)
 CELESTRAK_ACTIVE_SATS_URL = "https://celestrak.org/NORAD/elements/gp.php?GROUP=active&FORMAT=tle"
 CELESTRAK_DEBRIS_URL = "https://celestrak.org/NORAD/elements/gp.php?GROUP=1999-025&FORMAT=tle"  # Fengyun-1C debris
+# ---------------------------------------------------------------------------
+# Sample fallback TLE data — used when Celestrak is unreachable.
+# Contains 5 well-known objects so that the pipeline + conjunction step still
+# produce meaningful output even without a live network connection.
+# ---------------------------------------------------------------------------
+SAMPLE_TLE_DATA = [
+    {
+        "id": "25544",
+        "name": "ISS (ZARYA)",
+        "tle_line1": "1 25544U 98067A   24060.50000000  .00018440  00000+0  33414-3 0  9997",
+        "tle_line2": "2 25544  51.6416 345.9189 0004928 322.8687 186.2950 15.50085859420045",
+    },
+    {
+        "id": "29155",
+        "name": "NOAA 19",
+        "tle_line1": "1 33591U 09005A   24060.50000000  .00000079  00000+0  65838-4 0  9996",
+        "tle_line2": "2 33591  99.1687  60.4783 0013692 112.0884 248.1716 14.12396832774898",
+    },
+    {
+        "id": "25994",
+        "name": "TERRA",
+        "tle_line1": "1 25994U 99068A   24060.50000000  .00000054  00000+0  18028-4 0  9993",
+        "tle_line2": "2 25994  98.2075 115.3904 0001284  84.1017 276.0289 14.57118613272826",
+    },
+    {
+        "id": "44713",
+        "name": "STARLINK-1007",
+        "tle_line1": "1 44713U 19074A   24060.50000000  .00001120  00000+0  88030-4 0  9991",
+        "tle_line2": "2 44713  52.9956  87.3652 0001553  56.4278 303.6869 15.05670434234812",
+    },
+    {
+        "id": "25730",
+        "name": "COSMOS 2251 DEB",
+        "tle_line1": "1 25730U 99025DEB  24060.50000000  .00000100  00000+0  14700-4 0  9999",
+        "tle_line2": "2 25730  74.0368 335.4811 0044692 342.5161  17.3503 14.34819939278124",
+    },
+]
+
+
+def _stamp_now(satellites):
+    """Adds last_updated timestamp to a list of satellite dicts."""
+    now = datetime.now(timezone.utc).isoformat()
+    for s in satellites:
+        s["last_updated"] = now
+    return satellites
 
 # ---------------------------------------------------------------------------
 # Sample fallback TLE data — used when Celestrak is unreachable.

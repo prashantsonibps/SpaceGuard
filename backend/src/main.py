@@ -125,6 +125,9 @@ def run_pipeline():
             save_space_weather_events(db, space_weather)
         except Exception as e:
             print(f"❌ Space weather step failed (non-fatal): {e}\n")
+    else:
+        print("  ⚠  Skipped (space_weather_fetcher module unavailable).")
+
     # ── Step 3.7: Authoritative Data (Space-Track & NOAA) ────────────────────
     print("\n--- 3.7 Authoritative Data (Space-Track & NOAA) ---")
     try:
