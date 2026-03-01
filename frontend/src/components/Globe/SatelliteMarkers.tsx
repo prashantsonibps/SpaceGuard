@@ -23,8 +23,8 @@ export function SatelliteMarkers({
   const colors = globeColors[theme]
 
   const probToColor = (prob: number): string => {
-    if (prob >= 0.1)   return colors.prob10
-    if (prob >= 0.01)  return colors.prob1
+    if (prob >= 0.1) return colors.prob10
+    if (prob >= 0.01) return colors.prob1
     if (prob >= 0.001) return colors.prob01
     return colors.probDefault
   }
