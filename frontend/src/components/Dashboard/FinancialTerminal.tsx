@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { MARKETS } from "@/data/markets";
-import { riskClasses, financialColors, textOpacity, fontSize, green } from "@/lib/theme";
+import { riskClasses, financialColors, textOpacity, fontSize } from "@/lib/theme";
 import { useTheme } from "@/lib/ThemeContext";
 import {
   PredictionCard,
@@ -87,32 +87,6 @@ export function FinancialTerminal({ userId: _userId }: { userId?: string }) {
               >
                 COLLAPSE ↙
               </button>
-            </div>
-
-            {/* Stats strip */}
-            <div
-              className={`flex items-center gap-3 px-4 py-1.5 border-b ${fontSize.small} font-mono tracking-widest shrink-0 ${
-                theme === "dark"
-                  ? "border-white/[0.06] text-white/40"
-                  : "border-black/[0.08] text-slate-500"
-              }`}
-            >
-              <span>847 TRACKED</span>
-              <span className="opacity-40">·</span>
-              <span>12 MARKETS</span>
-              <span className="opacity-40">·</span>
-              <span>{formatVol(totalVol24h)} 24H VOL</span>
-              <span className="opacity-40">·</span>
-              <span className={green[theme].textMuted}>
-                {liveMarkets.length} LIVE
-              </span>
-              <span className="opacity-40">·</span>
-              <span>
-                AVG YES{" "}
-                <span className={financialColors[theme].var}>
-                  {avgYesPrice}¢
-                </span>
-              </span>
             </div>
 
             {/* Market card grid */}
