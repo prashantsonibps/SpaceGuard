@@ -66,6 +66,7 @@ jobs:
         working-directory: frontend
         env:
           NEXT_PUBLIC_API_URL: https://spaceguard-api-1040980823268.us-central1.run.app
+          NEXT_PUBLIC_ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
         run: npm run build
 
       - name: Deploy to Firebase Hosting
