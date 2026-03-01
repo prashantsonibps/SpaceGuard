@@ -34,11 +34,14 @@ export function formatTimeLeft(closeTime: number) {
   return `${Math.floor(h / 24)}d left`
 }
 
-// ── Layout constants: icon + gap = label + rowGap so title aligns with bar ──────
+// ── Layout constants: title and bar align when icon+gap = indent+label+rowGap ───
 const CARD_PADDING = 'p-3'           // 12px
 const ICON_SIZE = 'w-7'              // 28px
-const LABEL_WIDTH = 'w-9'            // 36px — YES/NO labels
 const HEADER_GAP = 'gap-4'           // 16px — between icon and title
+const HEADER_BOTTOM = 'pb-1.5'       // 6px — space below header before YES/NO
+const OPTION_INDENT = 'pl-4'         // 16px left — YES/NO rows indented 4px more than header
+const OPTION_TOP = 'pt-2'            // 8px — space above YES/NO section
+const LABEL_WIDTH = 'w-8'            // 32px — YES/NO labels (narrower = longer bars, aligns with title)
 const ROW_GAP = 'gap-2'              // 8px — between label and bar
 
 // ── Option row: label | full-width bar | multiplier | percentage button ────────
@@ -126,7 +129,7 @@ export function PredictionCard({ market }: { market: Market }) {
       `}
     >
       {/* Header: icon + question */}
-      <div className={`${CARD_PADDING} pb-2.5`}>
+      <div className={`${CARD_PADDING} ${HEADER_BOTTOM}`}>
         <div className={`flex items-center ${HEADER_GAP}`}>
           <div className={`${ICON_SIZE} h-7 rounded-lg ${catBg} flex items-center justify-center shrink-0`}>
             <Icon className={`w-3.5 h-3.5 ${iconColor}`} />
@@ -149,7 +152,7 @@ export function PredictionCard({ market }: { market: Market }) {
           </span>
         </div>
       ) : (
-        <div className={`${CARD_PADDING} pb-3 space-y-3 ${isClosed ? 'pointer-events-none' : ''}`}>
+        <div className={`${OPTION_TOP} pr-3 pb-3 ${OPTION_INDENT} space-y-3 ${isClosed ? 'pointer-events-none' : ''}`}>
           <OptionRow
             label="YES"
             pct={yesP}
