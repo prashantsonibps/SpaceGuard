@@ -65,8 +65,8 @@ export function TopBar({ variant = 'overlay' }: TopBarProps) {
         <Link
           href="/"
           className={`${fontSize.small} font-mono px-2 py-0.5 rounded transition-colors ${pathname === '/'
-              ? `${accent[theme].text} ${accent[theme].bgDim}`
-              : 'text-slate-500 dark:text-white/40 hover:text-slate-700 dark:hover:text-white/60'
+            ? `${accent[theme].text} ${accent[theme].bgDim}`
+            : 'text-slate-500 dark:text-white/40 hover:text-slate-700 dark:hover:text-white/60'
             }`}
         >
           GLOBE
@@ -74,11 +74,20 @@ export function TopBar({ variant = 'overlay' }: TopBarProps) {
         <Link
           href="/prediction"
           className={`${fontSize.small} font-mono px-2 py-0.5 rounded transition-colors ${pathname === '/prediction'
-              ? `${accent[theme].text} ${accent[theme].bgDim}`
-              : 'text-slate-500 dark:text-white/40 hover:text-slate-700 dark:hover:text-white/60'
+            ? `${accent[theme].text} ${accent[theme].bgDim}`
+            : 'text-slate-500 dark:text-white/40 hover:text-slate-700 dark:hover:text-white/60'
             }`}
         >
           MARKETS
+        </Link>
+        <Link
+          href="/portfolio"
+          className={`${fontSize.small} font-mono px-2 py-0.5 rounded transition-colors ${pathname === '/portfolio'
+            ? `${accent[theme].text} ${accent[theme].bgDim}`
+            : 'text-slate-500 dark:text-white/40 hover:text-slate-700 dark:hover:text-white/60'
+            }`}
+        >
+          PORTFOLIO
         </Link>
       </div>
 

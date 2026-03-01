@@ -52,39 +52,18 @@ app.add_middleware(
 db = initialize_db()
 
 # Models
-class BetOutcome(str, Enum):
-    YES = "YES" # e.g. Collision will happen / Launch success
-    NO = "NO"   # e.g. Collision won't happen / Launch fail
-    DELAY = "DELAY" # Launch specific
+from .matching_engine import OrderOutcome, OrderAction, OrderStatus, place_order_transaction
 
-class BetStatus(str, Enum):
-    PENDING = "PENDING"
-    WON = "WON"
-    LOST = "LOST"
-    CANCELLED = "CANCELLED"
-
-class BetRequest(BaseModel):
+class OrderRequest(BaseModel):
     user_id: str
-    event_id: str
-    event_type: str # 'launch' or 'conjunction'
-    amount: float
-    outcome: BetOutcome
+    market_id: str
+    outcome: OrderOutcome
+    action: OrderAction
+    price_cents: int
+    quantity: int
 
-class User(BaseModel):
-    id: str
-    balance: float
-    created_at: datetime
-
-class Bet(BaseModel):
-    id: str
-    user_id: str
-    event_id: str
-    event_type: str
-    amount: float
-    outcome: BetOutcome
-    status: BetStatus
-    created_at: datetime
-    payout: float = 0.0
+class ResolveRequest(BaseModel):
+    outcome: OrderOutcome
 
 @app.get("/")
 def read_root():
@@ -117,64 +96,111 @@ def get_user(user_id: str):
         
     return user_doc.to_dict()
 
-@app.post("/bets")
-def place_bet(bet_req: BetRequest):
-    """Place a bet on an event."""
-    # 1. Validate User Balance
-    user_ref = db.collection('users').document(bet_req.user_id)
-    
-    # Run inside a transaction to ensure atomicity
+@app.post("/orders")
+def create_order(req: OrderRequest):
+    """Place a limit order."""
     transaction = db.transaction()
-    
     try:
-        result = _place_bet_transaction(transaction, user_ref, bet_req)
+        result = place_order_transaction(
+            transaction, db, req.user_id, req.market_id, 
+            req.outcome.value, req.action.value, req.price_cents, req.quantity
+        )
         return result
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)}")
 
-@firestore.transactional
-def _place_bet_transaction(transaction, user_ref, bet_req):
-    snapshot = user_ref.get(transaction=transaction)
-    
-    if not snapshot.exists:
-        raise ValueError("User not found")
-        
-    user_data = snapshot.to_dict()
-    current_balance = user_data.get('balance', 0)
-    
-    if current_balance < bet_req.amount:
-        raise ValueError("Insufficient funds")
-        
-    if not event_doc.exists:
-        raise ValueError(f"Event {bet_req.event_id} not found")
-
-    # 3. Create Bet
-    bet_id = str(uuid.uuid4())
-    new_bet = {
-        "id": bet_id,
-        "user_id": bet_req.user_id,
-        "event_id": bet_req.event_id,
-        "event_type": bet_req.event_type,
-        "amount": bet_req.amount,
-        "outcome": bet_req.outcome,
-        "status": BetStatus.PENDING,
-        "created_at": datetime.now(),
-        "payout": 0.0
-    }
-    
-    bet_ref = db.collection('bets').document(bet_id)
-    
-    # 4. Update Balance and Save Bet
-    transaction.update(user_ref, {"balance": current_balance - bet_req.amount})
-    transaction.set(bet_ref, new_bet)
-    
-    return new_bet
-
-@app.get("/bets/{user_id}")
-def get_user_bets(user_id: str):
-    bets_ref = db.collection('bets').where("user_id", "==", user_id).order_by("created_at", direction=firestore.Query.DESCENDING)
-    docs = bets_ref.stream()
+@app.get("/orders/{user_id}")
+def get_user_orders(user_id: str):
+    orders_ref = db.collection('orders').where("user_id", "==", user_id).order_by("created_at", direction=firestore.Query.DESCENDING)
+    docs = orders_ref.stream()
     return [doc.to_dict() for doc in docs]
+
+@app.get("/portfolio/{user_id}")
+def get_user_portfolio(user_id: str):
+    user_ref = db.collection('users').document(user_id)
+    user_doc = user_ref.get()
+    if not user_doc.exists:
+        raise HTTPException(status_code=404, detail="User not found")
+        
+    pos_ref = db.collection('positions').where("user_id", "==", user_id)
+    positions = [doc.to_dict() for doc in pos_ref.stream()]
+    
+    # Also fetch open orders to calculate locked cash
+    from .matching_engine import get_available_balance
+    orders_ref = db.collection('orders').where("user_id", "==", user_id).where("status", "==", OrderStatus.OPEN.value)
+    open_orders = [doc.to_dict() for doc in orders_ref.stream()]
+    
+    avail_cash = get_available_balance(user_doc.to_dict(), open_orders)
+    
+    return {
+        "user": user_doc.to_dict(),
+        "available_balance": avail_cash,
+        "positions": positions,
+        "open_orders": open_orders
+    }
+
+@app.get("/markets/{market_id}/orderbook")
+def get_orderbook(market_id: str):
+    orders_ref = db.collection('orders').where("market_id", "==", market_id).where("status", "==", OrderStatus.OPEN.value)
+    open_orders = [doc.to_dict() for doc in orders_ref.stream()]
+    
+    book = {
+        "YES_BUY": {}, "YES_SELL": {},
+        "NO_BUY": {}, "NO_SELL": {}
+    }
+    for o in open_orders:
+        key = f"{o['outcome']}_{o['action']}"
+        p = o['price_cents']
+        qty = o['quantity'] - o['filled']
+        if qty > 0:
+            book[key][p] = book[key].get(p, 0) + qty
+            
+    result = {}
+    for k, v in book.items():
+        rev = "BUY" in k
+        arr = [{"price_cents": price, "quantity": qty} for price, qty in v.items()]
+        arr.sort(key=lambda x: x['price_cents'], reverse=rev)
+        result[k] = arr
+        
+    return result
+
+@app.post("/markets/{market_id}/resolve")
+def resolve_market(market_id: str, req: ResolveRequest):
+    """Admin endpoint to resolve a market and pay out winning shares."""
+    pos_ref = db.collection('positions').where("market_id", "==", market_id)
+    positions = [doc.to_dict() for doc in pos_ref.stream()]
+    
+    orders_ref = db.collection('orders').where("market_id", "==", market_id).where("status", "==", OrderStatus.OPEN.value)
+    
+    batch = db.batch()
+    for doc in orders_ref.stream():
+        batch.update(doc.reference, {"status": OrderStatus.CANCELLED.value})
+        
+    for pos in positions:
+        user_id = pos['user_id']
+        yes_qty = pos.get('yes_shares', 0)
+        no_qty = pos.get('no_shares', 0)
+        
+        payout_cents = 0
+        if req.outcome.value == "YES":
+            payout_cents = yes_qty * 100
+        else:
+            payout_cents = no_qty * 100
+            
+        if payout_cents > 0:
+            user_ref = db.collection('users').document(user_id)
+            user_doc = user_ref.get()
+            if user_doc.exists:
+                current_balance = user_doc.to_dict().get('balance', 0)
+                batch.update(user_ref, {"balance": current_balance + (payout_cents / 100.0)})
+                
+        pos_doc_ref = db.collection('positions').document(f"{user_id}_{market_id}")
+        batch.update(pos_doc_ref, {"yes_shares": 0, "no_shares": 0})
+        
+    batch.commit()
+    return {"message": f"Market {market_id} resolved to {req.outcome.value}. Paid out {len(positions)} positions."}
 

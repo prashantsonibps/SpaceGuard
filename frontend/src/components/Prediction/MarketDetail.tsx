@@ -4,7 +4,8 @@ import { motion } from 'framer-motion'
 import { textOpacity, accent, fontSize } from '@/lib/theme'
 import { useTheme } from '@/lib/ThemeContext'
 import { PriceChart } from './PriceChart'
-import { BuyPanel } from './BuyPanel'
+import { TradePanel } from './TradePanel'
+import { OrderBook } from './OrderBook'
 import type { Market } from '@/data/markets'
 
 interface MarketDetailProps {
@@ -50,9 +51,10 @@ export function MarketDetail({ market, userId, defaultSide }: MarketDetailProps)
           </div>
         </div>
 
-        {/* Right: buy panel */}
-        <div className="shrink-0">
-          <BuyPanel market={market} userId={userId} defaultSide={defaultSide} />
+        {/* Right: buy panel & orderbook */}
+        <div className="shrink-0 flex flex-col gap-3">
+          <TradePanel market={market} userId={userId} defaultSide={defaultSide} />
+          <OrderBook marketId={market.linkedEventId ?? market.id} defaultSide={defaultSide ?? 'YES'} />
         </div>
       </div>
     </motion.div>

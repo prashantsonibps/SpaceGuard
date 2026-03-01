@@ -19,7 +19,8 @@ interface BettingModalProps {
 
 export function BettingModal({ isOpen, onClose, eventId, eventName, eventType, userId, onBetPlaced }: BettingModalProps) {
   const { theme } = useTheme()
-  const [amount, setAmount] = useState<number>(100)
+  const [amount, setAmount] = useState<number>(10)
+  const [price, setPrice] = useState<number>(50)
   const [outcome, setOutcome] = useState<string>('YES')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -28,7 +29,8 @@ export function BettingModal({ isOpen, onClose, eventId, eventName, eventType, u
     setLoading(true)
     setError(null)
     try {
-      await api.placeBet(userId, eventId, eventType, amount, outcome)
+      const safeOutcome = outcome === 'DELAY' ? 'NO' : (outcome as 'YES' | 'NO')
+      await api.placeOrder(userId, eventId, safeOutcome, 'BUY', price, amount)
       onBetPlaced()
       onClose()
     } catch (err: any) {
@@ -80,7 +82,16 @@ export function BettingModal({ isOpen, onClose, eventId, eventName, eventType, u
                 </div>
 
                 <div>
-                  <label className={`block text-xs ${textOpacity[theme].muted} mb-1`}>Wager Amount ($)</label>
+                  <label className={`block text-xs ${textOpacity[theme].muted} mb-1`}>Limit Price (¢)</label>
+                  <input
+                    type="number"
+                    value={price}
+                    onChange={(e) => setPrice(Number(e.target.value))}
+                    className={`w-full bg-black/5 dark:bg-white/5 border border-black/20 dark:border-white/10 rounded px-3 py-2 ${textOpacity[theme].primary} text-sm mb-3`}
+                    min="1"
+                    max="99"
+                  />
+                  <label className={`block text-xs ${textOpacity[theme].muted} mb-1`}>Contracts (Shares)</label>
                   <input
                     type="number"
                     value={amount}
