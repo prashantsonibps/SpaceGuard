@@ -60,9 +60,11 @@ function AnimatedBackground({ targetHex }: { targetHex: string }) {
 
 function SceneContent({
   selectedEventId,
+  onSelectEvent,
   theme,
 }: {
   selectedEventId?: string | null
+  onSelectEvent?: (id: string | null) => void
   theme: 'dark' | 'light'
 }) {
   const canvas = globeColors[theme].canvas
@@ -81,7 +83,7 @@ function SceneContent({
       {/* Earth + satellites */}
       <Suspense fallback={null}>
         <Earth autoRotate={false} theme={theme} />
-        <SatelliteMarkers selectedEventId={selectedEventId} theme={theme} />
+        <SatelliteMarkers selectedEventId={selectedEventId} onSelectEvent={onSelectEvent} theme={theme} />
       </Suspense>
 
       {/* Camera controls — damping disabled for instant response */}
@@ -105,7 +107,13 @@ function SceneContent({
   )
 }
 
-export function GlobeScene({ selectedEventId }: { selectedEventId?: string | null }) {
+export function GlobeScene({
+  selectedEventId,
+  onSelectEvent,
+}: {
+  selectedEventId?: string | null
+  onSelectEvent?: (id: string | null) => void
+}) {
   const { theme } = useTheme()
   const [visible, setVisible] = useState(false)
 
@@ -124,7 +132,7 @@ export function GlobeScene({ selectedEventId }: { selectedEventId?: string | nul
         gl={{ antialias: true, alpha: false }}
         onCreated={() => setVisible(true)}
       >
-        <SceneContent selectedEventId={selectedEventId} theme={theme} />
+        <SceneContent selectedEventId={selectedEventId} onSelectEvent={onSelectEvent} theme={theme} />
       </Canvas>
     </div>
   )

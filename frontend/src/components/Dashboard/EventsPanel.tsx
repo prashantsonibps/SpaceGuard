@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { GlassCard } from '@/components/ui/GlassCard'
 import { db } from '@/lib/firebase'
@@ -89,19 +89,27 @@ function EventRow({
   const { theme } = useTheme()
   const rc = riskClasses[theme]
   const [isBettingOpen, setIsBettingOpen] = useState(false)
+  const rowRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (isSelected && rowRef.current) {
+      rowRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+    }
+  }, [isSelected])
 
   const probPct = event.collision_probability ? parseFloat((event.collision_probability * 100).toFixed(4)) : 0
 
   return (
     <>
       <motion.div
+        ref={rowRef}
         className={`border-l-2 ${(rc[event.risk_level] ?? rc.LOW).borderLeft} border-b border-black/5 dark:border-white/5 last:border-b-0 ${isSelected ? 'bg-black/[0.06] dark:bg-white/[0.06]' : ''}`}
         initial={{ opacity: 0, x: 12 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ delay: index * 0.08 + 0.2 }}
       >
-        <button
-          className="w-full text-left px-3 py-2.5 hover:bg-black/[0.03] dark:hover:bg-white/[0.03] transition-colors"
+        <div
+          className="w-full text-left px-3 py-2.5 hover:bg-black/[0.03] dark:hover:bg-white/[0.03] transition-colors cursor-pointer"
           onClick={() => onSelect(isSelected ? null : event.id)}
         >
           <div className="flex items-center justify-between mb-1.5">
@@ -175,7 +183,14 @@ function EventRow({
                         ? `${(event.velocity_km_s || 0).toFixed(1)} km/s`
                         : type === 'LAUNCH'
                           ? event.weather ? event.weather.conditions : 'TBD'
-                          : `${probPct}%`
+                          : (
+                            <span
+                              className="underline decoration-dotted cursor-pointer hover:opacity-70 transition-opacity"
+                              onClick={(e) => { e.stopPropagation(); setIsBettingOpen(true); }}
+                            >
+                              {probPct}%
+                            </span>
+                          )
                 }
               </div>
             </div>
@@ -186,7 +201,7 @@ function EventRow({
               </div>
             </div>
           </div>
-        </button>
+        </div>
 
         <AnimatePresence>
           {isSelected && (
@@ -210,7 +225,7 @@ function EventRow({
                   }}
                   className={`flex-1 py-1 rounded ${fontSize.small} font-mono border border-purple-400/30 bg-purple-400/10 text-purple-500 dark:text-purple-400 hover:bg-purple-400/20 transition-colors`}
                 >
-                  PLACE WAGER
+                  PLACE BET
                 </button>
               </div>
             </motion.div>

@@ -39,7 +39,7 @@ export default function HomePage() {
     <div className="relative w-screen h-screen overflow-hidden bg-slate-50 dark:bg-black">
       {/* Full-screen globe */}
       <div className="absolute inset-0">
-        <GlobeScene selectedEventId={selectedEventId} />
+        <GlobeScene selectedEventId={selectedEventId} onSelectEvent={setSelectedEventId} />
       </div>
 
       {/* Overlay UI */}

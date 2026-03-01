@@ -15,9 +15,11 @@ const DOT_SIZE = 0.006
 
 export function SatelliteMarkers({
   selectedEventId,
+  onSelectEvent,
   theme,
 }: {
   selectedEventId?: string | null
+  onSelectEvent?: (id: string | null) => void
   theme: 'dark' | 'light'
 }) {
   const colors = globeColors[theme]
@@ -83,12 +85,19 @@ export function SatelliteMarkers({
     })
   })
 
-  // Build a map of all active satellites with their probability color
+  // Build maps: satId → color, satId → eventId
   const allActiveSats = new Map<string, string>()
+  const satToEventId = new Map<string, string>()
   events.forEach((evt) => {
     const color = probToColor(evt.collision_probability ?? 0)
     allActiveSats.set(evt.asset_id, color)
     allActiveSats.set(evt.secondary_id, color)
+    // Keep the highest-risk event if a satellite appears in multiple events
+    const existing = satToEventId.get(evt.asset_id)
+    if (!existing || (evt.collision_probability ?? 0) > (events.find(e => e.id === existing)?.collision_probability ?? 0)) {
+      satToEventId.set(evt.asset_id, evt.id)
+      satToEventId.set(evt.secondary_id, evt.id)
+    }
   })
 
   // Only show orbit lines for the selected event
@@ -120,6 +129,9 @@ export function SatelliteMarkers({
           color={color}
           index={i}
           showLine={selectedSatIds.has(id)}
+          isSelected={selectedEventId != null && satToEventId.get(id) === selectedEventId}
+          eventId={satToEventId.get(id) ?? null}
+          onSelectEvent={onSelectEvent}
         />
       ))}
     </group>
@@ -131,11 +143,17 @@ function ActiveSatelliteMarker({
   color,
   index,
   showLine,
+  isSelected,
+  eventId,
+  onSelectEvent,
 }: {
   id: string
   color: string
   index: number
   showLine: boolean
+  isSelected: boolean
+  eventId: string | null
+  onSelectEvent?: (id: string | null) => void
 }) {
   const alt = 450 + index * 10
   const inclination = 51.6
@@ -148,6 +166,12 @@ function ActiveSatelliteMarker({
 
   const [x, y, z] = positionOnSphere(alt, inclination, raan, 0, 0, VIZ_SCALE)
 
+  const handleClick = (e: { stopPropagation: () => void }) => {
+    e.stopPropagation()
+    if (!onSelectEvent || !eventId) return
+    onSelectEvent(isSelected ? null : eventId)
+  }
+
   return (
     <group>
       {showLine && (
@@ -159,6 +183,16 @@ function ActiveSatelliteMarker({
           lineWidth={1.5}
         />
       )}
+      {/* Invisible larger hit area for easier clicking */}
+      <Sphere
+        position={[x, y, z]}
+        args={[DOT_SIZE * 8, 8, 8]}
+        onClick={handleClick}
+        onPointerOver={() => { document.body.style.cursor = 'pointer' }}
+        onPointerOut={() => { document.body.style.cursor = 'default' }}
+      >
+        <meshBasicMaterial transparent opacity={0} />
+      </Sphere>
       <Sphere position={[x, y, z]} args={[DOT_SIZE * 3, 16, 16]}>
         <meshBasicMaterial color={color} />
       </Sphere>
