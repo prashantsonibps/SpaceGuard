@@ -84,6 +84,19 @@ def save_conjunctions(db, conjunctions):
     batch.commit()
     print("✅ Finished saving conjunctions.")
 
+def save_neo_events(db, neo_events):
+    """Saves asteroid close approaches to the 'neo_events' collection."""
+    print(f"Saving {len(neo_events)} Near Earth Object (Asteroid) events to Firestore...")
+    batch = db.batch()
+    col_ref = db.collection('neo_events')
+    
+    for event in neo_events:
+        doc_ref = col_ref.document(str(event['id']))
+        batch.set(doc_ref, event, merge=True)
+        
+    batch.commit()
+    print("✅ Finished saving NEO events.")
+
 if __name__ == "__main__":
     # Test the connection
     try:

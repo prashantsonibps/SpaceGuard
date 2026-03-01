@@ -4,7 +4,8 @@ import time
 from tle_fetcher import get_all_satellite_data
 from launch_fetcher import fetch_upcoming_launches
 from conjunction_calculator import calculate_conjunctions
-from db import initialize_db, save_satellites, save_launches, save_conjunctions
+from neo_fetcher import fetch_neo_events
+from db import initialize_db, save_satellites, save_launches, save_conjunctions, save_neo_events
 from agent import analyze_risk_and_hedge
 import firebase_admin
 
@@ -64,11 +65,17 @@ def run_pipeline():
         
     save_conjunctions(db, conjunctions)
     
+    # 3.5 Fetch Near Earth Objects (Asteroids)
+    print("\n--- 3.5 Fetching Near Earth Objects (Asteroids) ---")
+    neos = fetch_neo_events()
+    print(f"Total significant asteroid approaches: {len(neos)}")
+    save_neo_events(db, neos)
+    
     print("\n--- 4. LLM Risk Assessment Agent ---")
     # Evaluate critical conjunctions with Gemini
-    critical_events = [c for c in conjunctions if c['risk_level'] in ['HIGH', 'CRITICAL']]
+    critical_events = [c for c in conjunctions if c.get('risk_level') in ['HIGH', 'CRITICAL']]
     for event in critical_events:
-        print(f"\nAnalyzing Event for: {event['asset_name']}")
+        print(f"\nAnalyzing Conjunction Event for: {event.get('asset_name', 'Unknown')}")
         try:
             decision = analyze_risk_and_hedge(event)
             print(f"  Decision: {decision.get('action')}")
@@ -88,9 +95,30 @@ def run_pipeline():
         except Exception as e:
             print(f"  ❌ Agent analysis failed: {e}")
             print("  (Make sure your GEMINI_API_KEY is set in .env)")
-    
+
+    # Evaluate critical asteroid approaches
+    critical_neos = [n for n in neos if n.get('risk_level') in ['HIGH', 'CRITICAL']]
+    for event in critical_neos:
+        print(f"\nAnalyzing Asteroid Event for: {event.get('name', 'Unknown')}")
+        try:
+            decision = analyze_risk_and_hedge(event)
+            print(f"  Decision: {decision.get('action')}")
+            print(f"  Reasoning: {decision.get('reasoning')}")
+            print(f"  Amount: ${decision.get('hedge_amount_usd', 0)}")
+            
+            db.collection('neo_events').document(str(event['id'])).update({
+                'agent_assessment': decision.get('reasoning'),
+                'hedge_status': decision.get('action'),
+                'hedge_amount_usd': decision.get('hedge_amount_usd', 0),
+                'hedge_type': decision.get('hedge_type', 'none')
+            })
+            print("  ✅ Saved decision to database")
+        except Exception as e:
+            print(f"  ❌ Agent analysis failed: {e}")
+
     print("\n--- Pipeline Summary ---")
     print(f"High-Risk Conjunctions Evaluated: {len(critical_events)}")
+    print(f"High-Risk Asteroids Evaluated: {len(critical_neos)}")
     print(f"Delayed Launches Updated: {len(high_risk_launches)}")
     print("✅ Pipeline run completed successfully!")
 
