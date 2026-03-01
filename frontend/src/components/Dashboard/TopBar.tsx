@@ -1,6 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
+import { accent, riskClasses, financialColors } from '@/lib/theme'
 
 export function TopBar() {
   return (
@@ -13,8 +14,8 @@ export function TopBar() {
     >
       {/* Logo */}
       <div className="flex items-center gap-2">
-        <div className="w-2 h-2 rounded-full bg-sky-400 animate-pulse" />
-        <span className="font-orbitron text-sm font-bold tracking-widest text-sky-400">
+        <div className={`w-2 h-2 rounded-full ${accent.dark.dot} animate-pulse`} />
+        <span className={`font-orbitron text-sm font-bold tracking-widest ${accent.dark.text}`}>
           SPACEGUARD
         </span>
       </div>
@@ -37,18 +38,18 @@ export function TopBar() {
           <span className="text-white/40">SATELLITES</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse" />
-          <span className="text-red-400 font-medium">3</span>
+          <span className={`w-1.5 h-1.5 rounded-full ${riskClasses.dark.CRITICAL.dot} animate-pulse`} />
+          <span className={`${riskClasses.dark.CRITICAL.text} font-medium`}>3</span>
           <span className="text-white/40">CRITICAL</span>
         </div>
         <div className="flex items-center gap-1.5">
           <span className="text-white/40">PORTFOLIO</span>
-          <span className="text-orange-400 font-medium">$2.4B</span>
+          <span className={`${financialColors.dark.balance} font-medium`}>$2.4B</span>
           <span className="text-white/40">AT RISK</span>
         </div>
         <div className="flex items-center gap-1.5">
           <span className="text-white/40">ACTIVE HEDGES</span>
-          <span className="text-sky-400 font-medium">7</span>
+          <span className={`${accent.dark.text} font-medium`}>7</span>
         </div>
       </div>
 

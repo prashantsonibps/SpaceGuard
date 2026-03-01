@@ -8,14 +8,15 @@ import { positionOnSphere } from '@/lib/orbital'
 import { db } from '@/lib/firebase'
 import { collection, onSnapshot, query } from 'firebase/firestore'
 import { ConjunctionEvent } from '@/components/Dashboard/EventsPanel'
+import { riskClasses } from '@/lib/theme'
 
 const VIZ_SCALE = 0.98
 
 const riskColors: Record<string, string> = {
-  CRITICAL: '#f43f5e',
-  HIGH: '#fb923c',
-  MEDIUM: '#facc15',
-  LOW: '#4ade80',
+  CRITICAL: riskClasses.dark.CRITICAL.hex,
+  HIGH: riskClasses.dark.HIGH.hex,
+  MEDIUM: riskClasses.dark.MEDIUM.hex,
+  LOW: riskClasses.dark.LOW.hex,
 }
 
 interface AlertMarker {

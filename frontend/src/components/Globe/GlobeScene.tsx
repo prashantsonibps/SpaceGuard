@@ -7,6 +7,7 @@ import { Bloom, EffectComposer } from '@react-three/postprocessing'
 import * as THREE from 'three'
 import { Earth } from './Earth'
 import { SatelliteMarkers } from './SatelliteMarkers'
+import { globeColors } from '@/lib/theme'
 
 // Custom star field — anchored to camera (skybox behaviour), full control over size/color.
 function SkyStars() {
@@ -35,7 +36,7 @@ function SkyStars() {
         <bufferGeometry>
           <bufferAttribute attach="attributes-position" args={[positions, 3]} />
         </bufferGeometry>
-        <pointsMaterial size={0.18} color="#555555" sizeAttenuation />
+        <pointsMaterial size={0.18} color={globeColors.dark.stars} sizeAttenuation />
       </points>
     </group>
   )

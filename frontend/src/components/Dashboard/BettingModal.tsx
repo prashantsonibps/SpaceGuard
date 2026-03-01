@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { GlassCard } from '@/components/ui/GlassCard'
 import { api } from '@/lib/api'
+import { accent, riskClasses } from '@/lib/theme'
 
 interface BettingModalProps {
   isOpen: boolean
@@ -73,7 +74,7 @@ export function BettingModal({ isOpen, onClose, eventId, eventName, eventType, u
                 </div>
 
                 {error && (
-                  <div className="text-red-400 text-xs">{error}</div>
+                  <div className={`${riskClasses.dark.CRITICAL.text} text-xs`}>{error}</div>
                 )}
 
                 <div className="flex gap-2 pt-2">
@@ -86,7 +87,7 @@ export function BettingModal({ isOpen, onClose, eventId, eventName, eventType, u
                   <button
                     onClick={handleBet}
                     disabled={loading}
-                    className="flex-1 py-2 text-xs bg-sky-500 hover:bg-sky-400 text-white rounded transition-colors disabled:opacity-50"
+                    className={`flex-1 py-2 text-xs ${accent.dark.bg} ${accent.dark.bgHover} text-white rounded transition-colors disabled:opacity-50`}
                   >
                     {loading ? 'Placing...' : 'Confirm Bet'}
                   </button>

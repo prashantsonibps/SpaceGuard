@@ -6,6 +6,7 @@ import { db } from '@/lib/firebase'
 import { collection, onSnapshot, query } from 'firebase/firestore'
 import { ConjunctionEvent } from '@/components/Dashboard/EventsPanel'
 import { api, Bet } from '@/lib/api'
+import { statusClasses, riskClasses, financialColors, accent, textOpacity } from '@/lib/theme'
 
 const STARTING_PORTFOLIO_VALUE = 10000
 
@@ -15,23 +16,16 @@ const formatCurrency = (val: number) => {
   return `$${val.toFixed(2)}`
 }
 
-const statusStyle: Record<string, string> = {
-  EXECUTED: 'text-green-400',
-  WON: 'text-green-400',
-  LOST: 'text-red-400',
-  PENDING: 'text-yellow-400',
-  MONITORING: 'text-sky-400',
-  CANCELLED: 'text-white/40',
-}
+const statusStyle = statusClasses.dark
 
 function ExposureBar({ label, value, max, risk }: { label: string; value: number; max: number; risk: string }) {
   const pct = Math.max(1, Math.round((value / max) * 20))
   const percent = Math.round((value / max) * 100)
   const riskColor: Record<string, string> = {
-    CRITICAL: 'text-red-400',
-    HIGH: 'text-orange-400',
-    MEDIUM: 'text-yellow-400',
-    LOW: 'text-green-500',
+    CRITICAL: riskClasses.dark.CRITICAL.text,
+    HIGH: riskClasses.dark.HIGH.text,
+    MEDIUM: riskClasses.dark.MEDIUM.text,
+    LOW: riskClasses.dark.LOW.text,
   }
   return (
     <div className="space-y-1">
@@ -186,7 +180,7 @@ export function FinancialTerminal({ userId }: { userId?: string }) {
               <div className="flex items-center gap-3">
                 <span className="font-orbitron text-[11px] font-bold text-white/70 tracking-[0.25em]">FINANCIAL TERMINAL</span>
                 <div className="flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse shrink-0" />
+                  <span className={`w-1.5 h-1.5 rounded-full ${riskClasses.dark.LOW.dot} animate-pulse shrink-0`} />
                   <span className="text-[9px] font-mono text-white/25">W&B Weave · Live Audit</span>
                 </div>
               </div>
@@ -202,10 +196,10 @@ export function FinancialTerminal({ userId }: { userId?: string }) {
             {/* Metrics strip — horizontal band with vertical dividers */}
             <div className="flex items-stretch border-b border-white/[0.06] shrink-0">
               {[
-                { label: 'USER BALANCE', value: formatCurrency(portfolioValue), sub: 'Demo USD wallet', color: 'text-orange-400' },
-                { label: 'TOTAL WAGERED', value: formatCurrency(totalWagered), sub: 'Active bets only', color: 'text-green-400' },
-                { label: 'VALUE AT RISK 95%', value: formatCurrency(varValue), sub: '1-day horizon', color: 'text-yellow-400' },
-                { label: 'ACTIVE BETS', value: activeBets.toString(), sub: `${betHistory.length} total placed`, color: 'text-white/70' },
+                { label: 'USER BALANCE', value: formatCurrency(portfolioValue), sub: 'Demo USD wallet', color: financialColors.dark.balance },
+                { label: 'TOTAL WAGERED', value: formatCurrency(totalWagered), sub: 'Active bets only', color: financialColors.dark.wagered },
+                { label: 'VALUE AT RISK 95%', value: formatCurrency(varValue), sub: '1-day horizon', color: financialColors.dark.var },
+                { label: 'ACTIVE BETS', value: activeBets.toString(), sub: `${betHistory.length} total placed`, color: textOpacity.dark.secondary },
               ].map((m, i) => (
                 <div key={m.label} className={`flex-1 px-5 py-3 ${i > 0 ? 'border-l border-white/[0.06]' : ''}`}>
                   <div className="text-[8px] font-mono text-white/25 tracking-widest mb-1.5">{m.label}</div>
@@ -221,7 +215,7 @@ export function FinancialTerminal({ userId }: { userId?: string }) {
               {/* Col 1 — Exposure bars */}
               <div className="flex flex-col min-h-0">
                 <div className="flex items-center gap-2 mb-3 shrink-0">
-                  <div className="w-0.5 h-3 rounded-full bg-orange-500/50" />
+                  <div className="w-0.5 h-3 rounded-full bg-orange-300/50" />
                   <span className="text-[9px] font-mono text-white/30 tracking-widest uppercase">Exposure by Event</span>
                 </div>
                 <div className="space-y-3 flex-1 overflow-y-auto">
@@ -240,7 +234,7 @@ export function FinancialTerminal({ userId }: { userId?: string }) {
                 <div className="mt-auto pt-3 border-t border-white/[0.06] shrink-0">
                   <div className="flex justify-between items-baseline font-mono">
                     <span className="text-[8px] text-white/20 tracking-widest uppercase">Total Wagered</span>
-                    <span className="text-[13px] text-orange-400 font-bold tabular-nums">{formatCurrency(totalWagered)}</span>
+                    <span className={`text-[13px] ${financialColors.dark.balance} font-bold tabular-nums`}>{formatCurrency(totalWagered)}</span>
                   </div>
                 </div>
               </div>
@@ -248,7 +242,7 @@ export function FinancialTerminal({ userId }: { userId?: string }) {
               {/* Col 2 — Bet history table */}
               <div className="flex flex-col min-h-0">
                 <div className="flex items-center gap-2 mb-3 shrink-0">
-                  <div className="w-0.5 h-3 rounded-full bg-sky-500/50" />
+                  <div className="w-0.5 h-3 rounded-full bg-sky-300/50" />
                   <span className="text-[9px] font-mono text-white/30 tracking-widest uppercase">Bet History · Weave Audit Trail</span>
                 </div>
                 <div className="border border-white/[0.08] rounded-lg overflow-hidden flex flex-col min-h-0 flex-1">
@@ -291,9 +285,9 @@ export function FinancialTerminal({ userId }: { userId?: string }) {
                     <motion.div
                       key={i}
                       className={`text-[10px] font-mono leading-relaxed ${
-                        line.startsWith('✓') || line.includes('✅') ? 'text-green-400'
-                        : line.startsWith('▶') || line.includes('Executing') || line.includes('executing') ? 'text-sky-400'
-                        : 'text-white/35'
+                        line.startsWith('✓') || line.includes('✅') ? riskClasses.dark.LOW.text
+                        : line.startsWith('▶') || line.includes('Executing') || line.includes('executing') ? accent.dark.text
+                        : textOpacity.dark.faint
                       }`}
                       initial={{ opacity: 0, x: -4 }}
                       animate={{ opacity: 1, x: 0 }}
@@ -316,16 +310,16 @@ export function FinancialTerminal({ userId }: { userId?: string }) {
         <div className="flex items-center gap-5 font-mono text-[10px] min-w-0">
           <span className="text-white/35 shrink-0 font-orbitron tracking-widest text-[9px]">FINANCIAL</span>
           <span className="text-white/40">
-            Balance <span className="text-orange-400 font-medium">{formatCurrency(portfolioValue)}</span>
+            Balance <span className={`${financialColors.dark.balance} font-medium`}>{formatCurrency(portfolioValue)}</span>
           </span>
-          <span className="text-white/40">
-            Wagered <span className="text-green-400">{formatCurrency(totalWagered)}</span>
+          <span className={textOpacity.dark.muted}>
+            Wagered <span className={financialColors.dark.wagered}>{formatCurrency(totalWagered)}</span>
           </span>
-          <span className="text-white/40">
-            VaR <span className="text-yellow-400">{formatCurrency(varValue)}</span>
+          <span className={textOpacity.dark.muted}>
+            VaR <span className={financialColors.dark.var}>{formatCurrency(varValue)}</span>
           </span>
-          <span className="text-white/40">
-            Bets <span className="text-white/70">{activeBets}</span>
+          <span className={textOpacity.dark.muted}>
+            Bets <span className={textOpacity.dark.secondary}>{activeBets}</span>
           </span>
         </div>
 

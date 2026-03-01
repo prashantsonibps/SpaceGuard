@@ -8,15 +8,16 @@ import { positionOnSphere, sampleOrbit } from '@/lib/orbital'
 import { db } from '@/lib/firebase'
 import { collection, onSnapshot, query } from 'firebase/firestore'
 import { ConjunctionEvent } from '@/components/Dashboard/EventsPanel'
+import { globeColors } from '@/lib/theme'
 
 const VIZ_SCALE = 0.98
 const DOT_SIZE = 0.004
 
 function probToColor(prob: number): string {
-  if (prob >= 0.1)  return '#ef4444' // red    — ≥10%
-  if (prob >= 0.01) return '#f97316' // orange — ≥1%
-  if (prob >= 0.001) return '#eab308' // yellow — ≥0.1%
-  return '#4ade80'                    // green  — <0.1%
+  if (prob >= 0.1)   return globeColors.dark.prob10      // red-300   — ≥10%
+  if (prob >= 0.01)  return globeColors.dark.prob1       // orange-300 — ≥1%
+  if (prob >= 0.001) return globeColors.dark.prob01      // yellow-300 — ≥0.1%
+  return globeColors.dark.probDefault                    // green-300  — <0.1%
 }
 
 // In a full production app, we would parse TLEs in the frontend to propagate the exact orbit.
@@ -102,7 +103,7 @@ export function SatelliteMarkers({ selectedEventId }: { selectedEventId?: string
           }}
           args={[DOT_SIZE, 8, 8]}
         >
-          <meshBasicMaterial color="#ffffff" transparent opacity={0.4} />
+          <meshBasicMaterial color="#ffffff" transparent opacity={globeColors.dark.bgSatOpacity} />
         </Sphere>
       ))}
 
