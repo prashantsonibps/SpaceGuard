@@ -2,6 +2,7 @@
 
 import type { RiskLevel } from '@/components/Dashboard/EventsPanel'
 import { riskClasses } from '@/lib/theme'
+import { useTheme } from '@/lib/ThemeContext'
 
 interface RiskBadgeProps {
   level: RiskLevel
@@ -16,7 +17,8 @@ const riskLabels: Record<RiskLevel, string> = {
 }
 
 export function RiskBadge({ level, className = '' }: RiskBadgeProps) {
-  const colors = riskClasses.dark[level]
+  const { theme } = useTheme()
+  const colors = riskClasses[theme][level]
   return (
     <span
       className={`

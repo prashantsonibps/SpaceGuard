@@ -7,6 +7,7 @@ import { db } from '@/lib/firebase'
 import { collection, onSnapshot, query, orderBy } from 'firebase/firestore'
 import { BettingModal } from './BettingModal'
 import { riskClasses, accent, textOpacity } from '@/lib/theme'
+import { useTheme } from '@/lib/ThemeContext'
 
 // Update the type to match our new Firestore schema
 export type RiskLevel = 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW'
@@ -36,9 +37,9 @@ function formatCountdown(tcaString: string): string {
     const tca = new Date(tcaString).getTime()
     const now = new Date().getTime()
     const diffHours = (tca - now) / (1000 * 60 * 60)
-    
+
     if (diffHours < 0) return "PAST"
-    
+
     const h = Math.floor(diffHours)
     const m = Math.floor((diffHours - h) * 60)
     return `${h}h ${m.toString().padStart(2, '0')}m`
@@ -46,8 +47,6 @@ function formatCountdown(tcaString: string): string {
     return "--h --m"
   }
 }
-
-const rc = riskClasses.dark
 
 function EventRow({
   event,
@@ -64,6 +63,8 @@ function EventRow({
   isSelected: boolean
   onSelect: (id: string | null) => void
 }) {
+  const { theme } = useTheme()
+  const rc = riskClasses[theme]
   const [isBettingOpen, setIsBettingOpen] = useState(false)
 
   const probPct = event.collision_probability ? (event.collision_probability * 100).toFixed(4) : '0.00'
@@ -71,13 +72,13 @@ function EventRow({
   return (
     <>
       <motion.div
-        className={`border-l-2 ${(rc[event.risk_level] ?? rc.LOW).borderLeft} border-b border-white/5 last:border-b-0 ${isSelected ? 'bg-white/[0.06]' : ''}`}
+        className={`border-l-2 ${(rc[event.risk_level] ?? rc.LOW).borderLeft} border-b border-black/5 dark:border-white/5 last:border-b-0 ${isSelected ? 'bg-black/[0.06] dark:bg-white/[0.06]' : ''}`}
         initial={{ opacity: 0, x: 12 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ delay: index * 0.08 + 0.2 }}
       >
         <button
-          className="w-full text-left px-3 py-2.5 hover:bg-white/[0.03] transition-colors"
+          className="w-full text-left px-3 py-2.5 hover:bg-black/[0.03] dark:hover:bg-white/[0.03] transition-colors"
           onClick={() => onSelect(isSelected ? null : event.id)}
         >
           <div className="flex items-center justify-between mb-1.5">
@@ -86,49 +87,49 @@ function EventRow({
               <span className={`text-[10px] font-mono font-bold tracking-widest ${(rc[event.risk_level] ?? rc.LOW).text}`}>
                 {event.risk_level || "UNKNOWN"}
               </span>
-              <span className={`text-[10px] font-mono ${textOpacity.dark.faint} ml-1 truncate max-w-[80px]`}>
+              <span className={`text-[10px] font-mono ${textOpacity[theme].faint} ml-1 truncate max-w-[80px]`}>
                 {type === 'NEO' ? 'ASTEROID' : event.asset_id}
               </span>
             </div>
-            <span className={`text-[10px] font-mono ${textOpacity.dark.faint} tabular-nums`}>
+            <span className={`text-[10px] font-mono ${textOpacity[theme].faint} tabular-nums`}>
               {type === 'NEO' ? event.time_of_closest_approach : `T−${formatCountdown(event.time_of_closest_approach)}`}
             </span>
           </div>
 
-          <div className={`font-mono text-[11px] ${textOpacity.dark.secondary} leading-snug mb-2 truncate`}>
+          <div className={`font-mono text-[11px] ${textOpacity[theme].secondary} leading-snug mb-2 truncate`}>
             {type === 'NEO' ? (
-              <span className={textOpacity.dark.primary}>{event.asset_name} <span className={`${textOpacity.dark.faint} text-[9px]`}>(NEO)</span></span>
+              <span className={textOpacity[theme].primary}>{event.asset_name} <span className={`${textOpacity[theme].faint} text-[9px]`}>(NEO)</span></span>
             ) : (
               <>
                 {event.asset_name}
-                <span className={`${textOpacity.dark.faint} mx-1.5`}>×</span>
-                <span className={textOpacity.dark.muted}>{event.secondary_name}</span>
+                <span className={`${textOpacity[theme].faint} mx-1.5`}>×</span>
+                <span className={textOpacity[theme].muted}>{event.secondary_name}</span>
               </>
             )}
           </div>
 
           <div className="grid grid-cols-3 gap-1 text-[10px] font-mono">
             <div>
-              <div className={`${textOpacity.dark.faint} uppercase tracking-wider text-[9px]`}>Dist</div>
-              <div className={`${textOpacity.dark.secondary} tabular-nums`}>
-                {type === 'NEO' 
+              <div className={`${textOpacity[theme].faint} uppercase tracking-wider text-[9px]`}>Dist</div>
+              <div className={`${textOpacity[theme].secondary} tabular-nums`}>
+                {type === 'NEO'
                   ? `${(event.miss_distance_km ? event.miss_distance_km / 1000000 : 0).toFixed(1)}M km`
                   : `${event.closest_approach_km} km`
                 }
               </div>
             </div>
             <div>
-              <div className={`${textOpacity.dark.faint} uppercase tracking-wider text-[9px]`}>{type === 'NEO' ? 'Size' : 'Prob'}</div>
+              <div className={`${textOpacity[theme].faint} uppercase tracking-wider text-[9px]`}>{type === 'NEO' ? 'Size' : 'Prob'}</div>
               <div className={`tabular-nums ${(rc[event.risk_level] ?? rc.LOW).text}`}>
-                {type === 'NEO' 
+                {type === 'NEO'
                   ? `${(event.estimated_diameter_max_km || 0).toFixed(2)} km`
                   : `${probPct}%`
                 }
               </div>
             </div>
             <div>
-              <div className={`${textOpacity.dark.faint} uppercase tracking-wider text-[9px]`}>Agent Hedge</div>
-              <div className={`tabular-nums ${event.hedge_status === 'HEDGE' ? accent.dark.text : textOpacity.dark.secondary}`}>
+              <div className={`${textOpacity[theme].faint} uppercase tracking-wider text-[9px]`}>Agent Hedge</div>
+              <div className={`tabular-nums ${event.hedge_status === 'HEDGE' ? accent[theme].text : textOpacity[theme].secondary}`}>
                 {event.hedge_status ? `$${(event.hedge_amount_usd || 0).toLocaleString()}` : 'PENDING'}
               </div>
             </div>
@@ -144,8 +145,8 @@ function EventRow({
               exit={{ opacity: 0, height: 0 }}
               transition={{ duration: 0.18 }}
             >
-              <div className={`text-[10px] font-mono ${textOpacity.dark.secondary} bg-white/[0.04] border ${accent.dark.borderDim} rounded px-2 py-1.5 mb-2 leading-relaxed`}>
-                <span className={`${accent.dark.text} font-bold block mb-1`}>🤖 Gemini AI Assessment:</span>
+              <div className={`text-[10px] font-mono ${textOpacity[theme].secondary} bg-black/[0.04] dark:bg-white/[0.04] border ${accent[theme].borderDim} rounded px-2 py-1.5 mb-2 leading-relaxed`}>
+                <span className={`${accent[theme].text} font-bold block mb-1`}>🤖 Gemini AI Assessment:</span>
                 {event.agent_assessment || "Awaiting AI evaluation..."}
               </div>
 
@@ -153,7 +154,7 @@ function EventRow({
                 <button
                   disabled={event.hedge_status !== 'HEDGE'}
                   className={`flex-1 py-1 rounded text-[10px] font-mono border transition-colors
-                    ${event.hedge_status === 'HEDGE' ? `${accent.dark.text} border-sky-300/30 ${accent.dark.bgDim} ${accent.dark.bgDimHover} cursor-pointer` : 'text-white/20 border-white/10 bg-transparent cursor-not-allowed'}`}
+                    ${event.hedge_status === 'HEDGE' ? `${accent[theme].text} border-sky-300/30 ${accent[theme].bgDim} ${accent[theme].bgDimHover} cursor-pointer` : 'text-slate-400 dark:text-white/20 border-black/10 dark:border-white/10 bg-transparent cursor-not-allowed'}`}
                 >
                   {event.hedge_status === 'HEDGE' ? 'APPROVE HEDGE' : 'NO ACTION REQ.'}
                 </button>
@@ -162,7 +163,7 @@ function EventRow({
                     e.stopPropagation();
                     setIsBettingOpen(true);
                   }}
-                  className="flex-1 py-1 rounded text-[10px] font-mono border border-purple-400/30 bg-purple-400/10 text-purple-400 hover:bg-purple-400/20 transition-colors"
+                  className="flex-1 py-1 rounded text-[10px] font-mono border border-purple-400/30 bg-purple-400/10 text-purple-500 dark:text-purple-400 hover:bg-purple-400/20 transition-colors"
                 >
                   PLACE WAGER
                 </button>
@@ -172,8 +173,8 @@ function EventRow({
         </AnimatePresence>
       </motion.div>
 
-      <BettingModal 
-        isOpen={isBettingOpen} 
+      <BettingModal
+        isOpen={isBettingOpen}
         onClose={() => setIsBettingOpen(false)}
         eventId={event.id}
         eventName={type === 'NEO' ? event.asset_name : `${event.asset_name} vs ${event.secondary_name}`}
@@ -194,6 +195,9 @@ export function EventsPanel({
   selectedEventId: string | null
   onSelectEvent: (id: string | null) => void
 }) {
+  const { theme } = useTheme()
+  const rc = riskClasses[theme]
+
   const [time, setTime] = useState<Date | null>(null)
   const [events, setEvents] = useState<ConjunctionEvent[]>([])
   const [neoEvents, setNeoEvents] = useState<ConjunctionEvent[]>([])
@@ -211,7 +215,7 @@ export function EventsPanel({
   useEffect(() => {
     const q1 = query(collection(db, 'conjunction_events'))
     const q2 = query(collection(db, 'neo_events'))
-    
+
     const unsubscribe1 = onSnapshot(q1, (snapshot) => {
       const newEvents: ConjunctionEvent[] = []
       snapshot.forEach((doc) => {
@@ -226,14 +230,14 @@ export function EventsPanel({
       const newNeos: ConjunctionEvent[] = []
       snapshot.forEach((doc) => {
         const data = doc.data()
-        newNeos.push({ 
-          id: doc.id, 
+        newNeos.push({
+          id: doc.id,
           asset_id: String(data.id),
           asset_name: data.name,
           secondary_id: 'EARTH',
           secondary_name: 'Earth',
-          closest_approach_km: 0, // Not used for display in NEO mode
-          collision_probability: 0, // Not used
+          closest_approach_km: 0,
+          collision_probability: 0,
           time_of_closest_approach: data.close_approach_date,
           risk_level: data.risk_level,
           miss_distance_km: data.miss_distance_km,
@@ -257,34 +261,33 @@ export function EventsPanel({
 
   const currentList = activeTab === 'SAT' ? events : neoEvents
   const criticalCount = currentList.filter((e) => e.risk_level === 'CRITICAL').length
-  const highCount = currentList.filter((e) => e.risk_level === 'HIGH').length
 
-  if (!userId) return null; // Or some loading state
+  if (!userId) return null;
 
   return (
-    <GlassCard className="absolute right-4 top-16 bottom-4 w-72 flex flex-col z-40 !bg-neutral-900/50">
+    <GlassCard className="absolute right-4 top-16 bottom-4 w-72 flex flex-col z-40 !bg-white/80 dark:!bg-neutral-900/50">
       {/* Header */}
-      <div className="px-3 py-2.5 border-b border-white/10 shrink-0">
+      <div className="px-3 py-2.5 border-b border-black/10 dark:border-white/10 shrink-0">
         <div className="flex items-center justify-between mb-2">
-          <h2 className={`font-orbitron text-[11px] font-bold ${textOpacity.dark.primary} tracking-[0.2em]`}>
+          <h2 className={`font-orbitron text-[11px] font-bold ${textOpacity[theme].primary} tracking-[0.2em]`}>
             RISK MONITOR
           </h2>
-          <p className={`text-[9px] font-mono ${textOpacity.dark.faint} tabular-nums`}>
+          <p className={`text-[9px] font-mono ${textOpacity[theme].faint} tabular-nums`}>
             {time ? time.toISOString().slice(11, 19) : '––:––:––'} UTC
           </p>
         </div>
-        
+
         {/* Tabs */}
-        <div className="flex gap-1 bg-white/5 p-0.5 rounded text-[10px] font-mono mb-2">
-          <button 
+        <div className="flex gap-1 bg-black/5 dark:bg-white/5 p-0.5 rounded text-[10px] font-mono mb-2">
+          <button
             onClick={() => setActiveTab('SAT')}
-            className={`flex-1 py-1 rounded text-center transition-all ${activeTab === 'SAT' ? 'bg-white/10 text-white shadow-sm' : 'text-white/40 hover:text-white/60'}`}
+            className={`flex-1 py-1 rounded text-center transition-all ${activeTab === 'SAT' ? 'bg-black/10 dark:bg-white/10 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 dark:text-white/40 hover:text-slate-700 dark:hover:text-white/60'}`}
           >
             SATELLITES
           </button>
-          <button 
+          <button
             onClick={() => setActiveTab('NEO')}
-            className={`flex-1 py-1 rounded text-center transition-all ${activeTab === 'NEO' ? 'bg-white/10 text-white shadow-sm' : 'text-white/40 hover:text-white/60'}`}
+            className={`flex-1 py-1 rounded text-center transition-all ${activeTab === 'NEO' ? 'bg-black/10 dark:bg-white/10 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 dark:text-white/40 hover:text-slate-700 dark:hover:text-white/60'}`}
           >
             ASTEROIDS
           </button>
@@ -303,12 +306,12 @@ export function EventsPanel({
       {/* Events list */}
       <div className="flex-1 overflow-y-auto">
         {loading ? (
-          <div className="p-4 text-center text-xs font-mono text-white/40">
+          <div className={`p-4 text-center text-xs font-mono ${textOpacity[theme].muted}`}>
             <div className={`w-4 h-4 rounded-full border-2 border-sky-300/30 border-t-sky-300 animate-spin mx-auto mb-2`} />
             Scanning Deep Space...
           </div>
         ) : currentList.length === 0 ? (
-          <div className="p-4 text-center text-xs font-mono text-white/40">
+          <div className={`p-4 text-center text-xs font-mono ${textOpacity[theme].muted}`}>
             No active risks detected in this sector.
           </div>
         ) : (
@@ -327,9 +330,9 @@ export function EventsPanel({
       </div>
 
       {/* Footer */}
-      <div className="px-3 py-1.5 border-t border-white/10 shrink-0">
-        <div className={`text-[9px] font-mono ${accent.dark.text} opacity-80 text-center tracking-wider flex justify-center items-center gap-1.5`}>
-          <div className={`w-1.5 h-1.5 rounded-full ${accent.dark.dot} animate-pulse`} />
+      <div className="px-3 py-1.5 border-t border-black/10 dark:border-white/10 shrink-0">
+        <div className={`text-[9px] font-mono ${accent[theme].text} opacity-80 text-center tracking-wider flex justify-center items-center gap-1.5`}>
+          <div className={`w-1.5 h-1.5 rounded-full ${accent[theme].dot} animate-pulse`} />
           GEMINI AI AGENT ACTIVE
         </div>
       </div>

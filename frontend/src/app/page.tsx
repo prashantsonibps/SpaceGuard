@@ -34,7 +34,7 @@ export default function HomePage() {
   }, [])
 
   return (
-    <div className="relative w-screen h-screen overflow-hidden bg-black">
+    <div className="relative w-screen h-screen overflow-hidden bg-slate-100 dark:bg-black">
       {/* Full-screen globe */}
       <div className="absolute inset-0">
         <GlobeScene selectedEventId={selectedEventId} />

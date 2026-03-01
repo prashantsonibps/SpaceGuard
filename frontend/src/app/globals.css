@@ -7,10 +7,10 @@
 :root {
   --bg-space: #020817;
   --accent-sky: #7dd3fc;
-  --risk-critical: #fb7185;
-  --risk-high: #fdba74;
-  --risk-medium: #fde047;
-  --risk-low: #86efac;
+  --risk-critical: #f87171;
+  --risk-high: #fb923c;
+  --risk-medium: #facc15;
+  --risk-low: #4ade80;
 }
 
 * {
@@ -21,16 +21,21 @@ html,
 body {
   margin: 0;
   padding: 0;
-  background: var(--bg-space);
-  color: white;
   overflow: hidden;
   height: 100%;
 }
 
+/* Light-mode glass */
 .glass {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* Dark-mode glass override */
+.dark .glass {
+  background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 

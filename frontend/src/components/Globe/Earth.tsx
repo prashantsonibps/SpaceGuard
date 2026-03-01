@@ -1,9 +1,10 @@
 'use client'
 
-import { useRef, useMemo } from 'react'
+import { useRef, useMemo, useEffect } from 'react'
 import { useFrame, useLoader } from '@react-three/fiber'
 import * as THREE from 'three'
 import { mergeBufferGeometries } from 'three-stdlib'
+import { globeColors } from '@/lib/theme'
 
 const DOT_COUNT = 10000
 const RADIUS = 1
@@ -57,10 +58,6 @@ const fragmentShader = /* glsl */ `
 `
 
 // ─── Geometry ─────────────────────────────────────────────────────────────────
-// 10 000 unit PlaneGeometry(1,1) quads distributed over the sphere via the
-// Fibonacci lattice.  Each quad stores two extra attributes:
-//   center  – the sphere-surface point (used by vertex shader to scale the quad)
-//   baseUv  – equirectangular UV for texture lookup
 function createDottedSphereGeometry(): THREE.BufferGeometry {
   const sph      = new THREE.Spherical()
   const dummyObj = new THREE.Object3D()
@@ -80,22 +77,18 @@ function createDottedSphereGeometry(): THREE.BufferGeometry {
 
     sph.setFromVector3(p)
 
-    // Orient the quad to face outward from the sphere surface
     dummyObj.lookAt(p)
     dummyObj.updateMatrix()
 
-    // Unit plane – the vertex shader will scale it via `size`
     const g = new THREE.PlaneGeometry(1, 1)
     g.applyMatrix4(dummyObj.matrix)
     g.translate(p.x, p.y, p.z)
 
-    // center attribute: same value for all 4 vertices of this quad
     const cx = p.x, cy = p.y, cz = p.z
     g.setAttribute('center', new THREE.Float32BufferAttribute(
       [cx, cy, cz, cx, cy, cz, cx, cy, cz, cx, cy, cz], 3
     ))
 
-    // baseUv: equirectangular projection of the spherical coordinates
     const u = (sph.theta + Math.PI) / (Math.PI * 2)
     const v = 1 - sph.phi / Math.PI
     g.setAttribute('baseUv', new THREE.Float32BufferAttribute(
@@ -113,9 +106,10 @@ function createDottedSphereGeometry(): THREE.BufferGeometry {
 // ─── Component ────────────────────────────────────────────────────────────────
 interface EarthProps {
   autoRotate?: boolean
+  theme: 'dark' | 'light'
 }
 
-export function Earth({ autoRotate = true }: EarthProps) {
+export function Earth({ autoRotate = true, theme }: EarthProps) {
   const groupRef = useRef<THREE.Group>(null)
   const geometry = useMemo(() => createDottedSphereGeometry(), [])
   const texture  = useLoader(THREE.TextureLoader, '/black_white_map.webp')
@@ -126,18 +120,23 @@ export function Earth({ autoRotate = true }: EarthProps) {
         uniforms: {
           tex:        { value: texture },
           dotSize:    { value: 0.012 },
-          landColor:  { value: new THREE.Color('#4b5563') },  // darker gray — land
-          oceanColor: { value: new THREE.Color('#1a1a1a') },  // dark gray — ocean
+          landColor:  { value: new THREE.Color(globeColors[theme].earthLand) },
+          oceanColor: { value: new THREE.Color(globeColors[theme].earthOcean) },
         },
         vertexShader,
         fragmentShader,
-        // Push dots slightly in front of inner sphere to prevent z-fighting
         polygonOffset: true,
         polygonOffsetFactor: -1,
         polygonOffsetUnits: -1,
       }),
-    [texture]
+    [texture] // only recreate when texture changes
   )
+
+  // Update material colors reactively when theme changes
+  useEffect(() => {
+    material.uniforms.landColor.value.set(globeColors[theme].earthLand)
+    material.uniforms.oceanColor.value.set(globeColors[theme].earthOcean)
+  }, [theme, material])
 
   useFrame(() => {
     if (groupRef.current && autoRotate) {
@@ -146,13 +145,11 @@ export function Earth({ autoRotate = true }: EarthProps) {
   })
 
   return (
-    // rotation.y = Math.PI matches the UV offset from the Fibonacci lattice,
-    // same as `earth.rotation.y = Math.PI` in the original article
     <group ref={groupRef} rotation={[0, Math.PI, 0]}>
-      {/* Black inner sphere — contrast layer behind the white land dots */}
+      {/* Inner sphere — color adapts to theme */}
       <mesh>
         <sphereGeometry args={[RADIUS - 0.001, 72, 36]} />
-        <meshBasicMaterial color="#000000" />
+        <meshBasicMaterial color={globeColors[theme].earthInner} />
       </mesh>
 
       {/* 10 000 plane quads — only land quads are visible (minSize = 0) */}

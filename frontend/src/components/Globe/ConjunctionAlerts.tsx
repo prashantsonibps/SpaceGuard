@@ -12,21 +12,21 @@ import { riskClasses } from '@/lib/theme'
 
 const VIZ_SCALE = 0.98
 
-const riskColors: Record<string, string> = {
-  CRITICAL: riskClasses.dark.CRITICAL.hex,
-  HIGH: riskClasses.dark.HIGH.hex,
-  MEDIUM: riskClasses.dark.MEDIUM.hex,
-  LOW: riskClasses.dark.LOW.hex,
-}
-
 interface AlertMarker {
   mesh: THREE.Mesh | null
   lineRef: THREE.Line | null
 }
 
-export function ConjunctionAlerts() {
+export function ConjunctionAlerts({ theme }: { theme: 'dark' | 'light' }) {
   const [events, setEvents] = useState<ConjunctionEvent[]>([])
-  
+
+  const riskColors: Record<string, string> = {
+    CRITICAL: riskClasses[theme].CRITICAL.hex,
+    HIGH: riskClasses[theme].HIGH.hex,
+    MEDIUM: riskClasses[theme].MEDIUM.hex,
+    LOW: riskClasses[theme].LOW.hex,
+  }
+
   // Listen to live conjunctions from Firebase
   useEffect(() => {
     const q = query(collection(db, 'conjunction_events'))
@@ -42,8 +42,7 @@ export function ConjunctionAlerts() {
 
   const markerRefs = useRef<AlertMarker[]>([])
   const linePositions = useRef<Float32Array[]>([])
-  
-  // Update refs when events change
+
   useEffect(() => {
     markerRefs.current = events.map(() => ({ mesh: null, lineRef: null }))
     linePositions.current = events.map(() => new Float32Array(6))
@@ -57,12 +56,10 @@ export function ConjunctionAlerts() {
     events.forEach((evt, i) => {
       const ref = markerRefs.current[i]
       if (!ref) return
-      
-      // For demo visual purposes, generate positions
-      // In production we'd use the actual TLEs for this specific asset
+
       const altA = 450 + (i * 10)
       const altB = 455 + (i * 10)
-      
+
       const posA = positionOnSphere(altA, 51.6, i * 45, elapsed, 0, VIZ_SCALE)
       const posB = positionOnSphere(altB, 51.6, i * 45, elapsed, Math.PI / 32, VIZ_SCALE)
 
@@ -70,12 +67,10 @@ export function ConjunctionAlerts() {
       const my = (posA[1] + posB[1]) / 2
       const mz = (posA[2] + posB[2]) / 2
 
-      // Place alert marker at midpoint
       if (ref.mesh) {
         ref.mesh.position.set(mx, my, mz)
       }
 
-      // Update line positions
       if (linePositions.current[i]) {
         const buf = linePositions.current[i]
         buf[0] = posA[0]; buf[1] = posA[1]; buf[2] = posA[2]
@@ -92,7 +87,6 @@ export function ConjunctionAlerts() {
 
         return (
           <group key={evt.id}>
-            {/* Connection line between satellites (only for high-risk) */}
             {isHighRisk && (
               <Line
                 points={[
@@ -109,7 +103,6 @@ export function ConjunctionAlerts() {
               />
             )}
 
-            {/* Pulsing alert sphere at midpoint */}
             <Sphere
               ref={(mesh) => {
                 if (markerRefs.current[i]) {

@@ -1,6 +1,7 @@
 import type { Config } from 'tailwindcss'
 
 const config: Config = {
+  darkMode: 'class',
   content: [
     './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
     './src/components/**/*.{js,ts,jsx,tsx,mdx}',
@@ -12,10 +13,10 @@ const config: Config = {
       colors: {
         space: '#020817',
         'sky-accent': '#7dd3fc',
-        'risk-critical': '#fb7185',
-        'risk-high': '#fdba74',
-        'risk-medium': '#fde047',
-        'risk-low': '#86efac',
+        'risk-critical': '#f87171',
+        'risk-high': '#fb923c',
+        'risk-medium': '#facc15',
+        'risk-low': '#4ade80',
       },
       fontFamily: {
         orbitron: ['Orbitron', 'sans-serif'],

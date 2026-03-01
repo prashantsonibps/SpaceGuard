@@ -8,9 +8,10 @@ import * as THREE from 'three'
 import { Earth } from './Earth'
 import { SatelliteMarkers } from './SatelliteMarkers'
 import { globeColors } from '@/lib/theme'
+import { useTheme } from '@/lib/ThemeContext'
 
 // Custom star field — anchored to camera (skybox behaviour), full control over size/color.
-function SkyStars() {
+function SkyStars({ theme }: { theme: 'dark' | 'light' }) {
   const groupRef = useRef<THREE.Group>(null)
   const { camera } = useThree()
 
@@ -36,13 +37,19 @@ function SkyStars() {
         <bufferGeometry>
           <bufferAttribute attach="attributes-position" args={[positions, 3]} />
         </bufferGeometry>
-        <pointsMaterial size={0.18} color={globeColors.dark.stars} sizeAttenuation />
+        <pointsMaterial size={0.18} color={globeColors[theme].stars} sizeAttenuation />
       </points>
     </group>
   )
 }
 
-function SceneContent({ selectedEventId }: { selectedEventId?: string | null }) {
+function SceneContent({
+  selectedEventId,
+  theme,
+}: {
+  selectedEventId?: string | null
+  theme: 'dark' | 'light'
+}) {
   return (
     <>
       {/* Lighting — neutral white for black/white dotted aesthetic */}
@@ -50,12 +57,12 @@ function SceneContent({ selectedEventId }: { selectedEventId?: string | null }) 
       <directionalLight position={[5, 3, 5]} intensity={1.4} color="#ffffff" />
 
       {/* Star field — anchored to camera, no depth spread */}
-      <SkyStars />
+      <SkyStars theme={theme} />
 
       {/* Earth + satellites */}
       <Suspense fallback={null}>
-        <Earth autoRotate={false} />
-        <SatelliteMarkers selectedEventId={selectedEventId} />
+        <Earth autoRotate={false} theme={theme} />
+        <SatelliteMarkers selectedEventId={selectedEventId} theme={theme} />
       </Suspense>
 
       {/* Camera controls — damping disabled for instant response */}
@@ -80,6 +87,7 @@ function SceneContent({ selectedEventId }: { selectedEventId?: string | null }) 
 }
 
 export function GlobeScene({ selectedEventId }: { selectedEventId?: string | null }) {
+  const { theme } = useTheme()
   const [visible, setVisible] = useState(false)
 
   return (
@@ -93,11 +101,11 @@ export function GlobeScene({ selectedEventId }: { selectedEventId?: string | nul
     >
       <Canvas
         camera={{ position: [3.2, 2.0, 0.4], fov: 50 }}
-        style={{ background: '#000000' }}
+        style={{ background: globeColors[theme].canvas }}
         gl={{ antialias: true, alpha: false }}
         onCreated={() => setVisible(true)}
       >
-        <SceneContent selectedEventId={selectedEventId} />
+        <SceneContent selectedEventId={selectedEventId} theme={theme} />
       </Canvas>
     </div>
   )
