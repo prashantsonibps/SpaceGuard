@@ -24,6 +24,10 @@ export interface ConjunctionEvent {
   hedge_status?: string
   hedge_amount_usd?: number
   hedge_type?: string
+  // For NEOs
+  miss_distance_km?: number
+  estimated_diameter_max_km?: number
+  is_hazardous?: boolean
 }
 
 function formatCountdown(tcaString: string): string {
@@ -63,12 +67,11 @@ const riskDot: Record<RiskLevel, string> = {
   LOW: 'bg-green-500',
 }
 
-function EventRow({ event, index, userId }: { event: ConjunctionEvent; index: number; userId: string }) {
+function EventRow({ event, index, type, userId }: { event: ConjunctionEvent; index: number; type: 'SAT' | 'NEO'; userId: string }) {
   const [expanded, setExpanded] = useState(false)
   const [isBettingOpen, setIsBettingOpen] = useState(false)
 
-  // Format probability to a percentage
-  const probPct = (event.collision_probability * 100).toFixed(4)
+  const probPct = event.collision_probability ? (event.collision_probability * 100).toFixed(4) : '0.00'
 
   return (
     <>
@@ -82,36 +85,51 @@ function EventRow({ event, index, userId }: { event: ConjunctionEvent; index: nu
           className="w-full text-left px-3 py-2.5 hover:bg-white/[0.03] transition-colors"
           onClick={() => setExpanded(!expanded)}
         >
-          {/* Row 1: risk label + event id + countdown */}
           <div className="flex items-center justify-between mb-1.5">
             <div className="flex items-center gap-1.5">
               <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${riskDot[event.risk_level] || riskDot.LOW} ${event.risk_level === 'CRITICAL' ? 'animate-pulse' : ''}`} />
               <span className={`text-[10px] font-mono font-bold tracking-widest ${riskText[event.risk_level] || riskText.LOW}`}>
                 {event.risk_level || "UNKNOWN"}
               </span>
-              <span className="text-[10px] font-mono text-white/25 ml-1 truncate max-w-[80px]">{event.asset_id}</span>
+              <span className="text-[10px] font-mono text-white/25 ml-1 truncate max-w-[80px]">
+                {type === 'NEO' ? 'ASTEROID' : event.asset_id}
+              </span>
             </div>
             <span className="text-[10px] font-mono text-white/35 tabular-nums">
-              T−{formatCountdown(event.time_of_closest_approach)}
+              {type === 'NEO' ? event.time_of_closest_approach : `T−${formatCountdown(event.time_of_closest_approach)}`}
             </span>
           </div>
 
-          {/* Row 2: satellite names */}
           <div className="font-mono text-[11px] text-white/75 leading-snug mb-2 truncate">
-            {event.asset_name}
-            <span className="text-white/30 mx-1.5">×</span>
-            <span className="text-white/45">{event.secondary_name}</span>
+            {type === 'NEO' ? (
+              <span className="text-white/80">{event.asset_name} <span className="text-white/30 text-[9px]">(NEO)</span></span>
+            ) : (
+              <>
+                {event.asset_name}
+                <span className="text-white/30 mx-1.5">×</span>
+                <span className="text-white/45">{event.secondary_name}</span>
+              </>
+            )}
           </div>
 
-          {/* Row 3: key stats */}
           <div className="grid grid-cols-3 gap-1 text-[10px] font-mono">
             <div>
               <div className="text-white/25 uppercase tracking-wider text-[9px]">Dist</div>
-              <div className="text-white/60 tabular-nums">{event.closest_approach_km} km</div>
+              <div className="text-white/60 tabular-nums">
+                {type === 'NEO' 
+                  ? `${(event.miss_distance_km ? event.miss_distance_km / 1000000 : 0).toFixed(1)}M km`
+                  : `${event.closest_approach_km} km`
+                }
+              </div>
             </div>
             <div>
-              <div className="text-white/25 uppercase tracking-wider text-[9px]">Prob</div>
-              <div className={`tabular-nums ${riskText[event.risk_level] || riskText.LOW}`}>{probPct}%</div>
+              <div className="text-white/25 uppercase tracking-wider text-[9px]">{type === 'NEO' ? 'Size' : 'Prob'}</div>
+              <div className={`tabular-nums ${riskText[event.risk_level] || riskText.LOW}`}>
+                {type === 'NEO' 
+                  ? `${(event.estimated_diameter_max_km || 0).toFixed(2)} km`
+                  : `${probPct}%`
+                }
+              </div>
             </div>
             <div>
               <div className="text-white/25 uppercase tracking-wider text-[9px]">Agent Hedge</div>
@@ -131,13 +149,11 @@ function EventRow({ event, index, userId }: { event: ConjunctionEvent; index: nu
               exit={{ opacity: 0, height: 0 }}
               transition={{ duration: 0.18 }}
             >
-              {/* Mistral Agent Reasoning */}
               <div className="text-[10px] font-mono text-white/60 bg-white/[0.04] border border-sky-500/30 rounded px-2 py-1.5 mb-2 leading-relaxed">
-                <span className="text-sky-400 font-bold block mb-1">🤖 Mistral AI Assessment:</span>
+                <span className="text-sky-400 font-bold block mb-1">🤖 Gemini AI Assessment:</span>
                 {event.agent_assessment || "Awaiting AI evaluation..."}
               </div>
 
-              {/* Actions */}
               <div className="flex gap-2 mt-2">
                 <button
                   disabled={event.hedge_status !== 'HEDGE'}
@@ -165,13 +181,10 @@ function EventRow({ event, index, userId }: { event: ConjunctionEvent; index: nu
         isOpen={isBettingOpen} 
         onClose={() => setIsBettingOpen(false)}
         eventId={event.id}
-        eventName={`${event.asset_name} vs ${event.secondary_name}`}
+        eventName={type === 'NEO' ? event.asset_name : `${event.asset_name} vs ${event.secondary_name}`}
         eventType="conjunction"
         userId={userId}
-        onBetPlaced={() => {
-           // Maybe trigger a refresh or toast
-           console.log("Bet placed!");
-        }}
+        onBetPlaced={() => {}}
       />
     </>
   )
@@ -180,6 +193,8 @@ function EventRow({ event, index, userId }: { event: ConjunctionEvent; index: nu
 export function EventsPanel({ userId }: { userId?: string }) {
   const [time, setTime] = useState<Date | null>(null)
   const [events, setEvents] = useState<ConjunctionEvent[]>([])
+  const [neoEvents, setNeoEvents] = useState<ConjunctionEvent[]>([])
+  const [activeTab, setActiveTab] = useState<'SAT' | 'NEO'>('SAT')
   const [loading, setLoading] = useState(true)
 
   // Clock timer
@@ -191,55 +206,92 @@ export function EventsPanel({ userId }: { userId?: string }) {
 
   // Firebase Real-time Listener
   useEffect(() => {
-    const q = query(collection(db, 'conjunction_events'))
+    const q1 = query(collection(db, 'conjunction_events'))
+    const q2 = query(collection(db, 'neo_events'))
     
-    const unsubscribe = onSnapshot(q, (snapshot) => {
+    const unsubscribe1 = onSnapshot(q1, (snapshot) => {
       const newEvents: ConjunctionEvent[] = []
       snapshot.forEach((doc) => {
         newEvents.push({ id: doc.id, ...doc.data() } as ConjunctionEvent)
       })
-      
-      // Sort so criticals/closest approaches are at top
       newEvents.sort((a, b) => a.closest_approach_km - b.closest_approach_km)
-      
       setEvents(newEvents)
-      setLoading(false)
-    }, (error) => {
-      console.error("Error listening to Firestore: ", error)
       setLoading(false)
     })
 
-    return () => unsubscribe()
+    const unsubscribe2 = onSnapshot(q2, (snapshot) => {
+      const newNeos: ConjunctionEvent[] = []
+      snapshot.forEach((doc) => {
+        const data = doc.data()
+        newNeos.push({ 
+          id: doc.id, 
+          asset_id: String(data.id),
+          asset_name: data.name,
+          secondary_id: 'EARTH',
+          secondary_name: 'Earth',
+          closest_approach_km: 0, // Not used for display in NEO mode
+          collision_probability: 0, // Not used
+          time_of_closest_approach: data.close_approach_date,
+          risk_level: data.risk_level,
+          miss_distance_km: data.miss_distance_km,
+          estimated_diameter_max_km: data.estimated_diameter_max_km,
+          is_hazardous: data.is_hazardous,
+          agent_assessment: data.agent_assessment,
+          hedge_status: data.hedge_status,
+          hedge_amount_usd: data.hedge_amount_usd,
+          hedge_type: data.hedge_type
+        } as ConjunctionEvent)
+      })
+      newNeos.sort((a, b) => (a.miss_distance_km || 0) - (b.miss_distance_km || 0))
+      setNeoEvents(newNeos)
+    })
+
+    return () => {
+      unsubscribe1()
+      unsubscribe2()
+    }
   }, [])
 
-  const criticalCount = events.filter((e) => e.risk_level === 'CRITICAL').length
-  const highCount = events.filter((e) => e.risk_level === 'HIGH').length
+  const currentList = activeTab === 'SAT' ? events : neoEvents
+  const criticalCount = currentList.filter((e) => e.risk_level === 'CRITICAL').length
+  const highCount = currentList.filter((e) => e.risk_level === 'HIGH').length
 
   if (!userId) return null; // Or some loading state
 
   return (
-    <GlassCard className="absolute right-4 top-16 bottom-4 w-72 flex flex-col z-40">
+    <GlassCard className="absolute right-4 top-16 bottom-4 w-72 flex flex-col z-40 !bg-neutral-900/50">
       {/* Header */}
-      <div className="px-3 py-2.5 border-b border-white/10 flex items-center justify-between shrink-0">
-        <div>
+      <div className="px-3 py-2.5 border-b border-white/10 shrink-0">
+        <div className="flex items-center justify-between mb-2">
           <h2 className="font-orbitron text-[11px] font-bold text-white/80 tracking-[0.2em]">
-            LIVE CONJUNCTIONS
+            RISK MONITOR
           </h2>
-          <p className="text-[9px] font-mono text-white/30 mt-0.5 tabular-nums">
+          <p className="text-[9px] font-mono text-white/30 tabular-nums">
             {time ? time.toISOString().slice(11, 19) : '––:––:––'} UTC
           </p>
         </div>
-        <div className="text-right">
+        
+        {/* Tabs */}
+        <div className="flex gap-1 bg-white/5 p-0.5 rounded text-[10px] font-mono mb-2">
+          <button 
+            onClick={() => setActiveTab('SAT')}
+            className={`flex-1 py-1 rounded text-center transition-all ${activeTab === 'SAT' ? 'bg-white/10 text-white shadow-sm' : 'text-white/40 hover:text-white/60'}`}
+          >
+            SATELLITES
+          </button>
+          <button 
+            onClick={() => setActiveTab('NEO')}
+            className={`flex-1 py-1 rounded text-center transition-all ${activeTab === 'NEO' ? 'bg-white/10 text-white shadow-sm' : 'text-white/40 hover:text-white/60'}`}
+          >
+            ASTEROIDS
+          </button>
+        </div>
+
+        <div className="text-right h-4">
           {criticalCount > 0 && (
             <div className="flex items-center gap-1 justify-end">
               <div className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse" />
               <span className="text-[9px] font-mono text-red-400">{criticalCount} CRITICAL</span>
-            </div>
-          )}
-          {highCount > 0 && (
-            <div className="flex items-center gap-1 justify-end mt-0.5">
-              <div className="w-1.5 h-1.5 rounded-full bg-orange-400" />
-              <span className="text-[9px] font-mono text-orange-400">{highCount} HIGH</span>
             </div>
           )}
         </div>
@@ -250,15 +302,15 @@ export function EventsPanel({ userId }: { userId?: string }) {
         {loading ? (
           <div className="p-4 text-center text-xs font-mono text-white/40">
             <div className="w-4 h-4 rounded-full border-2 border-sky-400/30 border-t-sky-400 animate-spin mx-auto mb-2" />
-            Connecting to SpaceGuard Network...
+            Scanning Deep Space...
           </div>
-        ) : events.length === 0 ? (
+        ) : currentList.length === 0 ? (
           <div className="p-4 text-center text-xs font-mono text-white/40">
-            No active conjunctions detected.
+            No active risks detected in this sector.
           </div>
         ) : (
-          events.map((event, i) => (
-            <EventRow key={event.id} event={event} index={i} userId={userId} />
+          currentList.map((event, i) => (
+            <EventRow key={event.id} event={event} index={i} type={activeTab} userId={userId} />
           ))
         )}
       </div>
@@ -267,7 +319,7 @@ export function EventsPanel({ userId }: { userId?: string }) {
       <div className="px-3 py-1.5 border-t border-white/10 shrink-0">
         <div className="text-[9px] font-mono text-sky-400/80 text-center tracking-wider flex justify-center items-center gap-1.5">
           <div className="w-1.5 h-1.5 rounded-full bg-sky-400 animate-pulse" />
-          MISTRAL AI AGENT ACTIVE
+          GEMINI AI AGENT ACTIVE
         </div>
       </div>
     </GlassCard>

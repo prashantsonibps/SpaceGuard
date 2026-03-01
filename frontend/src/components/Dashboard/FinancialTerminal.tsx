@@ -29,6 +29,7 @@ const statusStyle: Record<string, string> = {
 
 function ExposureBar({ label, value, max, risk }: { label: string; value: number; max: number; risk: string }) {
   const pct = Math.max(1, Math.round((value / max) * 20))
+  const percent = Math.round((value / max) * 100)
   const riskColor: Record<string, string> = {
     CRITICAL: 'text-red-400',
     HIGH: 'text-orange-400',
@@ -36,10 +37,18 @@ function ExposureBar({ label, value, max, risk }: { label: string; value: number
     LOW: 'text-green-500',
   }
   return (
-    <div className="flex items-center gap-3 font-mono text-[10px]">
-      <span className="text-white/30 w-16 shrink-0 truncate">{label}</span>
-      <span className={`${riskColor[risk]} shrink-0`}>{'█'.repeat(pct)}{'░'.repeat(20 - pct)}</span>
-      <span className="text-white/50 tabular-nums shrink-0">{formatCurrency(value)}</span>
+    <div className="space-y-1">
+      <div className="flex items-center justify-between font-mono">
+        <div className="flex items-center gap-2">
+          <span className="text-white/45 text-[10px]">{label}</span>
+          <span className={`text-[8px] font-bold tracking-wider ${riskColor[risk]}`}>{risk}</span>
+        </div>
+        <span className="text-white/45 text-[10px] tabular-nums">{formatCurrency(value)}</span>
+      </div>
+      <div className={`text-[9px] font-mono leading-none ${riskColor[risk]} opacity-70`}>
+        {'█'.repeat(pct)}{'░'.repeat(20 - pct)}
+        <span className="text-white/20 ml-1.5 text-[8px]">{percent}%</span>
+      </div>
     </div>
   )
 }
