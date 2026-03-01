@@ -89,7 +89,41 @@ function EventRow({
   const { theme } = useTheme()
   const rc = riskClasses[theme]
   const [isBettingOpen, setIsBettingOpen] = useState(false)
+  const [isSpeaking, setIsSpeaking] = useState(false)
+  const audioRef = useRef<HTMLAudioElement | null>(null)
   const rowRef = useRef<HTMLDivElement>(null)
+
+  const speakAssessment = async (text: string) => {
+    if (isSpeaking) {
+      audioRef.current?.pause()
+      setIsSpeaking(false)
+      return
+    }
+    const key = process.env.NEXT_PUBLIC_ELEVENLABS_API_KEY
+    if (!key) return
+    setIsSpeaking(true)
+    try {
+      const res = await fetch(
+        'https://api.elevenlabs.io/v1/text-to-speech/21m00Tcm4TlvDq8ikWAM',
+        {
+          method: 'POST',
+          headers: { 'xi-api-key': key, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            text,
+            model_id: 'eleven_monolingual_v1',
+            voice_settings: { stability: 0.5, similarity_boost: 0.75 },
+          }),
+        }
+      )
+      const blob = await res.blob()
+      const audio = new Audio(URL.createObjectURL(blob))
+      audioRef.current = audio
+      audio.onended = () => setIsSpeaking(false)
+      audio.play()
+    } catch {
+      setIsSpeaking(false)
+    }
+  }
 
   useEffect(() => {
     if (isSelected && rowRef.current) {
@@ -206,7 +240,18 @@ function EventRow({
               transition={{ duration: 0.18 }}
             >
               <div className={`${fontSize.small} font-mono ${textOpacity[theme].secondary} bg-black/[0.04] dark:bg-white/[0.04] border ${accent[theme].borderDim} rounded px-2 py-1.5 mb-2 leading-relaxed`}>
-                <span className={`${accent[theme].text} font-bold block mb-1`}>🤖 Mistral AI Assessment:</span>
+                <span className={`${accent[theme].text} font-bold flex items-center gap-2 mb-1`}>
+                  🤖 Mistral AI Assessment:
+                  {event.agent_assessment && process.env.NEXT_PUBLIC_ELEVENLABS_API_KEY && (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); speakAssessment(event.agent_assessment!) }}
+                      className={`text-xs px-1.5 py-0.5 rounded border ${isSpeaking ? 'animate-pulse border-red-400 text-red-400' : 'border-current opacity-60 hover:opacity-100'}`}
+                      title={isSpeaking ? 'Stop' : 'Read aloud'}
+                    >
+                      {isSpeaking ? '⏹' : '🔊'}
+                    </button>
+                  )}
+                </span>
                 {event.agent_assessment || "Awaiting AI evaluation..."}
               </div>
 
