@@ -136,7 +136,7 @@ export function BuyPanel({ market, userId, defaultSide }: BuyPanelProps) {
         <div className={`flex justify-between ${fontSize.small} font-mono`}>
           <span className={tp.muted}>POTENTIAL RETURN</span>
           <span className={`${ac.text} tabular-nums`}>
-            ${potentialReturn.toFixed(2)} <span className={tp.faint}>{multiplier}x</span>
+            ${potentialReturn.toFixed(2)} <span className={tp.secondary}>{multiplier}x</span>
           </span>
         </div>
         <div className={`flex justify-between ${fontSize.small} font-mono`}>

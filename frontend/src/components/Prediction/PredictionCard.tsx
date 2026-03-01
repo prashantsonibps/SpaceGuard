@@ -61,6 +61,7 @@ function OptionRow({
   disabled?: boolean
 }) {
   const { theme } = useTheme()
+  const tp = textOpacity[theme]
   const gr = green[theme]
   const barBg = color === 'green' ? gr.bgMuted : 'bg-sky-400/20'
   const barFill = color === 'green' ? gr.bg : 'bg-sky-400'
@@ -78,7 +79,7 @@ function OptionRow({
           style={{ width: `${Math.max(1, Math.min(100, pct))}%` }}
         />
       </div>
-      <span className={`${fontSize.base} font-mono tabular-nums shrink-0 w-12 text-right opacity-70`}>
+      <span className={`${fontSize.base} font-mono tabular-nums shrink-0 w-12 text-right ${tp.secondary}`}>
         {mult}
       </span>
       <button
