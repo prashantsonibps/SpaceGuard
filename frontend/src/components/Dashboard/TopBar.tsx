@@ -1,6 +1,8 @@
 'use client'
 
 import { motion } from 'framer-motion'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { accent, riskClasses, financialColors } from '@/lib/theme'
 import { useTheme } from '@/lib/ThemeContext'
 
@@ -28,13 +30,22 @@ function MoonIcon() {
   )
 }
 
-export function TopBar() {
+interface TopBarProps {
+  variant?: 'overlay' | 'inline'
+}
+
+export function TopBar({ variant = 'overlay' }: TopBarProps) {
   const { theme, toggleTheme } = useTheme()
+  const pathname = usePathname()
+
+  const positionClass = variant === 'overlay'
+    ? 'absolute top-0 left-0 right-0 z-50'
+    : 'relative w-full z-10'
 
   return (
     <motion.div
-      className="absolute top-0 left-0 right-0 z-50 h-12 flex items-center px-6 gap-6
-        bg-white/70 dark:bg-black/40 backdrop-blur-md border-b border-black/10 dark:border-white/10"
+      className={`${positionClass} h-12 flex items-center px-6 gap-6
+        bg-white/70 dark:bg-black/40 backdrop-blur-md border-b border-black/10 dark:border-white/10`}
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
@@ -45,6 +56,32 @@ export function TopBar() {
         <span className={`font-orbitron text-sm font-bold tracking-widest ${accent[theme].text}`}>
           SPACEGUARD
         </span>
+      </div>
+
+      <div className="h-4 w-px bg-black/20 dark:bg-white/20" />
+
+      {/* Nav links */}
+      <div className="flex items-center gap-1">
+        <Link
+          href="/"
+          className={`text-[10px] font-mono px-2 py-0.5 rounded transition-colors ${
+            pathname === '/'
+              ? `${accent[theme].text} ${accent[theme].bgDim}`
+              : 'text-slate-500 dark:text-white/40 hover:text-slate-700 dark:hover:text-white/60'
+          }`}
+        >
+          GLOBE
+        </Link>
+        <Link
+          href="/prediction"
+          className={`text-[10px] font-mono px-2 py-0.5 rounded transition-colors ${
+            pathname === '/prediction'
+              ? `${accent[theme].text} ${accent[theme].bgDim}`
+              : 'text-slate-500 dark:text-white/40 hover:text-slate-700 dark:hover:text-white/60'
+          }`}
+        >
+          MARKETS
+        </Link>
       </div>
 
       <div className="h-4 w-px bg-black/20 dark:bg-white/20" />
