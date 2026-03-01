@@ -1,3 +1,15 @@
+# SpaceGuard Auto-Deploy
+# Triggers on push to main branch. Deploys backend to Cloud Run and frontend to Firebase Hosting.
+#
+# Required GitHub Secrets (Settings → Secrets and variables → Actions):
+#
+#   GCP_PROJECT_ID      — spaceguard-a0dbc
+#   GCP_SA_KEY          — Service account JSON key
+#   FIREBASE_TOKEN      — Output of: npx firebase-tools login:ci
+#   MISTRAL_API_KEY     — From console.mistral.ai
+#   NASA_API_KEY        — From api.nasa.gov
+#   OPENWEATHER_API_KEY — From openweathermap.org
+#
 name: Deploy SpaceGuard
 
 on:
@@ -13,20 +25,23 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Google Auth
-        id: auth
+      - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
       - name: Deploy to Cloud Run
-        uses: google-github-actions/deploy-cloudrun@v2
-        with:
-          service: spaceguard-api
-          region: us-central1
-          source: ./backend
-          project_id: spaceguard-a0dbc
-          flags: '--allow-unauthenticated'
+        working-directory: backend
+        run: |
+          gcloud run deploy spaceguard-api \
+            --source . \
+            --region us-central1 \
+            --project ${{ secrets.GCP_PROJECT_ID }} \
+            --allow-unauthenticated \
+            --set-env-vars "MISTRAL_API_KEY=${{ secrets.MISTRAL_API_KEY }},NASA_API_KEY=${{ secrets.NASA_API_KEY }},OPENWEATHER_API_KEY=${{ secrets.OPENWEATHER_API_KEY }}"
 
   deploy-frontend:
     name: Deploy Frontend to Firebase Hosting
@@ -36,15 +51,24 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install Dependencies
-        run: npm install
-        working-directory: ./frontend
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
 
-      - name: Build Frontend
-        run: NEXT_PUBLIC_API_URL=https://spaceguard-api-1040980823268.us-central1.run.app npm run build
-        working-directory: ./frontend
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
 
-      - name: Deploy to Firebase
+      - name: Build Next.js app
+        working-directory: frontend
+        env:
+          NEXT_PUBLIC_API_URL: https://spaceguard-api-1040980823268.us-central1.run.app
+        run: npm run build
+
+      - name: Deploy to Firebase Hosting
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
