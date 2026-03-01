@@ -27,7 +27,7 @@ export function CategoryNav({ activeTab, onTabChange }: CategoryNavProps) {
     return (
         <motion.div
             className="absolute top-12 left-0 right-0 z-40 h-10 flex items-center px-6 gap-2
-        bg-white/60 dark:bg-black/30 backdrop-blur-md border-b border-black/10 dark:border-white/5 overflow-x-auto no-scrollbar"
+        overflow-x-auto no-scrollbar"
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.1 }}
@@ -35,18 +35,27 @@ export function CategoryNav({ activeTab, onTabChange }: CategoryNavProps) {
             <div className="flex items-center gap-1 min-w-max">
                 {TABS.map((tab) => {
                     const isActive = activeTab === tab.id
+                    const activeColor = accent[theme].hex
+                    const inactiveColor = theme === 'dark' ? 'rgba(255,255,255,0.35)' : 'rgba(161,161,170,1)'
+                    const activeBg = accent[theme].hexDim
+                    const activeBorder = theme === 'dark' ? 'rgba(125,211,252,0.3)' : 'rgba(113,113,122,0.4)'
                     return (
-                        <button
+                        <motion.button
                             key={tab.id}
                             onClick={() => onTabChange(tab.id)}
-                            className={`px-3 py-1 rounded-full font-mono ${fontSize.small} transition-all duration-200 whitespace-nowrap
-                ${isActive
-                                    ? `${accent[theme].text} ${accent[theme].bgDim} font-bold border ${accent[theme].borderDim}`
-                                    : `${textOpacity[theme].faint} hover:${textOpacity[theme].primary} hover:bg-black/5 dark:hover:bg-white/5`
-                                }`}
+                            className={`px-3 py-1 rounded-full font-mono ${fontSize.small} whitespace-nowrap border`}
+                            animate={{
+                                color: isActive ? activeColor : inactiveColor,
+                                backgroundColor: isActive ? activeBg : 'rgba(0,0,0,0)',
+                                borderColor: isActive ? activeBorder : 'rgba(0,0,0,0)',
+                                fontWeight: isActive ? 700 : 400,
+                                opacity: isActive ? 1 : 0.7,
+                            }}
+                            transition={{ duration: 0.15, ease: 'easeInOut' }}
+                            whileHover={{ opacity: 1 }}
                         >
                             {tab.label.toUpperCase()}
-                        </button>
+                        </motion.button>
                     )
                 })}
             </div>
