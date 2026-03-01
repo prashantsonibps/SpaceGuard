@@ -108,32 +108,16 @@ Without `NEXT_PUBLIC_API_URL`, the app falls back to `http://localhost:8000` (lo
 
 ## 🚀 Production Deployment (Google Cloud)
 
-**SpaceGuard is live on Google Cloud!**
+**Live:** https://spaceguard-a0dbc.web.app | **API:** https://spaceguard-api-1040980823268.us-central1.run.app
 
-**Live URLs:**
-
-- **Frontend**: https://spaceguard-a0dbc.web.app
-- **Backend API**: https://spaceguard-api-1040980823268.us-central1.run.app
-- **API Docs**: https://spaceguard-api-1040980823268.us-central1.run.app/docs
-
-**Infrastructure:**
-
-- Frontend: Firebase Hosting (Global CDN) ✅ DEPLOYED
-- Backend: Cloud Run (Serverless containers) ✅ DEPLOYED
-- Database: Firestore ✅ CONNECTED
-
-**To redeploy:**
-
+**Redeploy:**
 ```bash
-# Deploy everything
-./deploy-all.sh
+# Backend
+gcloud run deploy spaceguard-api --source ./backend --region us-central1 --project spaceguard-a0dbc --allow-unauthenticated
 
-# Or deploy individually
-./deploy-backend.sh   # Backend only
-./deploy-frontend.sh  # Frontend only
+# Frontend (set backend URL first)
+NEXT_PUBLIC_API_URL=https://spaceguard-api-1040980823268.us-central1.run.app npm run build --prefix frontend && firebase deploy --only hosting
 ```
-
-See `DEPLOYMENT_SUCCESS.md` for complete details and verification tests.
 
 ---
 
