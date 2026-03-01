@@ -1,7 +1,6 @@
 "use client";
 
-import { GlassCard } from "@/components/ui/GlassCard";
-import { accent, textOpacity, fontSize, green } from "@/lib/theme";
+import { accent, textOpacity, fontSize } from "@/lib/theme";
 import { useTheme } from "@/lib/ThemeContext";
 import type { Market, MarketCategory } from "@/data/markets";
 
@@ -19,19 +18,10 @@ const CATEGORIES: { key: CategoryFilter; label: string }[] = [
   { key: "COLLISION", label: "💥 COLLISION" },
   { key: "DEBRIS", label: "🪨 DEBRIS" },
   { key: "MANEUVER", label: "🛸 MANEUVER" },
-  { key: "HEDGE", label: "💹 HEDGE" },
+  { key: "RISK", label: "⚠️ RISK" },
   { key: "NEO", label: "☄️ NEO" },
 ];
 
-// Placeholder portfolio for demo
-const DEMO_PORTFOLIO = {
-  balance: 1_840,
-  positions: [
-    { id: "MKT-001", side: "YES", shares: 50, cost: 36.5 },
-    { id: "MKT-005", side: "YES", shares: 30, cost: 18.6 },
-  ],
-  pnl: +42.8,
-};
 
 export function CategorySidebar({
   markets,
@@ -91,57 +81,6 @@ export function CategorySidebar({
             );
           })}
         </div>
-      </div>
-
-      {/* Divider */}
-      <div className={`border-t ${dividerClass}`} />
-
-      {/* Portfolio section */}
-      <div>
-        <p
-          className={`${fontSize.small} font-mono tracking-widest ${tp.muted} mb-2 px-1`}
-        >
-          PORTFOLIO
-        </p>
-        <GlassCard animate={false} className="p-2 flex flex-col gap-2">
-          <div className={`flex justify-between ${fontSize.small} font-mono`}>
-            <span className={tp.muted}>BALANCE</span>
-            <span
-              className={`tabular-nums font-semibold ${theme === "dark" ? "text-orange-300" : "text-orange-600"}`}
-            >
-              ${DEMO_PORTFOLIO.balance.toLocaleString()}
-            </span>
-          </div>
-          <div className={`flex justify-between ${fontSize.small} font-mono`}>
-            <span className={tp.muted}>P&amp;L</span>
-            <span
-              className={`tabular-nums font-semibold ${DEMO_PORTFOLIO.pnl >= 0 ? green[theme].text : "text-red-400"}`}
-            >
-              {DEMO_PORTFOLIO.pnl >= 0 ? "+" : ""}$
-              {DEMO_PORTFOLIO.pnl.toFixed(2)}
-            </span>
-          </div>
-          <div
-            className={`border-t ${dividerClass} pt-1.5 flex flex-col gap-1.5`}
-          >
-            <p className={`${fontSize.small} font-mono tracking-widest ${tp.faint}`}>
-              OPEN POSITIONS
-            </p>
-            {DEMO_PORTFOLIO.positions.map((pos) => (
-              <div
-                key={pos.id}
-                className={`flex justify-between ${fontSize.small} font-mono`}
-              >
-                <span className={tp.muted}>
-                  {pos.id} {pos.side}
-                </span>
-                <span className={`${ac.text} tabular-nums`}>
-                  {pos.shares} sh
-                </span>
-              </div>
-            ))}
-          </div>
-        </GlassCard>
       </div>
 
       {/* Spacer */}

@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { GlassCard } from '@/components/ui/GlassCard'
 import { api } from '@/lib/api'
@@ -24,6 +25,12 @@ export function BettingModal({ isOpen, onClose, eventId, eventName, eventType, u
   const [outcome, setOutcome] = useState<string>('YES')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+    return () => setMounted(false)
+  }, [])
 
   const handleBet = async () => {
     setLoading(true)
@@ -40,18 +47,20 @@ export function BettingModal({ isOpen, onClose, eventId, eventName, eventType, u
     }
   }
 
-  return (
+  const modalContent = (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 dark:bg-black/50 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 dark:bg-black/60 backdrop-blur-sm" onClick={onClose}>
           <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
+            initial={{ opacity: 0, scale: 0.95, y: 8 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 8 }}
+            transition={{ duration: 0.15 }}
+            onClick={(e) => e.stopPropagation()}
           >
             <GlassCard className="w-80 p-6">
-              <h2 className={`text-lg font-bold ${textOpacity[theme].primary} mb-4`}>Place Wager</h2>
-              <p className={`text-sm ${textOpacity[theme].secondary} mb-4`}>Event: {eventName}</p>
+              <h2 className={`text-lg font-bold ${textOpacity[theme].primary} mb-1`}>Place Wager</h2>
+              <p className={`text-xs font-mono ${textOpacity[theme].muted} mb-4 truncate`}>{eventName}</p>
 
               <div className="space-y-4">
                 <div>
@@ -127,4 +136,7 @@ export function BettingModal({ isOpen, onClose, eventId, eventName, eventType, u
       )}
     </AnimatePresence>
   )
+
+  if (!mounted) return null
+  return createPortal(modalContent, document.body)
 }

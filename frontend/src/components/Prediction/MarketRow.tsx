@@ -22,7 +22,7 @@ const CATEGORY_LABEL: Record<string, string> = {
   COLLISION: 'COLLISION',
   DEBRIS: 'DEBRIS',
   MANEUVER: 'MANEUVER',
-  HEDGE: 'HEDGE',
+  RISK: 'RISK',
   NEO: 'NEO',
 }
 

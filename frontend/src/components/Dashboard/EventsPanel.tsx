@@ -23,9 +23,6 @@ export interface ConjunctionEvent {
   time_of_closest_approach: string
   risk_level: RiskLevel
   agent_assessment?: string
-  hedge_status?: string
-  hedge_amount_usd?: number
-  hedge_type?: string
   // For NEOs
   miss_distance_km?: number
   estimated_diameter_max_km?: number
@@ -184,8 +181,8 @@ function EventRow({
             </div>
             <div>
               <div className={`${textOpacity[theme].faint} uppercase tracking-wider ${fontSize.small}`}>Status</div>
-              <div className={`tabular-nums ${event.hedge_status === 'HEDGE' ? accent[theme].text : textOpacity[theme].secondary}`}>
-                {type === 'WEATHER' || type === 'INDEX' || type === 'FIREBALL' ? 'MONITORING' : (event.hedge_status ? `$${(event.hedge_amount_usd || 0).toLocaleString()}` : 'PENDING')}
+              <div className={`tabular-nums ${textOpacity[theme].secondary}`}>
+                {type === 'WEATHER' || type === 'INDEX' || type === 'FIREBALL' ? 'MONITORING' : 'ACTIVE'}
               </div>
             </div>
           </div>
@@ -206,13 +203,6 @@ function EventRow({
               </div>
 
               <div className="flex gap-2 mt-2">
-                <button
-                  disabled={event.hedge_status !== 'HEDGE'}
-                  className={`flex-1 py-1 rounded ${fontSize.small} font-mono border transition-colors
-                    ${event.hedge_status === 'HEDGE' ? `${accent[theme].text} border-sky-300/30 ${accent[theme].bgDim} ${accent[theme].bgDimHover} cursor-pointer` : 'text-slate-400 dark:text-white/20 border-black/20 dark:border-white/10 bg-transparent cursor-not-allowed'}`}
-                >
-                  {event.hedge_status === 'HEDGE' ? 'APPROVE HEDGE' : 'NO ACTION REQ.'}
-                </button>
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -307,9 +297,6 @@ export function EventsPanel({
           estimated_diameter_max_km: data.estimated_diameter_max_km,
           is_hazardous: data.is_hazardous,
           agent_assessment: data.agent_assessment,
-          hedge_status: data.hedge_status,
-          hedge_amount_usd: data.hedge_amount_usd,
-          hedge_type: data.hedge_type
         } as ConjunctionEvent)
       })
       newNeos.sort((a, b) => (a.miss_distance_km || 0) - (b.miss_distance_km || 0))
@@ -430,15 +417,13 @@ export function EventsPanel({
             : activeTab === 'LAUNCH' ? launchEvents.map(e => ({ ...e, _type: 'LAUNCH' as const }))
               : fireballEvents.map(e => ({ ...e, _type: 'FIREBALL' as const }))
 
-  const criticalCount = currentList.filter((e) => e.risk_level === 'CRITICAL').length
-
   if (!userId) return null;
 
   return (
     <GlassCard className="absolute right-4 top-16 bottom-4 w-72 flex flex-col z-40 !bg-white/80 dark:!bg-neutral-900/50">
       {/* Header */}
       <div className="px-3 py-2.5 border-b border-black/20 dark:border-white/10 shrink-0">
-        <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center justify-between">
           <h2 className={`font-orbitron ${fontSize.base} font-bold ${textOpacity[theme].primary} tracking-[0.2em]`}>
             RISK MONITOR
           </h2>
@@ -447,14 +432,6 @@ export function EventsPanel({
           </p>
         </div>
 
-        <div className="text-right h-4">
-          {criticalCount > 0 && (
-            <div className="flex items-center gap-1 justify-end">
-              <div className={`w-1.5 h-1.5 rounded-full ${rc.CRITICAL.dot} animate-pulse`} />
-              <span className={`${fontSize.small} font-mono ${rc.CRITICAL.text}`}>{criticalCount} CRITICAL</span>
-            </div>
-          )}
-        </div>
       </div>
 
       {/* Events list */}

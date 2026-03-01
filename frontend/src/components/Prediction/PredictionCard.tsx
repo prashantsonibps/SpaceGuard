@@ -18,7 +18,7 @@ export const CATEGORY_META: Record<
     iconColor: "text-blue-400",
     Icon: Navigation,
   },
-  HEDGE: {
+  RISK: {
     bg: "bg-emerald-500/20",
     iconColor: "text-emerald-400",
     Icon: Shield,

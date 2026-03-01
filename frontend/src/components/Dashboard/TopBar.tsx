@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { accent, riskClasses, financialColors, fontSize, green } from '@/lib/theme'
+import { accent, riskClasses, fontSize, green } from '@/lib/theme'
 import { useTheme } from '@/lib/ThemeContext'
 
 function SunIcon() {
@@ -113,29 +113,9 @@ export function TopBar({ variant = 'overlay' }: TopBarProps) {
           <span className={`${riskClasses[theme].CRITICAL.text} font-medium`}>3</span>
           <span className="text-slate-500 dark:text-white/40">CRITICAL</span>
         </div>
-        <div className="flex items-center gap-1.5">
-          <span className="text-slate-500 dark:text-white/40">PORTFOLIO</span>
-          <span className={`${financialColors[theme].balance} font-medium`}>$2.4B</span>
-          <span className="text-slate-500 dark:text-white/40">AT RISK</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <span className="text-slate-500 dark:text-white/40">ACTIVE HEDGES</span>
-          <span className={`${accent[theme].text} font-medium`}>7</span>
-        </div>
       </div>
 
-      <div className="ml-auto flex items-center gap-4 text-xs font-mono">
-        <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-green-500/10 border border-green-500/20">
-          <span className={`w-1.5 h-1.5 rounded-full ${green[theme].bg} animate-pulse`} />
-          <span className={`${green[theme].text}`}>SYSTEM HEALTH: OPTIMAL</span>
-        </div>
-        <div className="flex items-center gap-1.5 text-slate-500 dark:text-white/40">
-          <span>SOURCE: AUTHORITATIVE</span>
-          <div className="w-px h-3 bg-black/20 dark:bg-white/20" />
-          <span>TLE UPDATED</span>
-          <span className="text-slate-600 dark:text-white/60">LIVE</span>
-        </div>
-      </div>
+      <div className="ml-auto" />
 
       {/* Light / Dark toggle */}
       <button
