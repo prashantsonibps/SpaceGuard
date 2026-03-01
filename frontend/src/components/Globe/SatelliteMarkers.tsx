@@ -85,7 +85,8 @@ export function SatelliteMarkers({
     })
   })
 
-  // Build maps: satId → color, satId → eventId
+  // Show orbit lines for all active satellites (Previously only for selected event)
+  // Also build maps for event selection
   const allActiveSats = new Map<string, string>()
   const satToEventId = new Map<string, string>()
   events.forEach((evt) => {
@@ -99,12 +100,6 @@ export function SatelliteMarkers({
       satToEventId.set(evt.secondary_id, evt.id)
     }
   })
-
-  // Only show orbit lines for the selected event
-  const selectedEvent = selectedEventId ? events.find((e) => e.id === selectedEventId) : null
-  const selectedSatIds = new Set(
-    selectedEvent ? [selectedEvent.asset_id, selectedEvent.secondary_id] : []
-  )
 
   return (
     <group>
@@ -128,7 +123,7 @@ export function SatelliteMarkers({
           id={id}
           color={color}
           index={i}
-          showLine={selectedSatIds.has(id)}
+          showLine={true}
           isSelected={selectedEventId != null && satToEventId.get(id) === selectedEventId}
           eventId={satToEventId.get(id) ?? null}
           onSelectEvent={onSelectEvent}
