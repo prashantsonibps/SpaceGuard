@@ -332,12 +332,19 @@ export function FinancialTerminal() {
   }, 0)
 
   const logRef = useRef<HTMLDivElement>(null)
+  const [expandedH, setExpandedH] = useState(480)
 
   useEffect(() => {
     if (logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight
   }, [logLines])
 
-  const expandedH = 480
+  // Match EventsPanel: top-16 (64px) to bottom-4 (16px)
+  useEffect(() => {
+    const update = () => setExpandedH(window.innerHeight - 64 - 16)
+    update()
+    window.addEventListener('resize', update)
+    return () => window.removeEventListener('resize', update)
+  }, [])
   const displayedLines = logLines
 
   return (
