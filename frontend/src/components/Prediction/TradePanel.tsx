@@ -40,6 +40,25 @@ export function TradePanel({ market, userId, defaultSide }: TradePanelProps) {
     const totalCost = (contracts * price) / 100
     const potentialPayout = contracts
 
+    // Mock user balance for the sliders (In prod, fetch from UserContext)
+    const availableBalance = 10000.00
+
+    // Max Loss / Max Profit dynamic readouts
+    const maxLoss = action === 'BUY' ? totalCost : (contracts * (100 - price)) / 100
+    const maxProfit = action === 'BUY' ? potentialPayout - totalCost : (contracts * price) / 100
+
+    const handlePercentClick = (pct: number) => {
+        if (action === 'BUY') {
+            // How many contracts can we afford with X% of our cash?
+            const targetCash = availableBalance * pct
+            const maxAffordableContracts = Math.floor((targetCash * 100) / price)
+            setContracts(maxAffordableContracts > 0 ? maxAffordableContracts : 1)
+        } else {
+            // For selling, we usually base it off existing shares, but for demo we just mock a max amount
+            setContracts(Math.floor(100 * pct))
+        }
+    }
+
     async function handleConfirm() {
         if (isDisabled || status === 'loading') return
         setStatus('loading')
@@ -89,7 +108,7 @@ export function TradePanel({ market, userId, defaultSide }: TradePanelProps) {
 
             <div className="grid grid-cols-2 gap-2">
                 <div>
-                    <div className={`${fontSize.small} font-mono ${tp.muted} mb-1 tracking-wider`}>PRICE (¢)</div>
+                    <div className={`${fontSize.small} font-mono ${tp.muted} mb-1 tracking-wider`}>LIMIT PRICE (¢)</div>
                     <input type="number" min={1} max={99} value={price} onChange={e => setPrice(Number(e.target.value))} disabled={isDisabled} className={`w-full ${bgInput} border ${borderDim} rounded px-2 py-1.5 ${fontSize.base} font-mono text-center outline-none transition-colors focus:border-white/30`} />
                 </div>
                 <div>
@@ -98,17 +117,29 @@ export function TradePanel({ market, userId, defaultSide }: TradePanelProps) {
                 </div>
             </div>
 
-            <div className={`border-t ${divider}`} />
+            <div className="flex gap-1 mt-1 justify-between">
+                {[0.25, 0.50, 0.75, 1.0].map(pct => (
+                    <button
+                        key={pct}
+                        onClick={() => handlePercentClick(pct)}
+                        className={`flex-1 py-1 text-[10px] font-mono border ${borderDim} rounded ${bgInput} hover:bg-white/10 transition-colors ${tp.secondary}`}
+                    >
+                        {pct === 1.0 ? 'MAX' : `${pct * 100}%`}
+                    </button>
+                ))}
+            </div>
+
+            <div className={`border-t ${divider} mt-1`} />
 
             {action === 'BUY' && (
                 <div className="space-y-1">
                     <div className={`flex justify-between ${fontSize.small} font-mono`}>
-                        <span className={tp.muted}>TOTAL COST</span>
-                        <span className={`${ac.text}`}>${totalCost.toFixed(2)}</span>
+                        <span className={tp.muted}>TOTAL COST (MAX LOSS)</span>
+                        <span className={`${ac.text}`}>${maxLoss.toFixed(2)}</span>
                     </div>
                     <div className={`flex justify-between ${fontSize.small} font-mono`}>
-                        <span className={tp.muted}>POTENTIAL PAYOUT</span>
-                        <span className={`${green[theme].text}`}>${potentialPayout.toFixed(2)}</span>
+                        <span className={tp.muted}>MAX PROFIT</span>
+                        <span className={`${green[theme].text}`}>${maxProfit.toFixed(2)}</span>
                     </div>
                 </div>
             )}

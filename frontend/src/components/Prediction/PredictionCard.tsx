@@ -113,6 +113,38 @@ function OptionRow({
   );
 }
 
+// ── Sparkline ──────────────────────────────────────────────────────────────────
+function Sparkline({ data, color }: { data: number[], color: string }) {
+  const max = Math.max(...data);
+  const min = Math.min(...data);
+  const range = max - min || 1;
+  const padding = 2;
+  const height = 24;
+  const width = 100;
+
+  const points = data.map((d, i) => {
+    const x = (i / (data.length - 1)) * width;
+    const y = height - padding - ((d - min) / range) * (height - padding * 2);
+    return `${x},${y}`;
+  }).join(' ');
+
+  return (
+    <div className="w-full h-6 opacity-60">
+      <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-full preserve-aspect-ratio-none">
+        <polyline
+          fill="none"
+          stroke={color}
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          points={points}
+          className="drop-shadow-sm"
+        />
+      </svg>
+    </div>
+  );
+}
+
 // ── Card ───────────────────────────────────────────────────────────────────────
 export function PredictionCard({ market }: { market: Market }) {
   const { theme } = useTheme();
@@ -134,6 +166,12 @@ export function PredictionCard({ market }: { market: Market }) {
     market.status === "RESOLVED_YES" || market.status === "RESOLVED_NO";
   const isClosed = market.status === "CLOSED";
   const timeLeft = formatTimeLeft(market.closeTime);
+
+  // Generate stable mock data for the sparkline based on the market ID
+  const sparklineData = Array.from({ length: 20 }, (_, i) => {
+    const seed = market.id.charCodeAt(0) + i;
+    return yesP + (Math.sin(seed) * 10); // Simulated volatility around current price
+  });
 
   return (
     <motion.div
@@ -160,15 +198,19 @@ export function PredictionCard({ market }: { market: Market }) {
             {market.question}
           </p>
         </div>
+
+        {/* Sparkline Visual */}
+        <div className="mt-3 w-full px-1">
+          <Sparkline data={sparklineData} color={market.outcome === "YES" ? gr.text.split('-')[1] : "#38bdf8"} />
+        </div>
       </div>
 
       {/* YES / NO rows */}
       {isResolved ? (
         <div className={`${CARD_PADDING} pb-3`}>
           <span
-            className={`${fontSize.base} font-mono font-bold tracking-widest ${
-              market.outcome === "YES" ? gr.text : "text-red-400"
-            }`}
+            className={`${fontSize.base} font-mono font-bold tracking-widest ${market.outcome === "YES" ? gr.text : "text-red-400"
+              }`}
           >
             RESOLVED {market.outcome}
           </span>
@@ -207,11 +249,10 @@ export function PredictionCard({ market }: { market: Market }) {
           </span>
         ) : isResolved ? (
           <span
-            className={`${fontSize.base} font-mono font-bold tracking-widest ${
-              market.outcome === "YES"
+            className={`${fontSize.base} font-mono font-bold tracking-widest ${market.outcome === "YES"
                 ? `${gr.text} opacity-70`
                 : "text-red-400/70"
-            }`}
+              }`}
           >
             SETTLED
           </span>
