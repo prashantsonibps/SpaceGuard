@@ -123,7 +123,7 @@ export function SatelliteMarkers({
           id={id}
           color={color}
           index={i}
-          showLine={true}
+          showLine={selectedEventId != null && satToEventId.get(id) === selectedEventId}
           isSelected={selectedEventId != null && satToEventId.get(id) === selectedEventId}
           eventId={satToEventId.get(id) ?? null}
           onSelectEvent={onSelectEvent}

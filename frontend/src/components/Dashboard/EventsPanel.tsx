@@ -183,14 +183,7 @@ function EventRow({
                         ? `${(event.velocity_km_s || 0).toFixed(1)} km/s`
                         : type === 'LAUNCH'
                           ? event.weather ? event.weather.conditions : 'TBD'
-                          : (
-                            <span
-                              className="underline decoration-dotted cursor-pointer hover:opacity-70 transition-opacity"
-                              onClick={(e) => { e.stopPropagation(); setIsBettingOpen(true); }}
-                            >
-                              {probPct}%
-                            </span>
-                          )
+                          : `${probPct}%`
                 }
               </div>
             </div>
