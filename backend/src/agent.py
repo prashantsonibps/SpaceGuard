@@ -4,8 +4,11 @@ from pathlib import Path
 from typing import Any, Dict
 
 import weave
-from mistralai import Mistral
 from dotenv import load_dotenv
+from fastapi import HTTPException
+from mistralai import Mistral
+
+from services.white_circle import verify_agent_output_sync
 
 # Load .env from backend directory (works when run from backend/ or project root)
 _backend_dir = Path(__file__).resolve().parent.parent
@@ -75,12 +78,32 @@ You MUST respond with a single valid JSON object only, no other text. Use this e
         result = json.loads(content.strip())
 
         # Normalize to expected keys (Mistral might return slightly different names)
-        return {
+        normalized = {
             "reasoning": result.get("reasoning", result.get("thought_process", "")),
             "action": result.get("action", "IGNORE").upper(),
             "hedge_amount_usd": float(result.get("hedge_amount_usd", 0)),
             "hedge_type": result.get("hedge_type", "none"),
         }
+
+        # ── White Circle AI Safety Guard ──────────────────────────────────────
+        # Combine system + user prompt for full security context.
+        security_prompt = f"{system_prompt}\n\n{user_prompt}"
+        security_report = verify_agent_output_sync(
+            prompt=security_prompt,
+            ai_response=json.dumps(normalized),
+        )
+
+        status = (security_report or {}).get("status", "").upper()
+        is_safe = bool((security_report or {}).get("safe"))
+
+        # Fail-secure: treat any non-SAFE or error state as unsafe and block.
+        if not is_safe or status not in ("SAFE", ""):
+            raise HTTPException(
+                status_code=403,
+                detail="AI response blocked by White Circle security layer",
+            )
+
+        return normalized
 
     except json.JSONDecodeError as e:
         print(f"❌ Mistral returned invalid JSON: {e}")
@@ -90,6 +113,9 @@ You MUST respond with a single valid JSON object only, no other text. Use this e
             "hedge_amount_usd": 0,
             "hedge_type": "none",
         }
+    except HTTPException:
+        # Re-raise HTTPException so FastAPI can map it to a 403 for frontend calls.
+        raise
     except Exception as e:
         err_msg = str(e)
         print(f"❌ Mistral API Error: {err_msg}")

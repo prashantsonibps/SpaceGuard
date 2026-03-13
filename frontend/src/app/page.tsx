@@ -19,6 +19,7 @@ export default function HomePage() {
   const [userId, setUserId] = useState<string | null>(null)
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<TabType>('TRENDING')
+  const [isRiskOpen, setIsRiskOpen] = useState(false)
 
   useEffect(() => {
     // Check if user ID exists in localStorage
@@ -51,8 +52,19 @@ export default function HomePage() {
           selectedEventId={selectedEventId}
           onSelectEvent={setSelectedEventId}
           activeTab={activeTab}
+          isOpen={isRiskOpen}
         />
       )}
+      {/* Right-side risk monitor toggle */}
+      <button
+        type="button"
+        onClick={() => setIsRiskOpen((open) => !open)}
+        className="absolute right-1 top-1/2 -translate-y-1/2 z-40 flex items-center justify-center w-9 h-20 rounded-l-full bg-white/80 dark:bg-neutral-900/70 border border-r-0 border-black/20 dark:border-white/20 shadow-lg"
+      >
+        <span className="font-mono text-xs tracking-[0.2em] text-slate-700 dark:text-slate-200 rotate-90">
+          {isRiskOpen ? 'CLOSE' : 'RISK'}
+        </span>
+      </button>
       <FinancialTerminal userId={userId ?? undefined} />
     </div>
   )

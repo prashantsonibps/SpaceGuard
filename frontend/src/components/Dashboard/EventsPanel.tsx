@@ -297,11 +297,13 @@ export function EventsPanel({
   selectedEventId,
   onSelectEvent,
   activeTab,
+  isOpen,
 }: {
   userId?: string
   selectedEventId: string | null
   onSelectEvent: (id: string | null) => void
   activeTab: 'TRENDING' | 'SAT' | 'NEO' | 'WEATHER' | 'INDEX' | 'FIREBALL' | 'LAUNCH'
+  isOpen: boolean
 }) {
   const { theme } = useTheme()
   const rc = riskClasses[theme]
@@ -481,53 +483,65 @@ export function EventsPanel({
   if (!userId) return null;
 
   return (
-    <GlassCard className="absolute right-4 top-16 bottom-4 w-72 flex flex-col z-40 !bg-white/80 dark:!bg-neutral-900/50">
-      {/* Header */}
-      <div className="px-3 py-2.5 border-b border-black/20 dark:border-white/10 shrink-0">
-        <div className="flex items-center justify-between">
-          <h2 className={`font-orbitron ${fontSize.base} font-bold ${textOpacity[theme].primary} tracking-[0.2em]`}>
-            RISK MONITOR
-          </h2>
-          <p className={`${fontSize.small} font-mono ${textOpacity[theme].faint} tabular-nums`}>
-            {time ? time.toISOString().slice(11, 19) : '––:––:––'} UTC
-          </p>
-        </div>
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          initial={{ opacity: 0, x: 40 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: 40 }}
+          transition={{ duration: 0.2 }}
+          className="absolute z-40 right-2 top-20 bottom-4 w-[min(18rem,calc(100vw-1.5rem))] md:right-4 md:top-16 md:bottom-4 md:w-72"
+        >
+          <GlassCard className="w-full h-full flex flex-col !bg-white/80 dark:!bg-neutral-900/50">
+            {/* Header */}
+            <div className="px-3 py-2.5 border-b border-black/20 dark:border-white/10 shrink-0">
+              <div className="flex items-center justify-between">
+                <h2 className={`font-orbitron ${fontSize.base} font-bold ${textOpacity[theme].primary} tracking-[0.2em]`}>
+                  RISK MONITOR
+                </h2>
+                <p className={`${fontSize.small} font-mono ${textOpacity[theme].faint} tabular-nums`}>
+                  {time ? time.toISOString().slice(11, 19) : '––:––:––'} UTC
+                </p>
+              </div>
 
-      </div>
+            </div>
 
-      {/* Events list */}
-      <div className="flex-1 overflow-y-auto">
-        {loading ? (
-          <div className={`p-4 text-center text-xs font-mono ${textOpacity[theme].muted}`}>
-            <div className={`w-4 h-4 rounded-full border-2 border-sky-300/30 border-t-sky-300 animate-spin mx-auto mb-2`} />
-            Scanning Deep Space...
-          </div>
-        ) : currentList.length === 0 ? (
-          <div className={`p-4 text-center text-xs font-mono ${textOpacity[theme].muted}`}>
-            No active risks detected in this sector.
-          </div>
-        ) : (
-          currentList.map((event, i) => (
-            <EventRow
-              key={event.id}
-              event={event}
-              index={i}
-              type={(event as any)._type || activeTab}
-              userId={userId}
-              isSelected={selectedEventId === event.id}
-              onSelect={onSelectEvent}
-            />
-          ))
-        )}
-      </div>
+            {/* Events list */}
+            <div className="flex-1 overflow-y-auto">
+              {loading ? (
+                <div className={`p-4 text-center text-xs font-mono ${textOpacity[theme].muted}`}>
+                  <div className={`w-4 h-4 rounded-full border-2 border-sky-300/30 border-t-sky-300 animate-spin mx-auto mb-2`} />
+                  Scanning Deep Space...
+                </div>
+              ) : currentList.length === 0 ? (
+                <div className={`p-4 text-center text-xs font-mono ${textOpacity[theme].muted}`}>
+                  No active risks detected in this sector.
+                </div>
+              ) : (
+                currentList.map((event, i) => (
+                  <EventRow
+                    key={event.id}
+                    event={event}
+                    index={i}
+                    type={(event as any)._type || activeTab}
+                    userId={userId}
+                    isSelected={selectedEventId === event.id}
+                    onSelect={onSelectEvent}
+                  />
+                ))
+              )}
+            </div>
 
-      {/* Footer */}
-      <div className="px-3 py-1.5 border-t border-black/20 dark:border-white/10 shrink-0">
-        <div className={`${fontSize.small} font-mono ${accent[theme].text} opacity-80 text-center tracking-wider flex justify-center items-center gap-1.5`}>
-          <div className={`w-1.5 h-1.5 rounded-full ${accent[theme].dot} animate-pulse`} />
-          MISTRAL AI AGENT ACTIVE
-        </div>
-      </div>
-    </GlassCard>
+            {/* Footer */}
+            <div className="px-3 py-1.5 border-t border-black/20 dark:border-white/10 shrink-0">
+              <div className={`${fontSize.small} font-mono ${accent[theme].text} opacity-80 text-center tracking-wider flex justify-center items-center gap-1.5`}>
+                <div className={`w-1.5 h-1.5 rounded-full ${accent[theme].dot} animate-pulse`} />
+                MISTRAL AI AGENT ACTIVE
+              </div>
+            </div>
+          </GlassCard>
+        </motion.div>
+      )}
+    </AnimatePresence>
   )
 }
