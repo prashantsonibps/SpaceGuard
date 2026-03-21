@@ -44,7 +44,7 @@ export function TopBar({ variant = 'overlay' }: TopBarProps) {
 
   return (
     <motion.div
-      className={`${positionClass} h-12 flex items-center px-6 gap-6
+      className={`${positionClass} h-12 flex items-center px-3 sm:px-6 gap-3 sm:gap-6
         bg-white/70 dark:bg-black/40 backdrop-blur-md border-b border-black/20 dark:border-white/10`}
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -58,13 +58,13 @@ export function TopBar({ variant = 'overlay' }: TopBarProps) {
         </span>
       </div>
 
-      <div className="h-4 w-px bg-black/20 dark:bg-white/20" />
+      <div className="hidden sm:block h-4 w-px bg-black/20 dark:bg-white/20" />
 
       {/* Nav links */}
-      <div className="flex items-center gap-1">
+      <div className="flex min-w-0 flex-1 items-center gap-0.5 overflow-x-auto sm:flex-initial sm:gap-1">
         <Link
           href="/"
-          className={`${fontSize.small} font-mono px-2 py-0.5 rounded transition-colors ${pathname === '/'
+          className={`${fontSize.small} shrink-0 font-mono px-2 py-0.5 rounded transition-colors ${pathname === '/'
             ? `${accent[theme].text} ${accent[theme].bgDim}`
             : 'text-slate-500 dark:text-white/40 hover:text-slate-700 dark:hover:text-white/60'
             }`}
@@ -73,7 +73,7 @@ export function TopBar({ variant = 'overlay' }: TopBarProps) {
         </Link>
         <Link
           href="/prediction"
-          className={`${fontSize.small} font-mono px-2 py-0.5 rounded transition-colors ${pathname === '/prediction'
+          className={`${fontSize.small} shrink-0 font-mono px-2 py-0.5 rounded transition-colors ${pathname === '/prediction'
             ? `${accent[theme].text} ${accent[theme].bgDim}`
             : 'text-slate-500 dark:text-white/40 hover:text-slate-700 dark:hover:text-white/60'
             }`}
@@ -82,7 +82,7 @@ export function TopBar({ variant = 'overlay' }: TopBarProps) {
         </Link>
         <Link
           href="/portfolio"
-          className={`${fontSize.small} font-mono px-2 py-0.5 rounded transition-colors ${pathname === '/portfolio'
+          className={`${fontSize.small} shrink-0 font-mono px-2 py-0.5 rounded transition-colors ${pathname === '/portfolio'
             ? `${accent[theme].text} ${accent[theme].bgDim}`
             : 'text-slate-500 dark:text-white/40 hover:text-slate-700 dark:hover:text-white/60'
             }`}
@@ -91,18 +91,18 @@ export function TopBar({ variant = 'overlay' }: TopBarProps) {
         </Link>
       </div>
 
-      <div className="h-4 w-px bg-black/20 dark:bg-white/20" />
+      <div className="hidden md:block h-4 w-px bg-black/20 dark:bg-white/20" />
 
       {/* Live indicator */}
-      <div className="flex items-center gap-1.5">
+      <div className="hidden md:flex items-center gap-1.5 shrink-0">
         <span className={`w-1.5 h-1.5 rounded-full ${green[theme].bg} animate-pulse`} />
         <span className={`${green[theme].text} text-xs font-mono`}>LIVE</span>
       </div>
 
-      <div className="h-4 w-px bg-black/20 dark:bg-white/20" />
+      <div className="hidden lg:block h-4 w-px bg-black/20 dark:bg-white/20" />
 
       {/* Stats */}
-      <div className="flex items-center gap-6 text-xs font-mono">
+      <div className="hidden lg:flex items-center gap-6 text-xs font-mono shrink-0">
         <div className="flex items-center gap-1.5">
           <span className="text-slate-500 dark:text-white/40">TRACKING</span>
           <span className="text-slate-900 dark:text-white font-medium">847</span>
@@ -119,9 +119,11 @@ export function TopBar({ variant = 'overlay' }: TopBarProps) {
 
       {/* Light / Dark toggle */}
       <button
+        type="button"
         onClick={toggleTheme}
-        className="p-1.5 rounded-lg bg-black/10 dark:bg-white/10 hover:bg-black/20 dark:hover:bg-white/20
+        className="shrink-0 p-1.5 rounded-lg bg-black/10 dark:bg-white/10 hover:bg-black/20 dark:hover:bg-white/20
           text-slate-600 dark:text-white/70 transition-colors"
+        aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
         title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
       >
         {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
