@@ -254,7 +254,7 @@ function EventRow({
             >
               <div className={`${fontSize.small} font-mono ${textOpacity[theme].secondary} bg-black/[0.04] dark:bg-white/[0.04] border ${accent[theme].borderDim} rounded px-2 py-1.5 mb-2 leading-relaxed`}>
                 <span className={`${accent[theme].text} font-bold flex items-center gap-2 mb-1`}>
-                  🤖 Mistral AI Assessment:
+                  🤖 SpaceGuard Live Agent Assessment:
                   {event.agent_assessment && process.env.NEXT_PUBLIC_ELEVENLABS_API_KEY && (
                     <button
                       onClick={(e) => { e.stopPropagation(); speakAssessment(event.agent_assessment!) }}
@@ -619,7 +619,7 @@ export function EventsPanel({
             <div className="px-3 py-1.5 border-t border-black/20 dark:border-white/10 shrink-0">
               <div className={`${fontSize.small} font-mono ${accent[theme].text} opacity-80 text-center tracking-wider flex justify-center items-center gap-1.5`}>
                 <div className={`w-1.5 h-1.5 rounded-full ${accent[theme].dot} animate-pulse`} />
-                MISTRAL AI AGENT ACTIVE
+                SPACEGUARD LIVE AGENT ACTIVE
               </div>
             </div>
           </GlassCard>
