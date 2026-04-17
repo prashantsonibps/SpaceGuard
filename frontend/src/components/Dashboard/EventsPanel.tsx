@@ -1,10 +1,15 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { GlassCard } from '@/components/ui/GlassCard'
 import { db } from '@/lib/firebase'
-import { collection, onSnapshot, query, orderBy } from 'firebase/firestore'
+import {
+  collection,
+  onSnapshot,
+  query,
+  type FirestoreError,
+} from 'firebase/firestore'
 import { BettingModal } from './BettingModal'
 import { riskClasses, accent, textOpacity, fontSize } from '@/lib/theme'
 import { useTheme } from '@/lib/ThemeContext'
@@ -316,6 +321,27 @@ export function EventsPanel({
   const [fireballEvents, setFireballEvents] = useState<ConjunctionEvent[]>([])
   const [launchEvents, setLaunchEvents] = useState<ConjunctionEvent[]>([])
   const [loading, setLoading] = useState(true)
+  const [feedError, setFeedError] = useState<string | null>(null)
+  const initialSyncPendingRef = useRef(true)
+
+  const endInitialSync = useCallback(() => {
+    if (!initialSyncPendingRef.current) return
+    initialSyncPendingRef.current = false
+    setLoading(false)
+  }, [])
+
+  const onListenError = useCallback(
+    (source: string, err: FirestoreError) => {
+      console.error(`[Risk Monitor] ${source}:`, err.code, err.message)
+      const msg =
+        err.code === 'permission-denied'
+          ? 'Firestore blocked reads (permission denied). In Firebase Console → Firestore → Rules, allow read access for development or use authenticated users.'
+          : `${err.code}: ${err.message}`
+      setFeedError(msg)
+      endInitialSync()
+    },
+    [endInitialSync]
+  )
 
   // Clock timer
   useEffect(() => {
@@ -326,121 +352,170 @@ export function EventsPanel({
 
   // Firebase Real-time Listener
   useEffect(() => {
+    initialSyncPendingRef.current = true
+    setLoading(true)
+    setFeedError(null)
+
     const q1 = query(collection(db, 'conjunction_events'))
     const q2 = query(collection(db, 'neo_events'))
     const q3 = query(collection(db, 'space_weather_events'))
     const q4 = query(collection(db, 'noaa_indices'))
     const q5 = query(collection(db, 'fireball_events'))
 
-    const unsubscribe1 = onSnapshot(q1, (snapshot) => {
-      const newEvents: ConjunctionEvent[] = []
-      snapshot.forEach((doc) => {
-        newEvents.push({ id: doc.id, ...doc.data() } as ConjunctionEvent)
-      })
-      newEvents.sort((a, b) => a.closest_approach_km - b.closest_approach_km)
-      setEvents(newEvents)
-      setLoading(false)
-    })
+    const unsubscribe1 = onSnapshot(
+      q1,
+      (snapshot) => {
+        const newEvents: ConjunctionEvent[] = []
+        snapshot.forEach((doc) => {
+          newEvents.push({ id: doc.id, ...doc.data() } as ConjunctionEvent)
+        })
+        newEvents.sort((a, b) => a.closest_approach_km - b.closest_approach_km)
+        setEvents(newEvents)
+        setFeedError(null)
+        endInitialSync()
+      },
+      (err) => onListenError('conjunction_events', err)
+    )
 
-    const unsubscribe2 = onSnapshot(q2, (snapshot) => {
-      const newNeos: ConjunctionEvent[] = []
-      snapshot.forEach((doc) => {
-        const data = doc.data()
-        newNeos.push({
-          id: doc.id,
-          asset_id: String(data.id),
-          asset_name: data.name,
-          secondary_id: 'EARTH',
-          secondary_name: 'Earth',
-          closest_approach_km: 0,
-          collision_probability: 0,
-          time_of_closest_approach: data.close_approach_date,
-          risk_level: data.risk_level,
-          miss_distance_km: data.miss_distance_km,
-          estimated_diameter_max_km: data.estimated_diameter_max_km,
-          is_hazardous: data.is_hazardous,
-          agent_assessment: data.agent_assessment,
-        } as ConjunctionEvent)
-      })
-      newNeos.sort((a, b) => (a.miss_distance_km || 0) - (b.miss_distance_km || 0))
-      setNeoEvents(newNeos)
-    })
+    const unsubscribe2 = onSnapshot(
+      q2,
+      (snapshot) => {
+        const newNeos: ConjunctionEvent[] = []
+        snapshot.forEach((doc) => {
+          const data = doc.data()
+          newNeos.push({
+            id: doc.id,
+            asset_id: String(data.id),
+            asset_name: data.name,
+            secondary_id: 'EARTH',
+            secondary_name: 'Earth',
+            closest_approach_km: 0,
+            collision_probability: 0,
+            time_of_closest_approach: data.close_approach_date,
+            risk_level: data.risk_level,
+            miss_distance_km: data.miss_distance_km,
+            estimated_diameter_max_km: data.estimated_diameter_max_km,
+            is_hazardous: data.is_hazardous,
+            agent_assessment: data.agent_assessment,
+          } as ConjunctionEvent)
+        })
+        newNeos.sort((a, b) => (a.miss_distance_km || 0) - (b.miss_distance_km || 0))
+        setNeoEvents(newNeos)
+        setFeedError(null)
+        endInitialSync()
+      },
+      (err) => onListenError('neo_events', err)
+    )
 
-    const unsubscribe3 = onSnapshot(q3, (snapshot) => {
-      const newWeather: ConjunctionEvent[] = []
-      snapshot.forEach((doc) => {
-        const data = doc.data()
-        newWeather.push({
-          id: doc.id,
-          type: data.type,
-          start_time: data.start_time,
-          note: data.note,
-          class_type: data.class_type,
-          risk_level: data.risk_level,
-          agent_assessment: data.note // Use note as assessment for now
-        } as ConjunctionEvent)
-      })
-      // Sort by start_time descending
-      newWeather.sort((a, b) => new Date(b.start_time || 0).getTime() - new Date(a.start_time || 0).getTime())
-      setWeatherEvents(newWeather)
-    })
+    const unsubscribe3 = onSnapshot(
+      q3,
+      (snapshot) => {
+        const newWeather: ConjunctionEvent[] = []
+        snapshot.forEach((doc) => {
+          const data = doc.data()
+          newWeather.push({
+            id: doc.id,
+            type: data.type,
+            start_time: data.start_time,
+            note: data.note,
+            class_type: data.class_type,
+            risk_level: data.risk_level,
+            agent_assessment: data.note // Use note as assessment for now
+          } as ConjunctionEvent)
+        })
+        // Sort by start_time descending
+        newWeather.sort((a, b) => new Date(b.start_time || 0).getTime() - new Date(a.start_time || 0).getTime())
+        setWeatherEvents(newWeather)
+        setFeedError(null)
+        endInitialSync()
+      },
+      (err) => onListenError('space_weather_events', err)
+    )
 
-    const unsubscribe4 = onSnapshot(q4, (snapshot) => {
-      const newIndices: ConjunctionEvent[] = []
-      snapshot.forEach((doc) => {
-        const data = doc.data()
-        newIndices.push({
-          id: doc.id,
-          name: data.name,
-          value: data.value,
-          timestamp: data.timestamp,
-          description: data.description,
-          risk_level: data.risk_level,
-          agent_assessment: data.description
-        } as ConjunctionEvent)
-      })
-      setNoaaIndices(newIndices)
-    })
+    const unsubscribe4 = onSnapshot(
+      q4,
+      (snapshot) => {
+        const newIndices: ConjunctionEvent[] = []
+        snapshot.forEach((doc) => {
+          const data = doc.data()
+          newIndices.push({
+            id: doc.id,
+            name: data.name,
+            value: data.value,
+            timestamp: data.timestamp,
+            description: data.description,
+            risk_level: data.risk_level,
+            agent_assessment: data.description
+          } as ConjunctionEvent)
+        })
+        setNoaaIndices(newIndices)
+        setFeedError(null)
+        endInitialSync()
+      },
+      (err) => onListenError('noaa_indices', err)
+    )
 
-    const unsubscribe5 = onSnapshot(q5, (snapshot) => {
-      const newFireballs: ConjunctionEvent[] = []
-      snapshot.forEach((doc) => {
-        const data = doc.data()
-        newFireballs.push({
-          id: doc.id,
-          date: data.date,
-          energy_kt: data.energy_kt,
-          velocity_km_s: data.velocity_km_s,
-          risk_level: 'LOW', // Usually low unless high energy
-          agent_assessment: `Energy: ${data.energy_kt} kt`
-        } as ConjunctionEvent)
-      })
-      newFireballs.sort((a, b) => new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime())
-      setFireballEvents(newFireballs)
-    })
+    const unsubscribe5 = onSnapshot(
+      q5,
+      (snapshot) => {
+        const newFireballs: ConjunctionEvent[] = []
+        snapshot.forEach((doc) => {
+          const data = doc.data()
+          newFireballs.push({
+            id: doc.id,
+            date: data.date,
+            energy_kt: data.energy_kt,
+            velocity_km_s: data.velocity_km_s,
+            risk_level: 'LOW', // Usually low unless high energy
+            agent_assessment: `Energy: ${data.energy_kt} kt`
+          } as ConjunctionEvent)
+        })
+        newFireballs.sort((a, b) => new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime())
+        setFireballEvents(newFireballs)
+        setFeedError(null)
+        endInitialSync()
+      },
+      (err) => onListenError('fireball_events', err)
+    )
 
     const q6 = query(collection(db, 'launches'))
 
-    const unsubscribe6 = onSnapshot(q6, (snapshot) => {
-      const newLaunches: ConjunctionEvent[] = []
-      snapshot.forEach((doc) => {
-        const data = doc.data()
-        newLaunches.push({
-          id: doc.id,
-          name: data.name,
-          risk_level: data.delay_risk,
-          window_start: data.window_start,
-          provider: data.provider,
-          weather: data.weather,
-          time_of_closest_approach: data.window_start // Reuse this field for countdown sorting
-        } as ConjunctionEvent)
-      })
-      newLaunches.sort((a, b) => new Date(a.time_of_closest_approach || 0).getTime() - new Date(b.time_of_closest_approach || 0).getTime())
-      setLaunchEvents(newLaunches)
+    const unsubscribe6 = onSnapshot(
+      q6,
+      (snapshot) => {
+        const newLaunches: ConjunctionEvent[] = []
+        snapshot.forEach((doc) => {
+          const data = doc.data()
+          newLaunches.push({
+            id: doc.id,
+            name: data.name,
+            risk_level: data.delay_risk,
+            window_start: data.window_start,
+            provider: data.provider,
+            weather: data.weather,
+            time_of_closest_approach: data.window_start // Reuse this field for countdown sorting
+          } as ConjunctionEvent)
+        })
+        newLaunches.sort((a, b) => new Date(a.time_of_closest_approach || 0).getTime() - new Date(b.time_of_closest_approach || 0).getTime())
+        setLaunchEvents(newLaunches)
+        setFeedError(null)
+        endInitialSync()
+      },
+      (err) => onListenError('launches', err)
+    )
+
+    const timeoutMs = 15000
+    const timeoutId = window.setTimeout(() => {
+      if (!initialSyncPendingRef.current) return
+      initialSyncPendingRef.current = false
       setLoading(false)
-    })
+      setFeedError(
+        'Live mission data is taking too long. Set NEXT_PUBLIC_FIREBASE_* in frontend/.env.local (Web app config), confirm Firestore rules allow reads, and ensure the backend pipeline has written data to Firestore.'
+      )
+    }, timeoutMs)
 
     return () => {
+      window.clearTimeout(timeoutId)
       unsubscribe1()
       unsubscribe2()
       unsubscribe3()
@@ -448,7 +523,7 @@ export function EventsPanel({
       unsubscribe5()
       unsubscribe6()
     }
-  }, [])
+  }, [endInitialSync, onListenError])
 
   const getTrendingEvents = () => {
     const allEvents = [
@@ -508,6 +583,14 @@ export function EventsPanel({
 
             {/* Events list */}
             <div className="flex-1 overflow-y-auto">
+              {feedError && (
+                <div
+                  className={`mx-2 mt-2 mb-1 p-2 rounded border border-amber-500/40 bg-amber-500/10 text-xs font-mono leading-snug ${textOpacity[theme].secondary}`}
+                  role="alert"
+                >
+                  {feedError}
+                </div>
+              )}
               {loading ? (
                 <div className={`p-4 text-center text-xs font-mono ${textOpacity[theme].muted}`}>
                   <div className={`w-4 h-4 rounded-full border-2 border-sky-300/30 border-t-sky-300 animate-spin mx-auto mb-2`} />
